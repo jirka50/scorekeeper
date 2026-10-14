@@ -289,3 +289,5 @@ button.pa.editing{outline:2px solid var(--ink)}
 .arow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .arow>.next{min-width:9.5em}
 .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;font-size:1rem;letter-spacing:.05em;background:var(--field-soft);border-radius:6px;padding:3px 8px}
+.opppick{display:flex;flex-direction:column;gap:8px}
+.oppedit{margin:0 0 8px}

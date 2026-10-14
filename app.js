@@ -26,7 +26,7 @@ const ours=()=>S.ours??1;
 const rname=num=>{const p=R.players.find(p=>p.num===num);return p?p.name:''};
 const anon=num=>String(num)[0]==='?';
 const short=num=>anon(num)?'P'+String(num).slice(1):'#'+num;
-const lbl=(t,num)=>{const n=t===ours()?rname(num):S.vsTid?nameIn(vsRoster(),num):'';return (anon(num)?'Pálkař '+String(num).slice(1):'#'+num)+(n?' '+n:'')};
+const lbl=(t,num)=>{const n=t===ours()?rname(num):S.vsTid?nameIn(vsRoster(),num):S.oppId?nameIn(oppById(S.oppId),num):'';return (anon(num)?'Pálkař '+String(num).slice(1):'#'+num)+(n?' '+n:'')};
 const nm=(t,p)=>{const v=S.teams[t].lineup[p];return v!=null?lbl(t,v):'—'};
 const pn=r=>lbl(r.t,r.num);
 const sortedRoster=()=>R.players.slice().sort((a,b)=>(+a.num)-(+b.num));
@@ -157,7 +157,7 @@ function lineupEditor(t){const L=S.teams[t].lineup;
    <div class="label">Pálkařské pořadí · ${L.length} hráčů</div>
    <div class="plist">${L.map((v,i)=>`<span class="pchip ${ui.sub&&ui.sub.t===t&&ui.sub.i===i?'subbing':''}"><span class="ord">${i+1}.</span><b>${esc(lbl(t,v))}</b>${anon(v)?`<button class="pbtn" aria-label="Doplnit číslo" title="Doplnit číslo dresu" data-act="pren" data-t="${t}" data-v="${i}">✎</button>`:''}<button class="pbtn" aria-label="Vystřídat" title="Vystřídat na tomto místě" data-act="psub" data-t="${t}" data-v="${i}">⇄</button>${i>0?`<button class="pbtn" aria-label="Posunout dopředu" data-act="pup" data-t="${t}" data-v="${i}">‹</button>`:''}<button class="pbtn x" aria-label="Odebrat" data-act="prem" data-t="${t}" data-v="${i}">×</button></span>`).join('')}</div>
    <div class="addrow"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" id="add${t}" placeholder="Číslo dresu" aria-label="Číslo hráče"><button class="solid" data-act="padd" data-t="${t}">Přidat</button></div>
-   ${ui.ren&&ui.ren.t===t?renPanel(t):ui.sub&&ui.sub.t===t?subPanel(t):pick}${t!==ours()?anonRow(t):''}
+   ${ui.ren&&ui.ren.t===t?renPanel(t):ui.sub&&ui.sub.t===t?subPanel(t):pick}${t!==ours()?oppPick(t)+anonRow(t):''}
    ${ui.msg[t]?`<div class="msg">${esc(ui.msg[t])}</div>`:''}</div>`}
 function teamView(){const ps=sortedRoster();
   return accessCard()+(WEB.role==='admin'?teamsCard()+adminCard():'')+`<div class="card form">
@@ -384,7 +384,7 @@ function historyCard(){const H=loadH();let h=`<div class="card"><div class="labe
     <div class="hbtns">${ui.hdel===g.gameId?`<button class="mini-btn out" data-act="hdelyes" data-v="${esc(g.gameId)}">Smazat</button><button class="mini-btn" data-act="hdelno">Ne</button>`:`${g.gameId===S.gameId?'':`<button class="mini-btn" data-act="hopen" data-v="${esc(g.gameId)}">Otevřít</button>`}<button class="mini-btn out" data-act="hdel" data-v="${esc(g.gameId)}" aria-label="Smazat zápas">×</button>`}</div></div>`}).join('')}</div>
     <p class="next" style="margin:6px 0 0">Otevřený zápas najdeš v Zápisu, odkud ho můžeš uložit i jako PDF. Rozehraný zápas se před otevřením uloží do historie.</p>`;
   return h+(ui.hMsg?`<div class="next">${esc(ui.hMsg)}</div>`:'')+'</div>'}
-const gamesView=()=>scheduleCard()+historyCard();
+const gamesView=()=>scheduleCard()+oppCard()+historyCard();
 
 /* ----- recap text ----- */
 function summaryText(){const o=ours(),st={};S.pas.filter(r=>r.t===o).forEach(r=>{const x=st[r.num]||(st[r.num]={h:0,r:0});if(HITS.includes(r.code))x.h++;if(r.scored)x.r++});
@@ -400,7 +400,7 @@ function gameTools(){let h=`<div class="card form"><div class="label">Po zápase
 
 /* ----- backup ----- */
 function backupData(){save();saveR();const data={};TEAMS.list.forEach(t=>{data[t.id]={S:store.get(keyFor(KEY,t.id),null),R:store.get(keyFor(RKEY,t.id),null),H:loadHFor(t.id),Sch:store.get(keyFor(SKEY,t.id),[])}});
-  return{app:'tball-scorekeeper',v:2,when:new Date().toISOString(),S,R,H:loadH(),teams:{list:TEAMS.list,data}}}
+  return{app:'tball-scorekeeper',v:2,when:new Date().toISOString(),S,R,H:loadH(),teams:{list:TEAMS.list,data},opponents:loadOpp()}}
 function settingsExtra(){return `<div class="card form"><div class="label">Záloha</div><p class="next" style="margin:0">Uloží soupisku, rozehraný zápas i historii do jednoho souboru. Na jiném telefonu ho pak obnovíš.</p>
   <div class="row">${DL?'<button class="solid" data-act="bkup">Zálohovat do souboru</button>':'<button class="solid" data-act="bkshow">Zobrazit zálohu</button>'}<label class="ghost filebtn" for="bkfile">Obnovit ze souboru<input type="file" id="bkfile" accept=".json,application/json" class="vh"></label></div>
   ${ui.bkText?`<textarea readonly class="bktext" id="bktext">${esc(ui.bkText)}</textarea><button class="ghost" data-act="bkcopy">Kopírovat zálohu</button>`:''}
@@ -569,7 +569,7 @@ function attLineup(withDef){if(S.pas.some(r=>r.t===ours())){ui.attMsg='Pořadí 
   ui.attMsg='Pořadí: '+L.map(n=>'#'+n).join(', ')+(withDef?'. Obrana 1. směny je vyplněná.':'.');commit()}
 
 /* ----- rozpis zápasů ----- */
-const SKEY='tball-schedule-v1';
+const SKEY='tball-schedule-v1',OKEY='tball-opp-v1';
 const GTYPES=['Scrimmage','Friendly','Přebor','Turnaj'],COMPS=['Baseball U9','Softball U10'];
 const kindTxt=m=>[m&&m.type,m&&m.comp].filter(Boolean).join(' · ');
 const optList=(id,label,list)=>`<label for="${id}">${label}<select id="${id}" class="sel">${list.map(v=>`<option>${esc(v)}</option>`).join('')}</select></label>`;
@@ -579,16 +579,16 @@ function scheduleCard(){const list=loadSch().filter(x=>!x.played).sort((a,b)=>(a
   return `<div class="card form"><div class="label">Rozpis zápasů</div>
   ${list.length?`<div class="hist">${list.map(x=>`<div class="hrow"><span class="res rR">${x.home?'D':'H'}</span><div class="hmain"><b>${esc(R.name||S.teams[ours()].name)} – ${esc(x.opp)}</b><span class="next">${esc(gDate({meta:{date:x.date}}))}${x.time?' · '+esc(x.time):''}${x.field?' · '+esc(x.field):''} · ${x.home?'doma':'venku'}${kindTxt(x)?'<br>'+esc(kindTxt(x)):''}</span></div><div class="hbtns"><button class="mini-btn" data-act="schstart" data-v="${esc(x.id)}">Začít</button><button class="mini-btn out" data-act="schdel" data-v="${esc(x.id)}" aria-label="Smazat z rozpisu">×</button></div></div>`).join('')}</div>`:'<p class="next" style="margin:0">Zatím žádné naplánované zápasy.</p>'}
   <div class="cols2"><label for="sch-d">Datum<input type="date" id="sch-d" value="${todayISO()}"></label><label for="sch-t">Čas<input type="time" id="sch-t"></label>
-  <label for="sch-o">Soupeř<input type="text" id="sch-o" placeholder="název týmu"></label>${TEAMS.list.length>1?`<label for="sch-v">…nebo můj tým<select id="sch-v" class="sel"><option value="">ne, cizí tým</option>${TEAMS.list.filter(t=>t.id!==TEAMS.cur).map(t=>`<option value="${esc(t.id)}">${esc(teamName(t))}</option>`).join('')}</select></label>`:''}<label for="sch-f">Hřiště<input type="text" id="sch-f" placeholder="kde se hraje"></label>
+  <label for="sch-o">Soupeř<input type="text" id="sch-o" placeholder="název týmu"></label>${oppSchedSelect()}${TEAMS.list.length>1?`<label for="sch-v">…nebo můj tým<select id="sch-v" class="sel"><option value="">ne, cizí tým</option>${TEAMS.list.filter(t=>t.id!==TEAMS.cur).map(t=>`<option value="${esc(t.id)}">${esc(teamName(t))}</option>`).join('')}</select></label>`:''}<label for="sch-f">Hřiště<input type="text" id="sch-f" placeholder="kde se hraje"></label>
   <label for="sch-h">Hrajeme<select id="sch-h" class="sel"><option value="1">doma (pálíme druzí)</option><option value="0">venku (pálíme první)</option></select></label>
   ${optList('sch-y','Typ zápasu',GTYPES)}${optList('sch-c','Soutěž',COMPS)}</div>
   <button class="ghost" data-act="schadd" style="align-self:flex-start">Přidat do rozpisu</button>${ui.schMsg?`<div class="next">${esc(ui.schMsg)}</div>`:''}
   <p class="next" style="margin:0">„Začít“ uloží rozehraný zápas do historie a založí nový s vyplněným soupeřem, datem a hřištěm. Soupeř dostane místa v pořadí bez čísel.</p></div>`}
-function schAdd(){const g=id=>(document.getElementById(id)||{}).value||'';const vs=TEAMS.list.find(t=>t.id===g('sch-v')&&t.id!==TEAMS.cur);const opp=vs?teamName(vs):g('sch-o').trim();if(!opp){ui.schMsg='Doplň soupeře.';return render()}
-  const x={id:newId(),date:g('sch-d')||todayISO(),time:g('sch-t'),opp,field:g('sch-f').trim(),home:g('sch-h')!=='0',type:g('sch-y')||GTYPES[0],comp:g('sch-c')||COMPS[0]};if(vs)x.vsTid=vs.id;const l=loadSch();l.push(x);saveSch(l);if(vs)twinSchedule(x);ui.schMsg='Přidáno: '+opp+(vs?'. Zápas je i v rozpisu týmu '+opp+'.':'.');render()}
+function schAdd(){const g=id=>(document.getElementById(id)||{}).value||'';const vs=TEAMS.list.find(t=>t.id===g('sch-v')&&t.id!==TEAMS.cur),so=!vs&&oppById(g('sch-p'));const opp=vs?teamName(vs):so?so.name:g('sch-o').trim();if(!opp){ui.schMsg='Doplň soupeře.';return render()}
+  const x={id:newId(),date:g('sch-d')||todayISO(),time:g('sch-t'),opp,field:g('sch-f').trim(),home:g('sch-h')!=='0',type:g('sch-y')||GTYPES[0],comp:g('sch-c')||COMPS[0]};if(vs)x.vsTid=vs.id;else if(so)x.oppId=so.id;const l=loadSch();l.push(x);saveSch(l);if(vs)twinSchedule(x);ui.schMsg='Přidáno: '+opp+(vs?'. Zápas je i v rozpisu týmu '+opp+'.':'.');render()}
 function schStart(id){const l=loadSch(),x=l.find(y=>y.id===id);if(!x)return;archiveGame();
-  const o=ours(),me={name:R.name||S.teams[o].name,lineup:S.teams[o].lineup.slice()},vs=x.vsTid&&TEAMS.list.some(t=>t.id===x.vsTid)?x.vsTid:null,them={name:x.opp,lineup:vs?sideLineup(vs):range(9).map(i=>'?'+i)};
-  const keep=S.settings;S=fresh();S.settings=keep;S.teams=x.home?[them,me]:[me,them];S.ours=x.home?1:0;S.meta={date:x.date,field:x.field,type:x.type,comp:x.comp};S.example=false;if(vs)S.vsTid=vs;
+  const o=ours(),me={name:R.name||S.teams[o].name,lineup:S.teams[o].lineup.slice()},vs=x.vsTid&&TEAMS.list.some(t=>t.id===x.vsTid)?x.vsTid:null,so=!vs&&oppById(x.oppId),them={name:so?so.name:x.opp,lineup:vs?sideLineup(vs):so?oppLineup(so):range(9).map(i=>'?'+i)};
+  const keep=S.settings;S=fresh();S.settings=keep;S.teams=x.home?[them,me]:[me,them];S.ours=x.home?1:0;S.meta={date:x.date,field:x.field,type:x.type,comp:x.comp};S.example=false;if(vs)S.vsTid=vs;else if(so)S.oppId=so.id;
   x.played=true;x.gameId=S.gameId;saveSch(l);if(vs)twinPlayed(x);hist=[];ui.tab='game';commit()}
 
 /* ----- CSV export ----- */
@@ -705,7 +705,7 @@ CHG.teamsel=v=>switchTeam(v);
 {const t1=TEAMS.list.find(t=>t.id==='t1');if(t1&&!t1.name&&R.name){t1.name=R.name}}
 function restoreAllTeams(b){const keep=b.teams.data;
   b.teams.list.forEach(t=>{const d=keep[t.id]||{};if(d.S)store.set(keyFor(KEY,t.id),d.S);if(d.R)store.set(keyFor(RKEY,t.id),d.R);store.set(keyFor(HKEY,t.id),Array.isArray(d.H)?d.H:[]);store.set(keyFor(SKEY,t.id),Array.isArray(d.Sch)?d.Sch:[])});
-  TEAMS.list=b.teams.list.map(t=>({id:t.id,name:t.name||''}));loadTeam(TEAMS.list.some(t=>t.id===TEAMS.cur)?TEAMS.cur:TEAMS.list[0].id);saveTeams();
+  if(Array.isArray(b.opponents))mergeOpp(b.opponents);TEAMS.list=b.teams.list.map(t=>({id:t.id,name:t.name||''}));loadTeam(TEAMS.list.some(t=>t.id===TEAMS.cur)?TEAMS.cur:TEAMS.list[0].id);saveTeams();
   ui.bkPending=null;ui.bkMsg='Záloha obnovena ('+TEAMS.list.length+' '+(TEAMS.list.length===1?'tým':'týmy')+').';render()}
 /* ----- zápas mezi dvěma mými týmy ----- */
 const sortPl=ps=>(ps||[]).slice().sort((a,b)=>(+a.num)-(+b.num));
@@ -717,7 +717,7 @@ const sideLineup=tid=>{const ps=sortPl(rosterOfTeam(tid).players);return ps.leng
 function vsSelect(){if(TEAMS.list.length<2)return'';const others=TEAMS.list.filter(t=>t.id!==TEAMS.cur),locked=S.pas.length>0;
   return `<label for="vstid">Soupeř je můj druhý tým<select id="vstid" class="sel" ${locked?'disabled':''}><option value="">ne, hrajeme proti cizímu týmu</option>${others.map(t=>`<option value="${esc(t.id)}" ${S.vsTid===t.id?'selected':''}>${esc(teamName(t))}</option>`).join('')}</select></label>
   ${S.vsTid?'<p class="next" style="margin:0">Soupeř dostal soupisku a jména svého týmu. Po skončení se zápas uloží do historie a statistik obou týmů.</p>':locked?'':'<p class="next" style="margin:0">Vyber před prvním odpalem. Soupeř pak dostane soupisku svého týmu.</p>'}`}
-function setVs(tid){if(S.pas.length)return;const t=1-ours();snap();
+function setVs(tid){if(S.pas.length)return;const t=1-ours();snap();delete S.oppId;
   if(tid&&TEAMS.list.some(x=>x.id===tid&&x.id!==TEAMS.cur)){S.vsTid=tid;S.teams[t]={name:teamName(TEAMS.list.find(x=>x.id===tid)),lineup:sideLineup(tid)}}
   else{delete S.vsTid;S.teams[t]={name:t?'Domácí':'Hosté',lineup:range(9).map(i=>'?'+i)}}
   S.bat[t]=0;S.subs=(S.subs||[]).filter(x=>x.t!==t);save();render()}
@@ -763,7 +763,7 @@ async function startSession(code,p){WEB.code=code;WEB.role=p.role;WEB.team=p.tea
   try{localStorage.setItem(AUTH_KEY,JSON.stringify({code,role:p.role,team:p.team||null}))}catch(e){}
   ROLE='scorer';SYNC.st='connecting';
   if(WEB.role==='scorer'&&WEB.team){if(!TEAMS.list.some(t=>t.id===WEB.team)){TEAMS.list.push({id:WEB.team,name:''})}if(TEAMS.cur!==WEB.team){save();saveR();loadTeam(WEB.team)}}
-  listenTeamlist();render()}
+  listenTeamlist();listenOpp();render()}
 (async()=>{await null;
   if(ROLE==='parent'){const tid=new URLSearchParams(location.search).get('tym');WEB.parentTeam=tid;const f=fbInit();if(!f)return render();
     f.db.ref('public/'+tid+'/live').on('value',s=>{const v=s.val();try{LIVE=v&&v.json?JSON.parse(v.json):null}catch(e){LIVE=null}WEB.parentName=v&&v.name||'';render()},()=>{WEB.msg='Odkaz není platný.';render()});return}
@@ -807,8 +807,9 @@ function logout(msg){try{if(FBX&&WEB.uid)FBX.db.ref('claims/'+WEB.uid).remove()}
 /* ---------- synchronizace ---------- */
 function syncNote(k){if(!WEB||!WEB.role||FS.applying)return;let slot;
   if(k===TEAMS_KEY){if(WEB.role!=='admin')return;slot='teams'}
+  else if(k===OKEY)slot='opp';
   else{const [base,tid='t1']=k.split(':'),kind=KIND_OF[base];if(!kind)return;slot=kind+'|'+tid}
-  if(!slot.startsWith('games|')&&slot!=='teams'){FS.meta[slot]=Date.now();metaSave()}
+  if(!slot.startsWith('games|')&&slot!=='teams'&&slot!=='opp'){FS.meta[slot]=Date.now();metaSave()}
   FS.dirty.add(slot);flushSoon()}
 function flushSoon(){clearTimeout(FS.t);FS.t=setTimeout(flush,1500)}
 function flush(){if(!FBX||!WEB.role||!FS.dirty.size||!WEB.online)return FS.chain;const slots=[...FS.dirty];FS.dirty.clear();SYNC.st='saving';
@@ -817,6 +818,7 @@ function flush(){if(!FBX||!WEB.role||!FS.dirty.size||!WEB.online)return FS.chain
     .then(()=>{if(ui.tab==='set')render()});return FS.chain}
 const J=v=>JSON.stringify(v);
 async function pushSlot(slot){const db=FBX.db;
+  if(slot==='opp')return pushOpp();
   if(slot==='teams'){const o={};TEAMS.list.forEach(t=>{o[t.id]={name:teamName(t)}});return db.ref('teamlist').set(o)}
   const [kind,tid]=slot.split('|');
   if(kind==='games')return pushGames(tid);
@@ -856,7 +858,7 @@ function applyTeam(tid,v,initial){const cur=tid===TEAMS.cur;let changed=false;
     else if(kind==='team'){if(!val||!Array.isArray(val.players))return;let next=val;
       if(initial&&lt===0){const local=cur?R:store.get(keyFor(RKEY,tid),null),have=new Set(val.players.map(p=>p.num)),add=(local&&local.players||[]).filter(p=>!have.has(p.num));if(add.length){next={...val,players:[...val.players,...add]};FS.dirty.add(slot)}}
       quiet(()=>{if(cur){R=next;saveR()}else store.set(keyFor(RKEY,tid),next)})}
-    else{if(!Array.isArray(val))return;quiet(()=>store.set(keyFor(SKEY,tid),val))}
+    else{if(!Array.isArray(val))return;quiet(()=>store.set(keyFor(BASE[kind],tid),val))}
     FS.meta[slot]=FS.dirty.has(slot)?Date.now():node.ts;metaSave();changed=true});
   /* historie */
   const rh=v.history||{},H=loadHFor(tid);let hc=false;
@@ -925,6 +927,72 @@ function addTeam(){const f=document.getElementById('tnew'),name=(f&&f.value||'')
   saveR();save();saveTeams();subscribeTeams();newPin(id);ui.tMsg='Tým „'+name+'“ je vytvořený a vybraný. Kód pro jeho zapisovatele najdeš níže.';ui.tab='team';render()}
 async function copyText(t){try{await navigator.clipboard.writeText(t);ui.linkMsg='Zkopírováno.'}catch(e){ui.linkMsg='Zkopíruj ručně: '+t}render()}
 Object.assign(ACT,{lgin:()=>doLogin(),lgsetup:()=>doSetup(),logout:()=>logout(''),pinnew:v=>newPin(v),copylink:v=>copyText(v),
-  syncnow:()=>{if(!WEB.role)return;['state','team','schedule','games'].forEach(k=>TEAMS.list.forEach(t=>{if(canWrite(t.id))FS.dirty.add(k+'|'+t.id)}));if(WEB.role==='admin')FS.dirty.add('teams');flush();render()}});
+  syncnow:()=>{if(!WEB.role)return;['state','team','schedule','games'].forEach(k=>TEAMS.list.forEach(t=>{if(canWrite(t.id))FS.dirty.add(k+'|'+t.id)}));if(WEB.role==='admin')FS.dirty.add('teams');FS.dirty.add('opp');flush();render()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target.id==='lg-code'||e.target.id==='lg-new2')){e.preventDefault();e.target.id==='lg-code'?doLogin():doSetup()}});
+
+/* =========== soupisky soupeřů (uložené u každého týmu, synchronizují se) =========== */
+const loadOpp=()=>{const x=store.get(OKEY,[]);return Array.isArray(x)?x:[]};
+const oppSig=o=>JSON.stringify({n:o.name,p:sortPl(o.players)});
+function saveOpp(L){const old={};loadOpp().forEach(o=>{old[o.id]=o});L.forEach(o=>{const p=old[o.id];if(!p||oppSig(p)!==oppSig(o)||!o.ts)o.ts=Date.now()});return store.set(OKEY,L)}
+function mergeOpp(list){const L=loadOpp();list.forEach(o=>{if(!o||!o.name)return;const same=L.find(x=>x.id===o.id)||L.find(x=>x.name.toLowerCase()===o.name.toLowerCase());
+  if(!same)L.push({...o,players:o.players||[]});else{const have=new Set(same.players.map(p=>p.num));(o.players||[]).forEach(p=>{if(!have.has(p.num))same.players.push(p)})}});saveOpp(L)}
+/* dřívější uložení po týmech -> společný seznam */
+{const extra=[];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(OKEY+':'))extra.push(k)}}catch(e){}
+ extra.forEach(k=>{const l=store.get(k,[]);if(Array.isArray(l)&&l.length)mergeOpp(l);try{localStorage.removeItem(k)}catch(e){}})}
+const oppById=id=>id?loadOpp().find(o=>o.id===id)||null:null;
+const oppLineup=o=>{const ps=sortPl(o.players);return ps.length?ps.map(p=>p.num):range(9).map(i=>'?'+i)};
+function oppCard(){const L=loadOpp().slice().sort((a,b)=>a.name.localeCompare(b.name,'cs'));
+  let h=`<div class="card form"><div class="label">Soupisky soupeřů · společné pro všechny týmy · ${L.length}</div>`;
+  if(!L.length)h+='<p class="next" style="margin:0">Zatím žádné. Ulož si soupeře, se kterými hrajete častěji. Soupisky jsou společné pro všechny tvoje týmy. Při zápase pak stačí soupisku vybrat a máš rovnou čísla, případně i jména.</p>';
+  else h+=`<div class="hist">${L.map(o=>{const ed=ui.oppEdit===o.id;
+    return `<div class="hrow opprow"><span class="res rR">${o.players.length}</span><div class="hmain"><b>${esc(o.name)}</b><span class="next">${o.players.length?sortPl(o.players).map(p=>'#'+esc(p.num)+(p.name?' '+esc(p.name):'')).join(', '):'zatím bez hráčů'}</span></div>
+    <div class="hbtns">${ui.oppDel===o.id?`<button class="mini-btn out" data-act="opdelyes" data-v="${esc(o.id)}">Smazat</button><button class="mini-btn" data-act="opdelno">Ne</button>`:`<button class="mini-btn" data-act="${ed?'opdone':'opedit'}" data-v="${esc(o.id)}">${ed?'Hotovo':'Upravit'}</button><button class="mini-btn out" data-act="opdel" data-v="${esc(o.id)}" aria-label="Smazat soupeře">×</button>`}</div></div>
+    ${ed?oppEditor(o):''}`}).join('')}</div>`;
+  return h+`<div class="addrow"><input type="text" id="op-new" placeholder="Název soupeře, např. Draci Praha" aria-label="Název soupeře"><button class="solid" data-act="opadd">+ Přidat soupeře</button></div>${ui.oppMsg?`<div class="next">${esc(ui.oppMsg)}</div>`:''}</div>`}
+function oppEditor(o){return `<div class="subp oppedit"><label for="op-name">Název<input type="text" id="op-name" value="${esc(o.name)}"></label>
+  <div class="plist">${sortPl(o.players).map(p=>`<span class="pchip"><b>#${esc(p.num)}</b>${p.name?' '+esc(p.name):''}<button class="pbtn x" aria-label="Odebrat hráče" data-act="oppdel" data-v="${esc(p.num)}">×</button></span>`).join('')||'<span class="next">Přidej hráče níže.</span>'}</div>
+  <div class="addrow"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" id="op-num" placeholder="Č." aria-label="Číslo dresu" style="max-width:76px"><input type="text" id="op-pname" placeholder="Jméno (nepovinné)" aria-label="Jméno hráče"><button class="solid" data-act="oppadd">Přidat</button></div>
+  <p class="next" style="margin:0">Stačí čísla dresů. Soupisku vidí a může upravit správce i zapisovatelé všech tvých týmů. Rodiče jména soupeřů neuvidí.</p></div>`}
+function oppPick(t){const L=loadOpp(),started=S.pas.some(r=>r.t===t),cur=S.oppId&&!S.vsTid?oppById(S.oppId):null;
+  return `<div class="opppick">${L.length&&!started?`<label for="opsel">Načíst uloženou soupisku soupeře<select id="opsel" class="sel"><option value="">–</option>${L.slice().sort((a,b)=>a.name.localeCompare(b.name,'cs')).map(o=>`<option value="${esc(o.id)}" ${S.oppId===o.id&&!S.vsTid?'selected':''}>${esc(o.name)} (${o.players.length})</option>`).join('')}</select></label>`:''}
+  ${S.vsTid?'':`<button class="ghost" data-act="opsave" data-t="${t}" style="align-self:flex-start">${cur?'Uložit změny do soupisky „'+esc(cur.name)+'“':'Uložit jako soupisku soupeře'}</button>`}</div>`}
+function applyOpp(id){const t=1-ours();if(S.pas.some(r=>r.t===t))return;const o=oppById(id);snap();delete S.vsTid;
+  if(o){S.oppId=o.id;S.teams[t]={name:o.name,lineup:oppLineup(o)}}else{delete S.oppId;S.teams[t]={name:t?'Domácí':'Hosté',lineup:range(9).map(i=>'?'+i)}}
+  S.bat[t]=0;S.subs=(S.subs||[]).filter(x=>x.t!==t);S.example=false;save();render()}
+function oppFromGame(t){const L=loadOpp(),nums=[...new Set([...S.teams[t].lineup,...(S.subs||[]).filter(x=>x.t===t).map(x=>x.out)])].filter(n=>!anon(n));
+  if(!nums.length){ui.msg[t]='Nejdřív zadej čísla dresů soupeře (✎ u míst v pořadí nebo „Přidat“).';return render()}
+  let o=S.oppId&&oppById(S.oppId);const name=S.teams[t].name||'Soupeř';
+  if(!o){o=L.find(x=>x.name.toLowerCase()===name.toLowerCase())||null}
+  if(o){const have=new Set(o.players.map(p=>p.num));nums.forEach(n=>{if(!have.has(n))o.players.push({num:n,name:''})});const i=L.findIndex(x=>x.id===o.id);L[i]=o;ui.msg[t]='Soupiska „'+o.name+'“ je aktualizovaná.'}
+  else{o={id:'o'+newId(),name,players:nums.map(n=>({num:n,name:''}))};L.push(o);ui.msg[t]='Soupiska „'+name+'“ je uložená. Upravíš ji v záložce Zápasy.'}
+  saveOpp(L);S.oppId=o.id;save();render()}
+function oppSchedSelect(){const L=loadOpp();if(!L.length)return'';
+  return `<label for="sch-p">…nebo uložený soupeř<select id="sch-p" class="sel"><option value="">–</option>${L.slice().sort((a,b)=>a.name.localeCompare(b.name,'cs')).map(o=>`<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label>`}
+const oppUpd=(id,fn)=>{const L=loadOpp(),i=L.findIndex(o=>o.id===id);if(i<0)return;fn(L[i]);saveOpp(L);render()};
+Object.assign(ACT,{
+  opadd:()=>{const f=document.getElementById('op-new'),name=(f&&f.value||'').trim();if(!name){ui.oppMsg='Napiš název soupeře.';return render()}const L=loadOpp();
+    if(L.some(o=>o.name.toLowerCase()===name.toLowerCase())){ui.oppMsg='Soupeř „'+name+'“ už uložený je.';return render()}const o={id:'o'+newId(),name,players:[]};L.push(o);saveOpp(L);ui.oppEdit=o.id;ui.oppMsg='';render()},
+  opedit:v=>{ui.oppEdit=v;ui.oppDel=null;render()},opdone:()=>{ui.oppEdit=null;render()},
+  opdel:v=>{ui.oppDel=v;render()},opdelno:()=>{ui.oppDel=null;render()},
+  opdelyes:v=>{saveOpp(loadOpp().filter(o=>o.id!==v));ui.oppDel=null;if(ui.oppEdit===v)ui.oppEdit=null;ui.oppMsg='Soupeř smazán. Odehrané zápasy zůstávají.';render()},
+  oppadd:()=>{const num=jersey(document.getElementById('op-num').value),name=(document.getElementById('op-pname').value||'').trim();if(!num){ui.oppMsg='Zadej číslo dresu.';return render()}
+    ui.oppMsg='';oppUpd(ui.oppEdit,o=>{const p=o.players.find(x=>x.num===num);if(p)p.name=name||p.name;else o.players.push({num,name})});const f=document.getElementById('op-num');if(f)f.focus()},
+  oppdel:v=>oppUpd(ui.oppEdit,o=>{o.players=o.players.filter(p=>p.num!==v)}),
+  opsave:(v,t)=>oppFromGame(t),
+});
+CHG.opsel=v=>applyOpp(v);
+CHG['op-name']=v=>{const n=v.trim();if(n)oppUpd(ui.oppEdit,o=>{o.name=n})};
+document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;if(e.target.id==='op-new'){e.preventDefault();ACT.opadd()}else if(e.target.id==='op-num'){e.preventDefault();const f=document.getElementById('op-pname');if(f)f.focus()}else if(e.target.id==='op-pname'){e.preventDefault();ACT.oppadd()}});
+/* ----- online: opponents/<id> = {ts, json}, společné pro všechny týmy ----- */
+function pushOpp(){const L=loadOpp(),db=FBX.db,ids=new Set(L.map(o=>o.id));FS.oppPushed=FS.oppPushed||{};const jobs=[];
+  L.forEach(o=>{if(FS.oppPushed[o.id]!==o.ts){jobs.push(db.ref('opponents/'+o.id).set({ts:o.ts||Date.now(),json:J(o)}).then(()=>{FS.oppPushed[o.id]=o.ts}))}});
+  Object.keys(FS.oppPushed).forEach(id=>{if(!ids.has(id))jobs.push(db.ref('opponents/'+id).remove().then(()=>{delete FS.oppPushed[id]}))});return Promise.all(jobs)}
+function listenOpp(){if(!FBX||FS.oppOn)return;FS.oppOn=true;FS.oppPushed=FS.oppPushed||{};let first=true;const ref=FBX.db.ref('opponents');
+  const cb=ref.on('value',snap=>{const v=snap.val()||{},L=loadOpp();let ch=false,needPush=false;
+    Object.keys(v).forEach(id=>{const r=v[id];let o;try{o=JSON.parse(r.json)}catch(e){return}o.ts=r.ts;FS.oppPushed[id]=r.ts;const i=L.findIndex(x=>x.id===id);
+      if(i<0){const dup=L.findIndex(x=>x.name.toLowerCase()===o.name.toLowerCase()&&!v[x.id]);if(dup>=0){const have=new Set(o.players.map(p=>p.num));L[dup].players.forEach(p=>{if(!have.has(p.num))o.players.push(p)});L.splice(dup,1);needPush=true}L.push(o);ch=true}
+      else if((L[i].ts||0)<r.ts){L[i]=o;ch=true}else if((L[i].ts||0)>r.ts)needPush=true});
+    for(let i=L.length-1;i>=0;i--){const o=L[i];if(v[o.id])continue;if(!first&&FS.oppPushed[o.id]!==undefined){delete FS.oppPushed[o.id];L.splice(i,1);ch=true}else needPush=true}
+    if(ch)quiet(()=>store.set(OKEY,L));if(needPush){FS.dirty.add('opp');flushSoon()}first=false;if(ch&&ROLE==='scorer')render()},()=>{FS.oppOn=false});
+  FS.subs.push(()=>{ref.off('value',cb);FS.oppOn=false})}
 render();
