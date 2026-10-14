@@ -291,3 +291,6 @@ button.pa.editing{outline:2px solid var(--ink)}
 .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;font-size:1rem;letter-spacing:.05em;background:var(--field-soft);border-radius:6px;padding:3px 8px}
 .opppick{display:flex;flex-direction:column;gap:8px}
 .oppedit{margin:0 0 8px}
+.ochips{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0}
+.ochip{font-size:.72rem;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--field-soft);color:var(--field)}
+.ocomp{display:flex;flex-wrap:wrap;gap:6px 18px}

@@ -585,7 +585,7 @@ function scheduleCard(){const list=loadSch().filter(x=>!x.played).sort((a,b)=>(a
   <button class="ghost" data-act="schadd" style="align-self:flex-start">Přidat do rozpisu</button>${ui.schMsg?`<div class="next">${esc(ui.schMsg)}</div>`:''}
   <p class="next" style="margin:0">„Začít“ uloží rozehraný zápas do historie a založí nový s vyplněným soupeřem, datem a hřištěm. Soupeř dostane místa v pořadí bez čísel.</p></div>`}
 function schAdd(){const g=id=>(document.getElementById(id)||{}).value||'';const vs=TEAMS.list.find(t=>t.id===g('sch-v')&&t.id!==TEAMS.cur),so=!vs&&oppById(g('sch-p'));const opp=vs?teamName(vs):so?so.name:g('sch-o').trim();if(!opp){ui.schMsg='Doplň soupeře.';return render()}
-  const x={id:newId(),date:g('sch-d')||todayISO(),time:g('sch-t'),opp,field:g('sch-f').trim(),home:g('sch-h')!=='0',type:g('sch-y')||GTYPES[0],comp:g('sch-c')||COMPS[0]};if(vs)x.vsTid=vs.id;else if(so)x.oppId=so.id;const l=loadSch();l.push(x);saveSch(l);if(vs)twinSchedule(x);ui.schMsg='Přidáno: '+opp+(vs?'. Zápas je i v rozpisu týmu '+opp+'.':'.');render()}
+  const x={id:newId(),date:g('sch-d')||todayISO(),time:g('sch-t'),opp,field:g('sch-f').trim(),home:g('sch-h')!=='0',type:g('sch-y')||GTYPES[0],comp:g('sch-c')||COMPS[0]};if(vs)x.vsTid=vs.id;else if(so){x.oppId=so.id;const oc=oppComps(so);if(oc.length===1&&!oc.includes(x.comp))x.comp=oc[0]}const l=loadSch();l.push(x);saveSch(l);if(vs)twinSchedule(x);ui.schMsg='Přidáno: '+opp+(vs?'. Zápas je i v rozpisu týmu '+opp+'.':'.');render()}
 function schStart(id){const l=loadSch(),x=l.find(y=>y.id===id);if(!x)return;archiveGame();
   const o=ours(),me={name:R.name||S.teams[o].name,lineup:S.teams[o].lineup.slice()},vs=x.vsTid&&TEAMS.list.some(t=>t.id===x.vsTid)?x.vsTid:null,so=!vs&&oppById(x.oppId),them={name:so?so.name:x.opp,lineup:vs?sideLineup(vs):so?oppLineup(so):range(9).map(i=>'?'+i)};
   const keep=S.settings;S=fresh();S.settings=keep;S.teams=x.home?[them,me]:[me,them];S.ours=x.home?1:0;S.meta={date:x.date,field:x.field,type:x.type,comp:x.comp};S.example=false;if(vs)S.vsTid=vs;else if(so)S.oppId=so.id;
@@ -932,7 +932,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.target.id==='lg-c
 
 /* =========== soupisky soupeřů (uložené u každého týmu, synchronizují se) =========== */
 const loadOpp=()=>{const x=store.get(OKEY,[]);return Array.isArray(x)?x:[]};
-const oppSig=o=>JSON.stringify({n:o.name,p:sortPl(o.players)});
+const oppSig=o=>JSON.stringify({n:o.name,p:sortPl(o.players),c:(o.comps||[]).slice().sort()});
+const oppComps=o=>(o&&o.comps||[]).filter(c=>COMPS.includes(c));
 function saveOpp(L){const old={};loadOpp().forEach(o=>{old[o.id]=o});L.forEach(o=>{const p=old[o.id];if(!p||oppSig(p)!==oppSig(o)||!o.ts)o.ts=Date.now()});return store.set(OKEY,L)}
 function mergeOpp(list){const L=loadOpp();list.forEach(o=>{if(!o||!o.name)return;const same=L.find(x=>x.id===o.id)||L.find(x=>x.name.toLowerCase()===o.name.toLowerCase());
   if(!same)L.push({...o,players:o.players||[]});else{const have=new Set(same.players.map(p=>p.num));(o.players||[]).forEach(p=>{if(!have.has(p.num))same.players.push(p)})}});saveOpp(L)}
@@ -945,16 +946,17 @@ function oppCard(){const L=loadOpp().slice().sort((a,b)=>a.name.localeCompare(b.
   let h=`<div class="card form"><div class="label">Soupisky soupeřů · společné pro všechny týmy · ${L.length}</div>`;
   if(!L.length)h+='<p class="next" style="margin:0">Zatím žádné. Ulož si soupeře, se kterými hrajete častěji. Soupisky jsou společné pro všechny tvoje týmy. Při zápase pak stačí soupisku vybrat a máš rovnou čísla, případně i jména.</p>';
   else h+=`<div class="hist">${L.map(o=>{const ed=ui.oppEdit===o.id;
-    return `<div class="hrow opprow"><span class="res rR">${o.players.length}</span><div class="hmain"><b>${esc(o.name)}</b><span class="next">${o.players.length?sortPl(o.players).map(p=>'#'+esc(p.num)+(p.name?' '+esc(p.name):'')).join(', '):'zatím bez hráčů'}</span></div>
+    return `<div class="hrow opprow"><span class="res rR">${o.players.length}</span><div class="hmain"><b>${esc(o.name)}</b>${oppComps(o).length?`<span class="ochips">${oppComps(o).map(c=>`<span class="ochip">${esc(c)}</span>`).join('')}</span>`:''}<span class="next">${o.players.length?sortPl(o.players).map(p=>'#'+esc(p.num)+(p.name?' '+esc(p.name):'')).join(', '):'zatím bez hráčů'}</span></div>
     <div class="hbtns">${ui.oppDel===o.id?`<button class="mini-btn out" data-act="opdelyes" data-v="${esc(o.id)}">Smazat</button><button class="mini-btn" data-act="opdelno">Ne</button>`:`<button class="mini-btn" data-act="${ed?'opdone':'opedit'}" data-v="${esc(o.id)}">${ed?'Hotovo':'Upravit'}</button><button class="mini-btn out" data-act="opdel" data-v="${esc(o.id)}" aria-label="Smazat soupeře">×</button>`}</div></div>
     ${ed?oppEditor(o):''}`}).join('')}</div>`;
   return h+`<div class="addrow"><input type="text" id="op-new" placeholder="Název soupeře, např. Draci Praha" aria-label="Název soupeře"><button class="solid" data-act="opadd">+ Přidat soupeře</button></div>${ui.oppMsg?`<div class="next">${esc(ui.oppMsg)}</div>`:''}</div>`}
-function oppEditor(o){return `<div class="subp oppedit"><label for="op-name">Název<input type="text" id="op-name" value="${esc(o.name)}"></label>
+function oppEditor(o){const oc=oppComps(o);return `<div class="subp oppedit"><label for="op-name">Název<input type="text" id="op-name" value="${esc(o.name)}"></label>
+  <div class="label">Hrajeme spolu v soutěži</div><div class="ocomp">${COMPS.map((c,i)=>`<label class="radio" for="opc-${i}"><input type="checkbox" id="opc-${i}" ${oc.includes(c)?'checked':''}> ${esc(c)}</label>`).join('')}</div>
   <div class="plist">${sortPl(o.players).map(p=>`<span class="pchip"><b>#${esc(p.num)}</b>${p.name?' '+esc(p.name):''}<button class="pbtn x" aria-label="Odebrat hráče" data-act="oppdel" data-v="${esc(p.num)}">×</button></span>`).join('')||'<span class="next">Přidej hráče níže.</span>'}</div>
   <div class="addrow"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" id="op-num" placeholder="Č." aria-label="Číslo dresu" style="max-width:76px"><input type="text" id="op-pname" placeholder="Jméno (nepovinné)" aria-label="Jméno hráče"><button class="solid" data-act="oppadd">Přidat</button></div>
   <p class="next" style="margin:0">Stačí čísla dresů. Soupisku vidí a může upravit správce i zapisovatelé všech tvých týmů. Rodiče jména soupeřů neuvidí.</p></div>`}
 function oppPick(t){const L=loadOpp(),started=S.pas.some(r=>r.t===t),cur=S.oppId&&!S.vsTid?oppById(S.oppId):null;
-  return `<div class="opppick">${L.length&&!started?`<label for="opsel">Načíst uloženou soupisku soupeře<select id="opsel" class="sel"><option value="">–</option>${L.slice().sort((a,b)=>a.name.localeCompare(b.name,'cs')).map(o=>`<option value="${esc(o.id)}" ${S.oppId===o.id&&!S.vsTid?'selected':''}>${esc(o.name)} (${o.players.length})</option>`).join('')}</select></label>`:''}
+  return `<div class="opppick">${L.length&&!started?`<label for="opsel">Načíst uloženou soupisku soupeře<select id="opsel" class="sel"><option value="">–</option>${L.slice().sort((a,b)=>a.name.localeCompare(b.name,'cs')).map(o=>`<option value="${esc(o.id)}" ${S.oppId===o.id&&!S.vsTid?'selected':''}>${esc(o.name)}${oppComps(o).length?' · '+esc(oppComps(o).join(', ')):''} (${o.players.length})</option>`).join('')}</select></label>`:''}
   ${S.vsTid?'':`<button class="ghost" data-act="opsave" data-t="${t}" style="align-self:flex-start">${cur?'Uložit změny do soupisky „'+esc(cur.name)+'“':'Uložit jako soupisku soupeře'}</button>`}</div>`}
 function applyOpp(id){const t=1-ours();if(S.pas.some(r=>r.t===t))return;const o=oppById(id);snap();delete S.vsTid;
   if(o){S.oppId=o.id;S.teams[t]={name:o.name,lineup:oppLineup(o)}}else{delete S.oppId;S.teams[t]={name:t?'Domácí':'Hosté',lineup:range(9).map(i=>'?'+i)}}
@@ -967,7 +969,7 @@ function oppFromGame(t){const L=loadOpp(),nums=[...new Set([...S.teams[t].lineup
   else{o={id:'o'+newId(),name,players:nums.map(n=>({num:n,name:''}))};L.push(o);ui.msg[t]='Soupiska „'+name+'“ je uložená. Upravíš ji v záložce Zápasy.'}
   saveOpp(L);S.oppId=o.id;save();render()}
 function oppSchedSelect(){const L=loadOpp();if(!L.length)return'';
-  return `<label for="sch-p">…nebo uložený soupeř<select id="sch-p" class="sel"><option value="">–</option>${L.slice().sort((a,b)=>a.name.localeCompare(b.name,'cs')).map(o=>`<option value="${esc(o.id)}">${esc(o.name)}</option>`).join('')}</select></label>`}
+  return `<label for="sch-p">…nebo uložený soupeř<select id="sch-p" class="sel"><option value="">–</option>${L.slice().sort((a,b)=>a.name.localeCompare(b.name,'cs')).map(o=>`<option value="${esc(o.id)}">${esc(o.name)}${oppComps(o).length?' · '+esc(oppComps(o).join(', ')):''}</option>`).join('')}</select></label>`}
 const oppUpd=(id,fn)=>{const L=loadOpp(),i=L.findIndex(o=>o.id===id);if(i<0)return;fn(L[i]);saveOpp(L);render()};
 Object.assign(ACT,{
   opadd:()=>{const f=document.getElementById('op-new'),name=(f&&f.value||'').trim();if(!name){ui.oppMsg='Napiš název soupeře.';return render()}const L=loadOpp();
@@ -995,4 +997,5 @@ function listenOpp(){if(!FBX||FS.oppOn)return;FS.oppOn=true;FS.oppPushed=FS.oppP
     for(let i=L.length-1;i>=0;i--){const o=L[i];if(v[o.id])continue;if(!first&&FS.oppPushed[o.id]!==undefined){delete FS.oppPushed[o.id];L.splice(i,1);ch=true}else needPush=true}
     if(ch)quiet(()=>store.set(OKEY,L));if(needPush){FS.dirty.add('opp');flushSoon()}first=false;if(ch&&ROLE==='scorer')render()},()=>{FS.oppOn=false});
   FS.subs.push(()=>{ref.off('value',cb);FS.oppOn=false})}
+COMPS.forEach((c,i)=>{CHG['opc-'+i]=(v,el)=>oppUpd(ui.oppEdit,o=>{const set=new Set(oppComps(o));if(el.checked)set.add(c);else set.delete(c);o.comps=COMPS.filter(x=>set.has(x))})});
 render();
