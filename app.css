@@ -294,3 +294,6 @@ button.pa.editing{outline:2px solid var(--ink)}
 .ochips{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0}
 .ochip{font-size:.72rem;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--field-soft);color:var(--field)}
 .ocomp{display:flex;flex-wrap:wrap;gap:6px 18px}
+.rrow .rbtns{display:flex;align-items:center;gap:6px}
+.rrow.nonum b{color:var(--muted)}
+.addrow.assign{padding:4px 0 8px}
