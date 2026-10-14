@@ -1,0 +1,49 @@
+{
+  "rules": {
+    "setupDone": {
+      ".read": true,
+      ".write": "auth != null && !data.exists()"
+    },
+    "pinmap": {
+      ".read": "auth != null && root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin'",
+      ".write": "auth != null && (!root.child('setupDone').exists() || (root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin'))",
+      "$code": {
+        ".read": "auth != null && root.child('claims').child(auth.uid).val() === $code",
+        ".validate": "$code.matches(/^[A-Z0-9]{4}-[A-Z0-9]{4,12}$/) && newData.child('role').isString() && (newData.child('role').val() === 'admin' || (newData.child('role').val() === 'scorer' && newData.child('team').isString()))"
+      }
+    },
+    "claims": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.isString() && root.child('pinmap').child(newData.val()).exists()"
+      }
+    },
+    "teamlist": {
+      ".read": "auth != null && root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).exists()",
+      ".write": "auth != null && root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin'"
+    },
+    "teams": {
+      ".read": "auth != null && root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin'",
+      "$tid": {
+        ".read": "auth != null && root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('team').val() === $tid",
+        ".write": "auth != null && root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('team').val() === $tid",
+        "roster": {
+          ".read": "auth != null && root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).exists()"
+        },
+        "history": {
+          "$gid": {
+            ".write": "auth != null && root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).exists() && newData.child('mirror').val() === true && (!data.exists() || data.child('mirror').val() === true)"
+          }
+        }
+      }
+    },
+    "public": {
+      "$tid": {
+        ".read": true,
+        ".write": "auth != null && root.child('claims').child(auth.uid).exists() && (root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin' || root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('team').val() === $tid)"
+      }
+    }
+  }
+}
