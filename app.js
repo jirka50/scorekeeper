@@ -35,7 +35,7 @@ const numKey=p=>noNum(p.num)?[1,(p.name||'').toLowerCase()]:[0,+p.num];
 const byNum=(a,b)=>{const x=numKey(a),y=numKey(b);return x[0]-y[0]||(x[0]?x[1].localeCompare(y[1],'cs'):x[1]-y[1])};
 const lbl=(t,num)=>{const n=t===ours()?rname(num):S.vsTid?nameIn(vsRoster(),num):S.oppId?nameIn(oppById(S.oppId),num):'';if(noNum(num))return (n||'Hráč')+' (bez č.)';return (anon(num)?'Pálkař '+String(num).slice(1):'#'+num)+(n?' '+n:'')};
 const pname=(t,num)=>t===ours()?rname(num):S.vsTid?nameIn(vsRoster(),num):S.oppId?nameIn(oppById(S.oppId),num):'';
-const initials=n=>String(n||'').trim().split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+const initials=n=>{const w=String(n||'').trim().split(/\s+/).filter(Boolean);return (w.length>1?[w[0],w[w.length-1]]:w).map(x=>x[0].toUpperCase()).join('')};
 /* běžec na diamantu: „#7 AN“, bez čísla jen „AN“, bez jména jen číslo */
 const diaLbl=r=>{if(anon(r.num))return short(r.num);const ini=initials(pname(r.t,r.num));return noNum(r.num)?(ini||'–'):'#'+r.num+(ini?' '+ini:'')};
 const nm=(t,p)=>{const v=S.teams[t].lineup[p];return v!=null?lbl(t,v):'—'};
@@ -102,7 +102,7 @@ function diamond(){const P=[[200,100],[120,20],[40,100]];
     if(id!=null)s+=`<text x="${x}" y="${y+36}" text-anchor="middle" class="rn">${esc(diaLbl(S.pas[id]))}</text>`});
   s+='<polygon points="111,175 129,175 129,184 120,193 111,184" class="home"/></svg>';return s}
 function runners(){let h='';for(let b=2;b>=0;b--){const id=S.bases[b];if(id==null)continue;const r=S.pas[id];const blocked=b<2&&S.bases[b+1]!=null;
-  h+=`<div class="runner"><span class="label">${b+1}. meta</span><b>${esc(pn(r))}</b><button class="mini-btn" data-act="adv" data-v="${b}" ${blocked?'disabled':''}>${b===2?'Domů':'P+1'}</button><button class="mini-btn out" data-act="rout" data-v="${b}">Aut</button></div>`}
+  h+=`<div class="runner"><span class="label">${b+1}. meta</span><b title="${esc(pn(r))}">${esc(diaLbl(r))}</b><button class="mini-btn" data-act="adv" data-v="${b}" ${blocked?'disabled':''}>${b===2?'Domů':'P+1'}</button><button class="mini-btn out" data-act="rout" data-v="${b}">Aut</button></div>`}
   return h?`<div class="runners">${h}</div>`:'<div class="empty-bases">Mety jsou prázdné.</div>'}
 
 function panel(){const err=ui.panel==='err';
