@@ -51,7 +51,6 @@ function log(t){S.log.unshift(halfLbl()+' · '+t);if(S.log.length>300)S.log.pop(
 
 function startPA(code){const t=bt();const r={id:S.pas.length,t,num:S.teams[t].lineup[S.bat[t]],inn:S.inning,code,reach:0,scored:false,outNo:null,sw:code==='K'?(S.swings||0):(S.swings||0)+1,...(pmode()!=='tee'&&code!=='K'?{dl:dlv()}:{})};S.pas.push(r);return r}
 const lim=()=>S.settings.runLimit??5;
-const swl=()=>S.settings.swingLimit??5;
 /* nadhoz: tee | coach (coachball) | cbtee (N nadhozů trenéra, pak tee) */
 const PRESETS=[['tee0','Tee – do odpalu',{pitch:'tee',swingLimit:0}],['tee5','Tee – 5 švihů',{pitch:'tee',swingLimit:5}],['cb3tee','Coachball + tee',{pitch:'cbtee',coachN:3,swingLimit:5}],['cb','Coachball',{pitch:'coach',swingLimit:5}]];
 const pmode=st=>(st||S.settings).pitch||'tee',cbN=st=>(st||S.settings).coachN??3;
@@ -216,7 +215,7 @@ function ruleSet(st,k,v){const n=(x,lo,hi)=>num(x,lo,hi);
   if(k==='maxa'){st.maxAdvance=+v;return}
   if(k==='lim'){const x=n(v,0,30);if(x!=null)st.runLimit=x;return}
   if(k==='tlim'){const x=n(v,0,180);if(x!=null)st.timeLimit=x;return}}
-function setView(){const s=S.settings;
+function setView(){
   return `<div class="card form">
   <div class="cols">${lineupEditor(0)}${lineupEditor(1)}</div>
   ${vsSelect()}<label for="ours">Náš tým (jména ze soupisky)<select id="ours" class="sel"><option value="0" ${ours()===0?'selected':''}>Hosté · ${esc(S.teams[0].name)}</option><option value="1" ${ours()===1?'selected':''}>Domácí · ${esc(S.teams[1].name)}</option></select></label>
@@ -411,7 +410,7 @@ function seasonData(){const H=loadH();let games=[];
     const s=st[key]||(st[key]={num:r.num,label:noNum(r.num)?(nm||'Hráč')+' (bez č.)':'#'+r.num+(nm?' '+nm:''),g:0,pa:0,h:0,xb:0,r:0,ob:0,k:0});
     if(!seen.has(key)){seen.add(key);s.g++}s.pa++;if(HITS.includes(r.code))s.h++;if(HITS.slice(1).includes(r.code))s.xb++;if(r.scored)s.r++;if(HITS.includes(r.code)||r.code==='FC'||r.code[0]==='E')s.ob++;if(r.code==='K')s.k++})});
   return{H,games:games.map(x=>x.g),rows:Object.values(st).sort((a,b)=>(+a.num)-(+b.num))}}
-function seasonView(){const {H,games,rows}=seasonData();const o=ours();
+function seasonView(){const {games,rows}=seasonData();
   const all=loadH().length+(S.pas.length&&!loadH().some(g=>g.gameId===S.gameId)?1:0);
   let h=`<div class="card"><div class="label">Sezóna · statistiky hráčů</div>${TEAMS.list.length>1?`<div class="row filt"><button class="ghost ${allTeams()?'':'on-btn'}" data-act="stteam">Jen tento tým</button><button class="ghost ${allTeams()?'on-btn':''}" data-act="stall">Všechny týmy</button></div>`:''}${all?`<div class="cols2 filt">${fTypeSel()}${metaSel('fc','Soutěž',COMPS,ui.fComp).replace('<option value="">–</option>','<option value="">všechny</option>')}</div>`:''}`;
   if(!rows.length)h+=`<p class="next" style="margin:6px 0 0">${all?'Žádný zápas neodpovídá zvolenému filtru.':'Statistiky se objeví po prvním ukončeném zápase (🏁 Konec zápasu).'}</p>`;
@@ -1240,7 +1239,7 @@ function pdfKit(){const W=1654,H=2339,M=100,C={INK:'#1c2836',MUT:'#5d6b66',LINE:
   k.page=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;k.g=c.getContext('2d');k.g.fillStyle='#fff';k.g.fillRect(0,0,W,H);k.g.textBaseline='middle';k.y=M;k.pages.push(c)};
   k.txt=(s,font,col,x,yy,w,al)=>{const g=k.g;g.font=font;g.fillStyle=col;g.textAlign=al||'left';g.fillText(String(s),x,yy,w)};
   k.head=s=>{if(k.y+170>H-M)k.page();k.y+=30;k.txt(s,`700 46px ${D}`,C.GREEN,M,k.y+20);k.y+=60};
-  k.table=(cols,rows)=>{const g=k.g,tw=W-2*M,sum=cols.reduce((a,c)=>a+c[1],0),xs=[];let x=M;cols.forEach(c=>{xs.push(x);x+=c[1]/sum*tw});const rh=46,cw=i=>cols[i][1]/sum*tw;
+  k.table=(cols,rows)=>{const tw=W-2*M,sum=cols.reduce((a,c)=>a+c[1],0),xs=[];let x=M;cols.forEach(c=>{xs.push(x);x+=c[1]/sum*tw});const rh=46,cw=i=>cols[i][1]/sum*tw;
     const cell=(v,i,font,col)=>k.txt(v,font,col,i?xs[i]+cw(i)/2:xs[i]+10,k.y+rh/2,cw(i)-12,i?'center':'left');
     const hdr=()=>{k.g.fillStyle=C.SOFT;k.g.fillRect(M,k.y,tw,rh);cols.forEach((c,i)=>cell(c[0],i,`700 24px ${B}`,C.MUT));k.y+=rh};
     hdr();rows.forEach(r=>{if(k.y+rh>H-M){k.page();hdr()}r.forEach((v,i)=>cell(v,i,`${i?400:700} 25px ${B}`,C.INK));
@@ -1254,7 +1253,7 @@ async function pdfSave(pagesFn,name,msgKey,busyKey,land){ui[busyKey]=true;ui[msg
   catch(e){ui[msgKey]=e&&e.code==='nolib'?'Knihovnu pro PDF se nepodařilo načíst. Zkontroluj připojení.':e&&e.code==='declined'?'Ukládání zrušeno.':e&&e.code==='nodl'?'Ukládání souborů tady není dostupné.':e&&e.code==='empty'?'Zatím není co uložit.':'PDF se nepodařilo vytvořit.'}
   ui[busyKey]=false;render()}
 const gamesWord=n=>n===1?'zápas':n>=2&&n<=4?'zápasy':'zápasů';
-function seasonPages(){const k=pdfKit(),{W,M,C,D,B}=k;
+function seasonPages(){const k=pdfKit(),{M,C,D,B}=k;
   const {games,rows}=seasonData(),o=ours(),team=allTeams()?'Všechny týmy':(R.name||S.teams[o].name),fl=[fTypeTxt(),ui.fComp].filter(Boolean).join(' · ');
   const G=games.slice().sort((a,b)=>String(a.meta&&a.meta.date).localeCompare(String(b.meta&&b.meta.date))),res=G.map(x=>{const go=x.ours??1,a=gTot(x,go),b=gTot(x,1-go);return{x,go,a,b,k:a>b?'V':a<b?'P':'R'}});
   k.txt(team,`700 76px ${D}`,C.INK,M,k.y+40);k.y+=100;k.txt('Souhrn sezóny'+(fl?' · '+fl:'')+' · vytvořeno '+new Date().toLocaleDateString('cs-CZ'),`400 30px ${B}`,C.MUT,M,k.y);k.y+=50;

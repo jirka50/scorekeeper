@@ -156,12 +156,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .pb-num i{font-style:normal;color:var(--muted);margin:0 .12em}
 .pb-state{display:flex;align-items:center;gap:12px}
 .pb-dia{width:64px;height:64px;flex:none}
-.steps{margin:6px 0 0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
 .cols2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
 .ls td.team.ours,.pb-team.ours span{color:var(--field)}
 .clock{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;padding:8px 12px}
 .clock b{font-family:var(--display);font-size:1.6rem;font-variant-numeric:tabular-nums}
-.clkbtns{margin-left:auto;display:flex;gap:6px}
 .clkmsg{flex-basis:100%;font-weight:700;font-size:.88rem}
 .clock.warn{border-color:var(--warn);background:var(--warn-soft)}
 .clock.over{border-color:var(--pencil);background:var(--pencil-soft)}
@@ -349,7 +347,6 @@ button.pa.editing{outline:2px solid var(--ink)}
 .pitchtag{display:inline-block;margin-top:2px;padding:1px 8px;border-radius:999px;font:700 .72rem var(--body);letter-spacing:.04em;text-transform:uppercase;background:var(--paper);color:var(--muted);border:1px solid var(--line)}
 .pitchtag.c{background:var(--warn-soft);border-color:var(--warn);color:var(--ink)}
 .danger-solid{background:var(--pencil);color:#fff}
-.menu-ver{padding:8px 12px 4px;border-top:1px solid var(--line);margin-top:4px;font-size:.75rem;color:var(--muted)}
 .ver{margin:0;text-align:center;font-size:.75rem}
 h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 /* zápas: kompaktní stavová karta s časem a skóre; na telefonu tlačítka zápisu hned pod diamantem */
