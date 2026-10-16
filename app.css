@@ -378,3 +378,13 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 .awl{display:flex;flex-direction:column;margin-top:6px}
 .awr{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line)}
 .awr:last-child{border-bottom:0}.awr .awt{grid-column:1/-1;font:700 1.05rem var(--display);color:var(--warn)}
+/* panel: kam doběhli běžci */
+.adv{border:2px solid var(--field)}
+.advrow{display:grid;grid-template-columns:5.2em minmax(0,1fr);gap:6px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.advwho b{display:block;font-family:var(--display);font-size:1.25rem;line-height:1.1}.advwho small{color:var(--muted);font-size:.75rem}
+.seg{display:grid;gap:4px}
+.seg button{min-height:44px;border:1px solid var(--line);background:var(--surface);border-radius:8px;font:700 .9rem var(--body);color:var(--ink);cursor:pointer;padding:0 2px}
+.seg button.on{background:var(--field);border-color:var(--field);color:var(--surface)}
+.seg button.out{color:var(--pencil)}.seg button.out.on{background:var(--pencil);border-color:var(--pencil);color:var(--surface)}
+.seg button:disabled{opacity:.3;cursor:default}
+.advrow{grid-template-columns:4.6em minmax(0,1fr)}.seg button{font-size:.85rem}
