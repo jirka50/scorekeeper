@@ -56,6 +56,15 @@
       "$oid": {
         ".validate": "newData.hasChildren(['ts','json']) && newData.child('json').isString()"
       }
+    },
+    "photos": {
+      ".read": "auth != null && root.child('claims').child(auth.uid).exists() && (root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin' || root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'coach')",
+      ".write": "auth != null && root.child('claims').child(auth.uid).exists() && (root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin' || root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'coach')",
+      "$tid": {
+        "$num": {
+          ".validate": "newData.child('img').isString() && newData.child('img').val().beginsWith('data:image/') && newData.child('img').val().length < 120000"
+        }
+      }
     }
   }
 }
