@@ -36,8 +36,8 @@ const byNum=(a,b)=>{const x=numKey(a),y=numKey(b);return x[0]-y[0]||(x[0]?x[1].l
 const lbl=(t,num)=>{const n=t===ours()?rname(num):S.vsTid?nameIn(vsRoster(),num):S.oppId?nameIn(oppById(S.oppId),num):'';if(noNum(num))return (n||'Hráč')+' (bez č.)';return (anon(num)?'Pálkař '+String(num).slice(1):'#'+num)+(n?' '+n:'')};
 const pname=(t,num)=>t===ours()?rname(num):S.vsTid?nameIn(vsRoster(),num):S.oppId?nameIn(oppById(S.oppId),num):'';
 const initials=n=>String(n||'').trim().split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('');
-/* běžec na diamantu: „7 AN“, bez čísla jen „AN“, bez jména jen číslo */
-const diaLbl=r=>{if(anon(r.num))return short(r.num);const ini=initials(pname(r.t,r.num));return noNum(r.num)?(ini||'–'):ini?r.num+' '+ini:r.num};
+/* běžec na diamantu: „#7 AN“, bez čísla jen „AN“, bez jména jen číslo */
+const diaLbl=r=>{if(anon(r.num))return short(r.num);const ini=initials(pname(r.t,r.num));return noNum(r.num)?(ini||'–'):'#'+r.num+(ini?' '+ini:'')};
 const nm=(t,p)=>{const v=S.teams[t].lineup[p];return v!=null?lbl(t,v):'—'};
 const pn=r=>lbl(r.t,r.num);
 const sortedRoster=()=>R.players.slice().sort(byNum);
