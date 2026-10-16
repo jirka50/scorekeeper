@@ -346,3 +346,5 @@ button.pa.editing{outline:2px solid var(--ink)}
 .plphoto img{width:84px;height:84px;border-radius:12px;object-fit:cover;display:block;border:1px solid var(--line)}
 .plbadge{position:absolute;right:-6px;bottom:-6px;min-width:34px;height:30px;padding:0 6px;border-radius:8px;background:var(--field);color:var(--surface);display:grid;place-items:center;font:700 1.2rem/1 var(--display);border:2px solid var(--surface)}
 .plph{align-items:center}.plph>*{flex:0 1 auto}
+.pitchtag{display:inline-block;margin-top:2px;padding:1px 8px;border-radius:999px;font:700 .72rem var(--body);letter-spacing:.04em;text-transform:uppercase;background:var(--paper);color:var(--muted);border:1px solid var(--line)}
+.pitchtag.c{background:var(--warn-soft);border-color:var(--warn);color:var(--ink)}
