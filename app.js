@@ -386,7 +386,7 @@ const gTot=(g,t)=>(g.runs[t]||[]).reduce((a,b)=>a+(b||0),0);
 function gDate(g){const d=g.meta&&g.meta.date;if(!d)return'';const [y,m,da]=d.split('-').map(Number);return new Date(y,m-1,da).toLocaleDateString('cs-CZ')}
 const avg=(a,b)=>(a/b).toFixed(3);
 const typeOk=g=>{const t=g.meta&&g.meta.type,f=ui.fType;return !f||(f==='@comp'?COMP_TYPES.includes(t):f==='@friendly'?FRIEND_TYPES.includes(t):t===f)};
-const inFilter=g=>!g.noStats&&typeOk(g)&&(!ui.fComp||(g.meta&&g.meta.comp)===ui.fComp);
+const inFilter=g=>!!g.final&&!g.noStats&&typeOk(g)&&(!ui.fComp||(g.meta&&g.meta.comp)===ui.fComp);
 const fTypeTxt=()=>ui.fType==='@comp'?'soutěžní zápasy':ui.fType==='@friendly'?'přátelské zápasy':ui.fType;
 const fTypeSel=()=>`<label for="ft">Zápasy<select id="ft" class="sel"><option value="">všechny</option><option value="@comp" ${ui.fType==='@comp'?'selected':''}>jen soutěžní (přebor, turnaj, pohár)</option><option value="@friendly" ${ui.fType==='@friendly'?'selected':''}>jen přátelské (friendly, scrimmage)</option><optgroup label="podle typu">${GTYPES.map(v=>`<option ${v===ui.fType?'selected':''}>${esc(v)}</option>`).join('')}</optgroup></select></label>`;
 const allTeams=()=>ui.allTeams&&TEAMS.list.length>1;
@@ -403,16 +403,16 @@ function seasonData(){const H=loadH();let games=[];
 function seasonView(){const {H,games,rows}=seasonData();const o=ours();
   const all=loadH().length+(S.pas.length&&!loadH().some(g=>g.gameId===S.gameId)?1:0);
   let h=`<div class="card"><div class="label">Sezóna · statistiky hráčů</div>${TEAMS.list.length>1?`<div class="row filt"><button class="ghost ${allTeams()?'':'on-btn'}" data-act="stteam">Jen tento tým</button><button class="ghost ${allTeams()?'on-btn':''}" data-act="stall">Všechny týmy</button></div>`:''}${all?`<div class="cols2 filt">${fTypeSel()}${metaSel('fc','Soutěž',COMPS,ui.fComp).replace('<option value="">–</option>','<option value="">všechny</option>')}</div>`:''}`;
-  if(!rows.length)h+=`<p class="next" style="margin:6px 0 0">${all?'Žádný zápas neodpovídá zvolenému filtru.':'Statistiky se objeví po prvním zapsaném zápase.'}</p>`;
+  if(!rows.length)h+=`<p class="next" style="margin:6px 0 0">${all?'Žádný zápas neodpovídá zvolenému filtru.':'Statistiky se objeví po prvním ukončeném zápase (🏁 Konec zápasu).'}</p>`;
   else h+=`<div class="ls-wrap"><table class="pt"><thead><tr><th>Hráč</th><th>Záp.</th><th>Pálil</th><th>Odpaly</th><th>Na metě</th><th>Body</th><th>K</th><th>Úspěš.</th></tr></thead><tbody>
     ${rows.map(r=>`<tr><td class="nm">${allTeams()?esc(r.label):plLink(r.num,r.label)}</td><td>${r.g}</td><td>${r.pa}</td><td>${r.h}${r.xb?` <small>(${r.xb} dlouhé)</small>`:''}</td><td>${r.ob}</td><td>${r.r}</td><td>${r.k}</td><td>${r.pa?avg(r.ob,r.pa):'–'}</td></tr>`).join('')}
-    </tbody></table></div><p class="next" style="margin:6px 0 0">${games.length} ${games.length===1?'zápas':games.length<5?'zápasy':'zápasů'}. Úspěšnost = jak často se hráč po svém odpalu dostal na metu.</p>`;
+    </tbody></table></div><p class="next" style="margin:6px 0 0">${games.length} ${games.length===1?'zápas':games.length<5?'zápasy':'zápasů'}. Úspěšnost = jak často se hráč po svém odpalu dostal na metu.${S.pas.length&&!S.final?' Rozehraný zápas se započítá po ukončení.':''}</p>`;
   h+=(rows.length?`<div class="row" style="margin-top:8px"><button class="ghost" data-act="csvseason">Export statistik (CSV)</button></div>`:'')+(ui.hMsg?`<div class="next">${esc(ui.hMsg)}</div>`:'')+`</div>`+achCard();
   return h}
 function historyCard(){const H=loadH();let h=`<div class="card"><div class="label">Historie zápasů</div>`;
   if(!H.length)h+='<p class="next" style="margin:6px 0 0">Zatím nic. Zápas se uloží tlačítkem v Zápisu, při „Konec zápasu“ nebo při založení nového zápasu.</p>';
   else h+=`<div class="hist">${H.map(g=>{const go=g.ours??1,a=gTot(g,go),b=gTot(g,1-go),res=a>b?'V':a<b?'P':'R';
-    return `<div class="hrow"><span class="res r${res}">${res}</span><div class="hmain"><b>${esc(g.teams[go].name)} ${a} : ${b} ${esc(g.teams[1-go].name)}</b><span class="next">${esc(gDate(g))}${g.meta&&g.meta.field?' · '+esc(g.meta.field):''}${kindTxt(g.meta)?' · '+esc(kindTxt(g.meta)):''}${g.noStats?' · mimo statistiky':''}${g.gameId===S.gameId?' · právě otevřený':''}${g.stars&&g.stars.length?' · ⭐ '+g.stars.map(x=>esc(short(x))).join(' '):''}</span></div>
+    return `<div class="hrow"><span class="res r${res}">${res}</span><div class="hmain"><b>${esc(g.teams[go].name)} ${a} : ${b} ${esc(g.teams[1-go].name)}</b><span class="next">${esc(gDate(g))}${g.meta&&g.meta.field?' · '+esc(g.meta.field):''}${kindTxt(g.meta)?' · '+esc(kindTxt(g.meta)):''}${!g.final?' · nedokončený, nepočítá se':g.noStats?' · mimo statistiky':''}${g.gameId===S.gameId?' · právě otevřený':''}${g.stars&&g.stars.length?' · ⭐ '+g.stars.map(x=>esc(short(x))).join(' '):''}</span></div>
     <div class="hbtns">${ui.hdel===g.gameId?`<button class="mini-btn out" data-act="hdelyes" data-v="${esc(g.gameId)}">Smazat</button><button class="mini-btn" data-act="hdelno">Ne</button>`:`${g.gameId===S.gameId?'':`<button class="mini-btn" data-act="hopen" data-v="${esc(g.gameId)}">Otevřít</button>`}<button class="mini-btn out" data-act="hdel" data-v="${esc(g.gameId)}" aria-label="Smazat zápas">×</button>`}</div></div>`}).join('')}</div>
     <p class="next" style="margin:6px 0 0">Otevřený zápas najdeš v Zápisu, odkud ho můžeš uložit i jako PDF. Rozehraný zápas se před otevřením uloží do historie.</p>`;
   return h+(ui.hMsg?`<div class="next">${esc(ui.hMsg)}</div>`:'')+'</div>'}
@@ -476,7 +476,7 @@ const ACT={
   hsave:()=>{ui.gMsg=archiveGame()?'Uloženo do historie. Najdeš ji v záložce Zápasy.':S.pas.length?'Uložení se nepovedlo.':'Zatím není co ukládat.';render()},
   hopen:v=>{const g=loadH().find(x=>x.gameId===v);if(!g)return;archiveGame();S=JSON.parse(JSON.stringify(g));delete S.savedAt;hist=[];ui.tab='sheet';ui.hMsg='';commit()},
   hdel:v=>{ui.hdel=v;render()},hdelno:()=>{ui.hdel=null;render()},
-  hdelyes:v=>{saveH(loadH().filter(x=>x.gameId!==v));ui.hdel=null;ui.hMsg='Zápas smazán z historie.';render()},
+  hdelyes:v=>deleteGame(v),
   /* recap */
   sum:()=>{ui.sum=true;ui.gMsg='';render()},sumclose:()=>{ui.sum=false;render()},
   sumcopy:()=>copyAct('sumtext','gMsg','Zkopírováno. Vlož text do skupiny rodičů.'),
@@ -561,7 +561,13 @@ function doRen(raw){if(!ui.ren)return;const {t,i}=ui.ren,L=S.teams[t].lineup,num
 
 /* ----- úspěchy dětí ----- */
 const ACH=[['hit','první odpal',r=>isHit(r.code)],['run','první doběhnutý bod',r=>r.scored],['xb','první dlouhý odpal',r=>HITS.slice(1).includes(r.code)],['hr','první homerun',r=>r.code==='HR']];
-function gamesChrono(){const g=loadH().filter(x=>x.gameId!==S.gameId);if(S.pas.length)g.push(S);const k=x=>String(x.meta&&x.meta.date)+'|'+String(x.gameId).padStart(14,'0');return g.sort((a,b)=>k(a).localeCompare(k(b)))}
+/* smazání zápasu z historie: zmizí i ze statistik, z otevřeného zápisu a ze zrcadla u mého druhého týmu */
+function deleteGame(id){const H=loadH(),g=H.find(x=>x.gameId===id);saveH(H.filter(x=>x.gameId!==id));let extra='';
+  if(g&&g.vsTid&&TEAMS.list.some(t=>t.id===g.vsTid)){const vs=g.vsTid,h=loadHFor(vs),keep=h.filter(x=>!(x.gameId===g.mirrorOf||x.mirrorOf===id||x.gameId===id+'v'));
+    if(keep.length!==h.length&&(typeof canWrite!=='function'||canWrite(vs))){store.set(keyFor(HKEY,vs),keep);extra=' i z historie týmu '+teamName(TEAMS.list.find(t=>t.id===vs))}}
+  if(S.gameId===id){const nx=fresh();nx.settings=S.settings;nx.teams=S.teams.map(x=>({name:x.name,lineup:x.lineup.slice()}));nx.ours=S.ours;nx.example=false;S=nx;hist=[];save()}
+  ui.hdel=null;ui.hMsg='Zápas smazán z historie'+extra+'. Ze statistik zmizel taky.';render()}
+function gamesChrono(){const g=loadH().filter(x=>x.gameId!==S.gameId&&x.final);if(S.final&&S.pas.length)g.push(S);const k=x=>String(x.meta&&x.meta.date)+'|'+String(x.gameId).padStart(14,'0');return g.sort((a,b)=>k(a).localeCompare(k(b)))}
 /* who caught a fly out: position from the code (F8 = střední zadák), player from that inning's defense */
 function catcherOf(g,r){const m=/^F(\d)$/.exec(r.code||''),d=g.def&&g.def[r.inn];if(!m||!d)return null;return Object.keys(d).find(n=>d[n]===m[1])||null}
 function achievements(){const seen={},out=[];gamesChrono().forEach(g=>{const o=g.ours??1,add=(num,k,label)=>{const key=num+'|'+k;if(!seen[key]){seen[key]=1;out.push({num,label,gameId:g.gameId,date:g.meta&&g.meta.date})}};
@@ -1198,7 +1204,7 @@ Object.assign(ACT,{rmove:v=>{ui.rmove=v;ui.assign=null;ui.rmsg='';render()},rmvn
 /* ----- rozpis a výsledky pro rodiče (public/<tid>/info, bez jmen dětí) ----- */
 function infoData(tid){const sch=tid===TEAMS.cur?loadSch():(store.get(keyFor(SKEY,tid),[])||[]),H=loadHFor(tid),today=todayISO();
   return{v:1,next:sch.filter(x=>!x.played&&String(x.date)>=today).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''))).slice(0,3).map(x=>({d:x.date,t:x.time||'',f:x.field||'',o:x.opp,h:!!x.home,k:kindTxt(x)})),
-    res:H.slice(0,40).map(g=>{const o=g.ours??1;return{d:g.meta&&g.meta.date||'',o:g.teams[1-o].name,us:gTot(g,o),them:gTot(g,1-o),h:o===1,k:kindTxt(g.meta)}})}}
+    res:H.filter(g=>g.final).slice(0,40).map(g=>{const o=g.ours??1;return{d:g.meta&&g.meta.date||'',o:g.teams[1-o].name,us:gTot(g,o),them:gTot(g,1-o),h:o===1,k:kindTxt(g.meta)}})}}
 async function pushInfo(tid){if(!canWrite(tid))return;const j=J(infoData(tid));FS.info=FS.info||{};if(FS.info[tid]===j)return;await FBX.db.ref('public/'+tid+'/info').set({ts:Date.now(),json:j});FS.info[tid]=j}
 function infoHtml(I){if(!I)return'';let h='';const dd=d=>esc(gDate({meta:{date:d}}));
   if(I.next&&I.next.length)h+=`<div class="card"><div class="label">Další zápasy</div><div class="hist">${I.next.map(x=>`<div class="hrow"><span class="res rR">${x.h?'D':'H'}</span><div class="hmain"><b>${esc(x.o)}</b><span class="next">${dd(x.d)}${x.t?' · '+esc(x.t):''}${x.f?' · '+esc(x.f):''} · ${x.h?'doma':'venku'}</span></div></div>`).join('')}</div></div>`;
