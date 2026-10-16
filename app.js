@@ -141,7 +141,7 @@ function gameView(){const t=bt(),p=S.bat[t],len=S.teams[t].lineup.length,sw=S.sw
     endb=`<button class="ghost danger endbtn" data-act="endask">🏁 Konec zápasu</button>`+(PUB_T?'<div class="next">Skóre pro rodiče se za chvíli odešle.</div>':'')}
   const logc=S.log.length?`<div class="card"><div class="label">Průběh</div><ul class="log">${S.log.slice(0,20).map((l,i)=>`<li class="${i>=8?'wide-li':''}">${esc(l)}</li>`).join('')}</ul></div>`:'';
   const swapc=!started()?`<div class="card swap"><span>Hosté pálí první (▲), domácí druzí (▼).</span><button class="ghost" data-act="swap">⇄ Prohodit domácí a hosty</button></div>`:'';
-  const a=g(0,!started()&&!S.prepped&&!S.final?nextCard():'')+g(7,lineScore())+g(1,notes)+g(2,stat)+g(3,field)+g(4,bat)+`<div class="wide">${orderCard(t)}</div>`;
+  const a=g(0,otherCard())+g(0,!started()&&!S.prepped&&!S.final?nextCard():'')+g(7,lineScore())+g(1,notes)+g(2,stat)+g(3,field)+g(4,bat)+`<div class="wide">${orderCard(t)}</div>`;
   const b=g(5,act)+g(6,endb)+g(8,logc)+g(9,swapc);
   return `<div class="gv"><div class="col">${a}</div><div class="col">${b}</div></div>`}
 function orderCard(t){const L=S.teams[t].lineup,cur=S.bat[t];
@@ -771,7 +771,7 @@ const normCode=v=>String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/
 /* ---------- start ---------- */
 function fbInit(){if(FBX)return FBX;if(typeof firebase==='undefined'){WEB.msg='Nepodařilo se načíst připojení. Zkontroluj internet a obnov stránku.';return null}
   try{firebase.initializeApp(FB_CONFIG);FBX={db:firebase.database(),auth:firebase.auth()};
-    FBX.db.ref('.info/connected').on('value',s=>{WEB.online=!!s.val();if(SYNC.st!=='off'){SYNC.st=WEB.online?(FS.dirty.size?'saving':'ok'):'offline';if(WEB.online)flushSoon()}if(WEB.online&&WEB.role&&WEB.role!=='parent'&&S.pubPend)return publishLive(S.pubPend==='final');if(ui.tab==='admin'||ui.tab==='score')render()})}
+    FBX.db.ref('.info/connected').on('value',s=>{WEB.online=!!s.val();netUpd();if(SYNC.st!=='off'){SYNC.st=WEB.online?(FS.dirty.size?'saving':'ok'):'offline';if(WEB.online)flushSoon()}if(WEB.online&&WEB.role&&WEB.role!=='parent'&&S.pubPend)return publishLive(S.pubPend==='final');if(ui.tab==='admin'||ui.tab==='score')render()})}
   catch(e){WEB.msg='Připojení se nepodařilo spustit.';FBX=null}return FBX}
 async function signIn(){const f=fbInit();if(!f)throw{code:'offline'};if(f.auth.currentUser)return f.auth.currentUser.uid;
   const u=await new Promise(res=>{const off=f.auth.onAuthStateChanged(x=>{off();res(x)})});if(u)return u.uid;const c=await f.auth.signInAnonymously();return c.user.uid}
@@ -833,7 +833,7 @@ function flushSoon(){clearTimeout(FS.t);FS.t=setTimeout(flush,1500)}
 function flush(){if(!FBX||!WEB.role||!FS.dirty.size||!WEB.online)return FS.chain;const slots=[...FS.dirty];FS.dirty.clear();SYNC.st='saving';
   FS.chain=FS.chain.then(async()=>{for(const sl of slots){try{await pushSlot(sl)}catch(e){if(!/permission/i.test(String(e&&(e.code||e.message))))throw e}}SYNC.st='ok';SYNC.last=Date.now();SYNC.err=''})
     .catch(e=>{slots.forEach(x=>FS.dirty.add(x));SYNC.st='error';SYNC.err='Ukládání online se nepovedlo, zkusí se to znovu.';clearTimeout(FS.t);FS.t=setTimeout(flush,15000)})
-    .then(()=>{if(ui.tab==='admin')render()});return FS.chain}
+    .then(()=>{netUpd();if(ui.tab==='admin')render()});return FS.chain}
 const J=v=>JSON.stringify(v);
 async function pushSlot(slot){const db=FBX.db;
   if(slot==='opp')return pushOpp();
@@ -873,7 +873,7 @@ function applyTeam(tid,v,initial){const cur=tid===TEAMS.cur;let changed=false;
     if(!(node.ts>lt)){if(initial&&lt>node.ts&&canWrite(tid))FS.dirty.add(slot);return}
     let val;try{val=JSON.parse(node.json)}catch(e){return}
     if(kind==='state'){if(!val||!val.teams)return;
-      if(cur){if(S.pas.length&&S.gameId!==val.gameId)archiveGame();quiet(()=>{S=val;save()});hist=[];ui.panel=null;ui.endC=false}
+      if(cur){if(!initial&&node.dev&&node.dev!==DEV&&val.pas&&val.pas.length&&!val.final)FS.other={ts:node.ts,gid:val.gameId};if(S.pas.length&&S.gameId!==val.gameId)archiveGame();quiet(()=>{S=val;save()});hist=[];ui.panel=null;ui.endC=false}
       else{const old=store.get(keyFor(KEY,tid),null);if(old&&old.pas&&old.pas.length&&old.gameId!==val.gameId)storeGameLocal(tid,{...old,savedAt:new Date().toISOString()});quiet(()=>store.set(keyFor(KEY,tid),val))}}
     else if(kind==='team'){if(!val||!Array.isArray(val.players))return;let next=val;
       const ren=next.players.filter(p=>p&&p.was);if(ren.length){next={...next,players:next.players.map(p=>{if(!p||!p.was)return p;const q={...p};delete q.was;return q})};ren.forEach(p=>renumAll(tid,p.was,p.num));if(canWrite(tid))FS.dirty.add(slot)}
@@ -1064,8 +1064,17 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 /* ----- záložky: menu po oddílech ----- */
 const TABS={game:'Zápas',sheet:'Zápis',def:'Obrana',score:'Skóre',games:'Zápasy',team:'Tým',stats:'Statistiky',opp:'Soupeři',set:'Nastavení zápasu',admin:'Správa',prep:'Příprava zápasu'};
 const MENU=[['Zápas',['game','sheet','def','score']],['Sezóna',['games','team','stats','opp']],['Nastavení',['set','admin']]];
+/* ----- stav připojení v hlavičce a upozornění na zápis z jiného telefonu ----- */
+const T0=Date.now();
+const netState=()=>typeof FBX==='undefined'||!FBX||!WEB.role?'':!WEB.online&&Date.now()-T0>4000?'off':SYNC.st==='error'?'err':'';
+const netBadge=()=>`<span id="netb" class="netb ${netState()}" role="status">${netState()==='off'?'📡 offline':netState()==='err'?'⚠ neuloženo':''}</span>`;
+function netUpd(){const el=document.getElementById('netb');if(el)el.outerHTML=netBadge()}
+setTimeout(netUpd,4500);
+function otherCard(){const o=typeof FS!=='undefined'&&FS.other;if(!o||o.gid!==S.gameId||S.final||Date.now()-o.ts>10*60000||ui.otherOk===o.ts)return'';const m=Math.max(0,Math.round((Date.now()-o.ts)/60000));
+  return `<div class="card other"><b>Tento zápas právě zapisuje i jiný telefon</b> <span class="next">(${m?'před '+m+' min':'teď'})</span><p class="next" style="margin:4px 0 0">Zapisujte jen na jednom telefonu, jinak se zápisy navzájem přepíšou. Na tomto telefonu je teď poslední verze z druhého telefonu.</p><button class="ghost" data-act="otherok" style="align-self:flex-start;margin-top:6px">Rozumím</button></div>`}
+ACT.otherok=()=>{if(FS.other)ui.otherOk=FS.other.ts;render()};
 function navHtml(){const cur=TABS[ui.tab]||TABS.game;
-  return teamSwitch()+`<button class="sun-btn ${PREF.theme==='sun'?'on':''}" data-act="sun" aria-label="Režim na slunce" aria-pressed="${PREF.theme==='sun'}" title="Režim na slunce">☀</button><div class="menu"><button class="menu-btn" data-act="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}"><span class="burger" aria-hidden="true"></span>${cur}<span class="caret" aria-hidden="true">${ui.menu?'▴':'▾'}</span></button>${ui.menu?`<div class="menu-list" role="menu">${MENU.map(([h,ks])=>`<div class="menu-h">${h}</div>${ks.map(k=>`<button role="menuitem" class="${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}`).join('')}</div>`:''}</div>`}
+  return netBadge()+teamSwitch()+`<button class="sun-btn ${PREF.theme==='sun'?'on':''}" data-act="sun" aria-label="Režim na slunce" aria-pressed="${PREF.theme==='sun'}" title="Režim na slunce">☀</button><div class="menu"><button class="menu-btn" data-act="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}"><span class="burger" aria-hidden="true"></span>${cur}<span class="caret" aria-hidden="true">${ui.menu?'▴':'▾'}</span></button>${ui.menu?`<div class="menu-list" role="menu">${MENU.map(([h,ks])=>`<div class="menu-h">${h}</div>${ks.map(k=>`<button role="menuitem" class="${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}`).join('')}</div>`:''}</div>`}
 const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>defView(),score:()=>scoreView(),games:()=>scheduleCard()+historyCard(),team:()=>teamView(),
   stats:()=>statsView(),opp:()=>oppCard(),set:()=>attendCard()+setView(),admin:()=>adminView(),prep:()=>prepView()};
 const adminView=()=>accessCard()+(WEB.role==='admin'?teamsCard()+adminCard():'')+syncCard()+appCard()+settingsExtra()+teamTransferCard()+resetCard()+`<p class="next ver">Baseball Scorekeeper · ${verTxt()} · ${esc(gDate({meta:{date:APP_DATE}}))}</p>`;

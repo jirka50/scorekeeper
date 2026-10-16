@@ -371,3 +371,7 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 }
 @media (min-width:760px){.stscore{display:none}.stline{justify-content:flex-end}}
 .field .runner{flex-wrap:nowrap}.field .runner b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.netb:empty{display:none}
+.netb{display:inline-flex;align-items:center;min-height:32px;padding:0 10px;border-radius:999px;font:700 .78rem var(--body);background:var(--warn-soft);color:var(--ink);border:1px solid var(--warn)}
+.netb.err{background:var(--pencil-soft);border-color:var(--pencil)}
+.card.other{border:2px solid var(--warn);background:var(--warn-soft);display:flex;flex-direction:column}
