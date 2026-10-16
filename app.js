@@ -1199,7 +1199,7 @@ function playerView(){const p=plFind(ui.player);if(!p){ui.tab=ui.plBack||'team';
   const inf=Object.keys(s.def).filter(isInf).reduce((a,q)=>a+s.def[q],0),out=Object.keys(s.def).filter(q=>!isInf(q)&&q!=='B').reduce((a,q)=>a+s.def[q],0);
   const ach=achievements().filter(a=>a.num===p.num),team=R.name||S.teams[o].name;
   let h=`<div class="plnav"><button class="ghost" data-act="plback">‹ Zpět</button>${ps.length>1?`<span class="plnav-r"><button class="ghost" data-act="pl" data-v="${esc(prev.num)}" aria-label="Předchozí hráč">‹</button><button class="ghost" data-act="pl" data-v="${esc(next.num)}" aria-label="Další hráč">›</button></span>`:''}</div>
-  <div class="card plhead"><div class="plnum ${noNum(p.num)?'none':''}">${noNum(p.num)?'–':esc(p.num)}</div><div class="plwho"><h2>${esc(p.name||'Hráč')}</h2><span class="next">${esc(team)}${p.since?' · hraje od '+esc(p.since):''}${p.bats?' · pálí '+BATS[p.bats]:''}${p.pos?' · '+esc(POS[p.pos]||''):''}</span></div></div>`;
+  <div class="card plhead">${p.photo?`<div class="plphoto"><img src="${esc(p.photo)}" alt="${esc(p.name||'Hráč')}"><span class="plbadge">${noNum(p.num)?'–':esc(p.num)}</span></div>`:`<div class="plnum ${noNum(p.num)?'none':''}">${noNum(p.num)?'–':esc(p.num)}</div>`}<div class="plwho"><h2>${esc(p.name||'Hráč')}</h2><span class="next">${esc(team)}${p.since?' · hraje od '+esc(p.since):''}${p.bats?' · pálí '+BATS[p.bats]:''}${p.pos?' · '+esc(POS[p.pos]||''):''}</span></div></div>`;
   h+=`<div class="card form"><div class="label">Údaje o hráči</div>
    <div class="cols2"><label for="pl-name">Jméno<input type="text" id="pl-name" value="${esc(p.name||'')}"></label>
    <label for="pl-bats">Pálí<select id="pl-bats" class="sel"><option value="">–</option>${Object.entries(BATS).map(([k,v])=>`<option value="${k}" ${p.bats===k?'selected':''}>${v}</option>`).join('')}</select></label>
@@ -1207,8 +1207,10 @@ function playerView(){const p=plFind(ui.player);if(!p){ui.tab=ui.plBack||'team';
    <label for="pl-since">Hraje od (sezóna)<input type="text" id="pl-since" inputmode="numeric" maxlength="9" placeholder="např. 2025" value="${esc(p.since||'')}"></label></div>
    ${ui.plNum?`<div class="addrow"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" id="pl-num" placeholder="Nové číslo dresu" aria-label="Nové číslo dresu"><button class="solid" data-act="plnum">Uložit číslo</button><button class="ghost" data-act="plnumno">Zrušit</button></div>`
      :`<button class="ghost" data-act="plnumopen" style="align-self:flex-start">${noNum(p.num)?'Přidělit číslo dresu':'Změnit číslo dresu'}</button>`}
+   <div class="row plph"><label class="ghost filebtn" for="pl-photo">${p.photo?'Změnit fotku':'📷 Přidat fotku'}<input type="file" id="pl-photo" accept="image/*" class="vh"></label>${p.photo?(ui.phDel?`<button class="mini-btn out" data-act="phdelyes">Opravdu odebrat</button><button class="mini-btn" data-act="phdelno">Ne</button>`:`<button class="ghost danger" data-act="phdel">Odebrat fotku</button>`):''}</div>
+   ${ui.phMsg?`<div class="next">${esc(ui.phMsg)}</div>`:''}
    ${ui.rmsg&&ui.plMsgOn?`<div class="next">${esc(ui.rmsg)}</div>`:''}
-   <p class="next" style="margin:0">Datum narození ani kontakty sem záměrně neukládáme. Změna čísla se propíše i do odehraných zápasů.</p></div>`;
+   <p class="next" style="margin:0">Fotka se zmenší a uloží se soupiskou, takže ji uvidí trenéři a zapisovatelé, rodiče na svém odkazu ne. Fotky dětí přidávej jen se souhlasem rodičů. Datum narození ani kontakty záměrně neukládáme. Změna čísla se propíše i do odehraných zápasů.</p></div>`;
   h+=`<div class="card"><div class="label">Sezóna v číslech${[ui.fType,ui.fComp].filter(Boolean).length?' · '+esc([ui.fType,ui.fComp].filter(Boolean).join(' · ')):''}${allTeams()?' · všechny týmy':''}</div>
    ${TEAMS.list.length>1?`<div class="row filt"><button class="ghost ${allTeams()?'':'on-btn'}" data-act="stteam">Jen tento tým</button><button class="ghost ${allTeams()?'on-btn':''}" data-act="stall">Všechny týmy</button></div>`:''}
    <div class="cols2 filt">${metaSel('ft','Typ zápasu',GTYPES,ui.fType).replace('<option value="">–</option>','<option value="">všechny</option>')}${metaSel('fc','Soutěž',COMPS,ui.fComp).replace('<option value="">–</option>','<option value="">všechny</option>')}</div>
@@ -1224,7 +1226,8 @@ function playerView(){const p=plFind(ui.player);if(!p){ui.tab=ui.plBack||'team';
    <div class="card row" style="align-items:center"><button class="solid" data-act="plpdf" ${ui.plBusy?'disabled':''}>📄 Karta hráče jako PDF</button><span class="next">${esc(ui.plPdfMsg||'Jedna stránka se sezónou a úspěchy, třeba pro rodiče.')}</span></div>`;
   return h}
 function playerPages(){const p=plFind(ui.player),k=pdfKit(),{W,M,C,D,B}=k,G=plGames(p),s=plSum(G),team=R.name||S.teams[ours()].name,fl=[ui.fType,ui.fComp].filter(Boolean).join(' · ');
-  const g=k.g;g.fillStyle=C.GREEN;g.fillRect(M,k.y,190,190);k.txt(noNum(p.num)?'–':p.num,`700 120px ${D}`,'#fff',M+95,k.y+100,180,'center');
+  const g=k.g,img=ui.plImg;if(img){g.drawImage(img,M,k.y,190,190);g.fillStyle=C.GREEN;g.fillRect(M+120,k.y+130,70,60);k.txt(noNum(p.num)?'–':p.num,`700 46px ${D}`,'#fff',M+155,k.y+161,64,'center')}
+  else{g.fillStyle=C.GREEN;g.fillRect(M,k.y,190,190);k.txt(noNum(p.num)?'–':p.num,`700 120px ${D}`,'#fff',M+95,k.y+100,180,'center')}
   k.txt(p.name||'Hráč',`700 80px ${D}`,C.INK,M+230,k.y+60,W-2*M-230);k.txt(team+(p.bats?' · pálí '+BATS[p.bats]:'')+(p.pos?' · oblíbená pozice: '+POS[p.pos]:'')+(p.since?' · hraje od '+p.since:''),`400 30px ${B}`,C.MUT,M+230,k.y+125,W-2*M-230);
   k.txt('Karta hráče · sezóna'+(fl?' · '+fl:'')+(allTeams()?' · všechny týmy':'')+' · '+new Date().toLocaleDateString('cs-CZ'),`400 26px ${B}`,C.MUT,M+230,k.y+170,W-2*M-230);k.y+=230;
   k.head('Sezóna v číslech');k.table([['',.01],['Zápasy',1],['Pálil',1],['Odpaly',1],['Dlouhé',1],['Na metě',1],['Body',1],['K',1],['Úspěšnost',1.3]],[['',s.g,s.pa,s.h,s.xb,s.ob,s.r,s.k,s.pa?avg(s.ob,s.pa):'–']]);
@@ -1233,17 +1236,25 @@ function playerPages(){const p=plFind(ui.player),k=pdfKit(),{W,M,C,D,B}=k,G=plGa
   const ach=achievements().filter(a=>a.num===p.num);if(ach.length||s.stars){k.head('Úspěchy');k.lines([...ach.map(a=>'🎉 '+a.label+(a.date?' · '+gDate({meta:{date:a.date}}):'')),...(s.stars?['⭐ hvězda zápasu '+s.stars+'×']:[])])}
   return k.pages}
 const plUpd=fn=>{const p=plFind(ui.player);if(!p)return;fn(p);saveR()};
-Object.assign(ACT,{pl:v=>{if(ui.tab!=='player')ui.plBack=ui.tab;ui.player=v;ui.plNum=false;ui.plMsgOn=false;ui.plPdfMsg='';ui.menu=false;ui.tab='player';render();window.scrollTo&&window.scrollTo(0,0)},
+Object.assign(ACT,{pl:v=>{if(ui.tab!=='player')ui.plBack=ui.tab;ui.player=v;ui.plNum=false;ui.plMsgOn=false;ui.plPdfMsg='';ui.phMsg='';ui.phDel=false;ui.menu=false;ui.tab='player';render();window.scrollTo&&window.scrollTo(0,0)},
   plback:()=>{ui.tab=ui.plBack&&ui.plBack!=='player'?ui.plBack:'team';render()},
   plnumopen:()=>{ui.plNum=true;ui.plMsgOn=false;render();focusEl('pl-num')},plnumno:()=>{ui.plNum=false;render()},
   plnum:()=>{const f=document.getElementById('pl-num'),raw=f&&f.value,old=ui.player;assignNumber(old,raw);const nn=jersey(raw);if(nn&&plFind(nn)&&!plFind(old)){ui.player=nn;ui.plNum=false}ui.plMsgOn=true;render()},
-  plpdf:()=>{const p=plFind(ui.player);if(p)pdfSave(playerPages,'karta-'+(p.name||'hrac')+(noNum(p.num)?'':'-'+p.num),'plPdfMsg','plBusy')}});
+  plpdf:async()=>{const p=plFind(ui.player);if(!p)return;ui.plImg=p.photo?await loadImg(p.photo).catch(()=>null):null;pdfSave(playerPages,'karta-'+(p.name||'hrac')+(noNum(p.num)?'':'-'+p.num),'plPdfMsg','plBusy')}});
 CHG['pl-name']=v=>{const n=v.trim();if(n)plUpd(p=>{p.name=n})};
 CHG['pl-bats']=v=>{plUpd(p=>{if(v)p.bats=v;else delete p.bats});render()};
 CHG['pl-pos']=v=>{plUpd(p=>{if(v)p.pos=v;else delete p.pos});render()};
 CHG['pl-since']=v=>{plUpd(p=>{const x=v.trim();if(x)p.since=x;else delete p.since})};
 CHG['pl-notes']=v=>{plUpd(p=>{const x=v.trim();if(x)p.notes=v;else delete p.notes})};
 TABS.player='Hráč';VIEWS.player=()=>playerView();
+/* ----- fotka hráče: zmenšená na čtverec 256 px (JPEG), uložená u hráče v soupisce ----- */
+const loadImg=src=>new Promise((ok,bad)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=bad;i.src=src});
+async function photoFrom(file){const url=URL.createObjectURL(file);try{const im=await loadImg(url),n=Math.min(im.naturalWidth,im.naturalHeight);if(!n)throw 0;
+    const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.drawImage(im,(im.naturalWidth-n)/2,(im.naturalHeight-n)/3,n,n,0,0,256,256);
+    let q=.82,d=c.toDataURL('image/jpeg',q);while(d.length>45000&&q>.4){q-=.12;d=c.toDataURL('image/jpeg',q)}return d}finally{URL.revokeObjectURL(url)}}
+CHG['pl-photo']=async(v,el)=>{const f=el.files&&el.files[0];if(!f)return;if(!/^image\//.test(f.type)){ui.phMsg='Tohle není obrázek.';return render()}
+  ui.phMsg='Zpracovávám fotku…';render();try{const d=await photoFrom(f);plUpd(p=>{p.photo=d});ui.phMsg='Fotka uložena.'}catch(e){ui.phMsg='Fotku se nepodařilo načíst. Zkus jiný obrázek (JPG nebo PNG).'}render()};
+Object.assign(ACT,{phdel:()=>{ui.phDel=true;render()},phdelno:()=>{ui.phDel=false;render()},phdelyes:()=>{plUpd(p=>{delete p.photo});ui.phDel=false;ui.phMsg='Fotka odebrána.';render()}});
 const focusEl=id=>{const f=document.getElementById(id);if(f)f.focus()};
 const ENTER={subnum:e=>doSub(e.target.value),rennum:e=>doRen(e.target.value),add0:()=>addPlayer(0),add1:()=>addPlayer(1),rnum:()=>focusEl('rname'),rname:()=>addRoster(),
   'lg-code':()=>doLogin(),'lg-new2':()=>doSetup(),'op-new':()=>ACT.opadd(),'op-num':()=>focusEl('op-pname'),'op-pname':()=>ACT.oppadd(),rassnum:()=>ACT.rassgo(),'pl-num':()=>ACT.plnum()};

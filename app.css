@@ -342,3 +342,7 @@ button.pa.editing{outline:2px solid var(--ink)}
 .plddet{display:flex;flex-direction:column;gap:4px}.plddet b{font:700 1.3rem var(--display);margin-right:4px}
 .achip.star{background:var(--warn-soft)}
 .plnotes{min-height:96px}
+.plphoto{position:relative;flex:none;width:84px;height:84px}
+.plphoto img{width:84px;height:84px;border-radius:12px;object-fit:cover;display:block;border:1px solid var(--line)}
+.plbadge{position:absolute;right:-6px;bottom:-6px;min-width:34px;height:30px;padding:0 6px;border-radius:8px;background:var(--field);color:var(--surface);display:grid;place-items:center;font:700 1.2rem/1 var(--display);border:2px solid var(--surface)}
+.plph{align-items:center}.plph>*{flex:0 1 auto}
