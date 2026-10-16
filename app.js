@@ -324,8 +324,10 @@ const POSN={...POS,10:'další zadák',B:'lavička'};
 const POS_ORDER=['1','2','3','4','5','6','7','8','9','10','B'];
 const posTxt=p=>p==='B'?'Lavička':p==='10'?'Další zadák':p+' · '+POSN[p];
 const posShort=p=>p==='B'?'L':p==='10'?'Z+':p;
-const defL=()=>S.teams[ours()].lineup;
-function defOf(i){if(!S.def)S.def={};if(!S.def[i])S.def[i]={};return S.def[i]}
+const hasDef2=()=>!!(S.vsTid&&TEAMS.list.some(t=>t.id===S.vsTid)),DEFK=()=>ui.defSide==='t'&&hasDef2()?'def2':'def',defTeam=()=>DEFK()==='def2'?1-ours():ours();
+const defL=()=>S.teams[defTeam()].lineup;
+const onSide=(side,fn)=>{const k=ui.defSide;ui.defSide=side;try{return fn()}finally{ui.defSide=k}};
+function defOf(i){const k=DEFK();if(!S[k])S[k]={};if(!S[k][i])S[k][i]={};return S[k][i]}
 function defFill(i){const d=defOf(i);defL().forEach((n,k)=>{d[n]=k<9?String(k+1):'10'})}
 function defRotate(i){const L=defL(),p=defOf(i-1),d=defOf(i);const pos=L.map(n=>p[n]||'B');L.forEach((n,k)=>{d[n]=pos[(k-1+L.length)%L.length]})}
 function defWarn(d){const cnt={};Object.values(d).forEach(p=>{if(p&&p!=='B'&&p!=='10')cnt[p]=(cnt[p]||0)+1});
@@ -334,22 +336,22 @@ function defWarn(d){const cnt={};Object.values(d).forEach(p=>{if(p&&p!=='B'&&p!=
   if(miss.length&&miss.length<9&&defL().length>=9)w.push('Neobsazeno: '+miss.map(p=>POSN[p]).join(', ')+'.');
   return w.length?`<div class="msg">${w.join(' ')}</div>`:''}
 function defView(){const L=defL(),n=innCount();let i=ui.defInn||Math.min(S.inning,n);if(i>n)i=n;ui.defInn=i;const d=defOf(i);
-  let h=`<div class="card form"><div class="label">Obrana · ${esc(S.teams[ours()].name)}</div>
+  let h=`<div class="card form"><div class="label">Obrana · ${esc(S.teams[defTeam()].name)}</div>${hasDef2()?`<div class="tabs" style="align-self:flex-start">${[['o',ours()],['t',1-ours()]].map(([k,t])=>`<button class="${DEFK()===(k==='t'?'def2':'def')?'on':''}" data-act="defside" data-v="${k}">${esc(S.teams[t].name)}</button>`).join('')}</div>`:''}
   <div class="tabs innt">${range(n).map(k=>`<button class="${k===i?'on':''}" data-act="definn" data-v="${k}">${k}. směna</button>`).join('')}</div>
   <div class="row"><button class="solid" data-act="deffair">Férově od ${i}. směny</button>${i>1?`<button class="ghost" data-act="defrot">Rotovat z ${i-1}. směny</button>`:''}<button class="ghost" data-act="deffill">Podle pořadí</button><button class="ghost" data-act="defclear">Vymazat</button></div>
-  <div class="defl">${L.map(num=>`<div class="defrow"><label for="dp-${esc(num)}"><b>${esc(lbl(ours(),num))}</b></label><select id="dp-${esc(num)}" class="sel" data-num="${esc(num)}"><option value="">–</option>${POS_ORDER.map(p=>`<option value="${p}" ${d[num]===p?'selected':''}>${posTxt(p)}</option>`).join('')}</select></div>`).join('')}</div>
+  <div class="defl">${L.map(num=>`<div class="defrow"><label for="dp-${esc(num)}"><b>${esc(lbl(defTeam(),num))}</b></label><select id="dp-${esc(num)}" class="sel" data-num="${esc(num)}"><option value="">–</option>${POS_ORDER.map(p=>`<option value="${p}" ${d[num]===p?'selected':''}>${posTxt(p)}</option>`).join('')}</select></div>`).join('')}</div>
   ${defWarn(d)}<p class="next" style="margin:0">„Férově“ rozdělí pozice na tuto a všechny další směny: nikdo nehraje stejné místo dvakrát po sobě, každý se vystřídá ve vnitřním i vnějším poli a bere se ohled na celou sezónu. Rotace posune každého na pozici hráče před ním v pořadí.</p></div>`;
   return h+playTimeCard()}
 
 /* ----- fair playing time ----- */
-function playTimeCard(){const o=ours(),L=defL(),n=innCount();if(!L.length)return'';
+function playTimeCard(){const o=defTeam(),L=defL(),n=innCount(),D=S[DEFK()];if(!L.length)return'';
   const rows=[...new Set([...L,...(S.subs||[]).filter(x=>x.t===o).map(x=>x.out)])].map(num=>{const pa=S.pas.filter(r=>r.t===o&&r.num===num);let inf=0,outf=0,bench=0;const pos=[];
-    for(let i=1;i<=n;i++){const p=S.def&&S.def[i]&&S.def[i][num];pos.push(p?posShort(p):'·');if(!p)continue;if(p==='B')bench++;else if(+p>=7)outf++;else inf++}
+    for(let i=1;i<=n;i++){const p=D&&D[i]&&D[i][num];pos.push(p?posShort(p):'·');if(!p)continue;if(p==='B')bench++;else if(+p>=7)outf++;else inf++}
     return{num,pa:pa.length,on:pa.filter(r=>HITS.includes(r.code)||r.code==='FC'||r.code[0]==='E').length,runs:pa.filter(r=>r.scored).length,inf,outf,bench,pos}});
   const minPa=Math.min(...rows.map(r=>r.pa)),maxPa=Math.max(...rows.map(r=>r.pa)),minB=Math.min(...rows.map(r=>r.bench));
-  return `<div class="card"><div class="label">Herní čas · ${esc(S.teams[ours()].name)}</div><div class="ls-wrap"><table class="pt">
+  return `<div class="card"><div class="label">Herní čas · ${esc(S.teams[o].name)}</div><div class="ls-wrap"><table class="pt">
   <thead><tr><th>Hráč</th><th>Pálil</th><th>Met</th><th>Body</th><th>Vnitř.</th><th>Vnější</th><th>Lav.</th><th>Pozice po směnách</th></tr></thead><tbody>
-  ${rows.map(r=>`<tr><td class="nm">${plLink(r.num,lbl(o,r.num))}</td><td class="${maxPa-minPa>=2&&r.pa===minPa?'low':''}">${r.pa}</td><td>${r.on}</td><td>${r.runs}</td><td>${r.inf}</td><td>${r.outf}</td><td class="${r.bench>minB+1?'low':''}">${r.bench}</td><td class="posl">${r.pos.join(' ')}</td></tr>`).join('')}
+  ${rows.map(r=>`<tr><td class="nm">${o===ours()?plLink(r.num,lbl(o,r.num)):esc(lbl(o,r.num))}</td><td class="${maxPa-minPa>=2&&r.pa===minPa?'low':''}">${r.pa}</td><td>${r.on}</td><td>${r.runs}</td><td>${r.inf}</td><td>${r.outf}</td><td class="${r.bench>minB+1?'low':''}">${r.bench}</td><td class="posl">${r.pos.join(' ')}</td></tr>`).join('')}
   </tbody></table></div><p class="next" style="margin:6px 0 0">Vnitř. = vnitřní pole, nadhazovač a catcher, Vnější = zadáci. Červeně: hráč je pozadu oproti ostatním.</p></div>`}
 
 /* ----- history & season ----- */
@@ -448,7 +450,7 @@ const ACT={
   clkyes:()=>{ui.clkC=false;S.clock={start:null};commit()},
   /* defense */
   definn:v=>{ui.defInn=+v;render()},
-  defrot:()=>{snap();defRotate(ui.defInn);commit()},deffill:()=>{snap();defFill(ui.defInn);commit()},defclear:()=>{snap();defOf(ui.defInn);S.def[ui.defInn]={};commit()},
+  defrot:()=>{snap();defRotate(ui.defInn);commit()},deffill:()=>{snap();defFill(ui.defInn);commit()},defclear:()=>{snap();defOf(ui.defInn);S[DEFK()][ui.defInn]={};commit()},defside:v=>{ui.defSide=v;render()},
   /* history */
   hsave:()=>{ui.gMsg=archiveGame()?'Uloženo do historie. Najdeš ji v záložce Zápasy.':S.pas.length?'Uložení se nepovedlo.':'Zatím není co ukládat.';render()},
   hopen:v=>{const g=loadH().find(x=>x.gameId===v);if(!g)return;archiveGame();S=JSON.parse(JSON.stringify(g));delete S.savedAt;hist=[];ui.tab='sheet';ui.hMsg='';commit()},
@@ -502,7 +504,7 @@ function doSub(raw){if(!ui.sub)return;const {t,i}=ui.sub,L=S.teams[t].lineup,num
   const elsewhere=(S.subs||[]).find(x=>x.t===t&&x.slot!==i&&(x.out===num||x.in===num));
   if(elsewhere){ui.subMsg='#'+num+' už pálil na '+(elsewhere.slot+1)+'. místě. Může se vrátit jen tam.';return render()}
   snap();const out=L[i];L[i]=num;(S.subs=S.subs||[]).push({t,slot:i,out,in:num,inn:S.inning});
-  if(t===ours()&&S.def){const d=S.def[S.inning];if(d&&d[out]&&!d[num]){d[num]=d[out];delete d[out]}}
+  {const dk=t===ours()?'def':hasDef2()?'def2':null,d=dk&&S[dk]&&S[dk][S.inning];if(d&&d[out]&&!d[num]){d[num]=d[out];delete d[out]}}
   log('střídání: '+lbl(t,num)+' za '+lbl(t,out)+' ('+(i+1)+'. v pořadí)');S.example=false;ui.sub=null;ui.subMsg='';commit()}
 
 /* =========== v4: oprava zápisu, soupeř bez sestavy, úspěchy, hvězdy, rozpis, docházka, CSV, živý zápis =========== */
@@ -673,7 +675,7 @@ function saveTeams(){TEAMS.list.forEach(t=>{if(t.id===TEAMS.cur)t.name=R.name||t
 function loadTeam(tid){TEAMS.cur=tid;try{localStorage.setItem(TCUR_KEY,JSON.stringify(tid))}catch(e){}
   R=store.get(tkey(RKEY),null);if(!R||!Array.isArray(R.players))R={name:(TEAMS.list.find(t=>t.id===tid)||{}).name||'',players:[]};
   S=store.get(tkey(KEY),null);if(!S||!S.teams){S=fresh();if(R.name)S.teams[ours()].name=R.name;if(R.players.length){S.teams[ours()].lineup=sortedRoster().map(p=>p.num);S.example=false}}
-  hist=[];clearTimeout(PUB_T);PUB_T=null;Object.assign(ui,{panel:null,seq:[],sheet:0,confirm:false,msg:['',''],edit:null,sub:null,ren:null,endC:false,tmPending:null,bkPending:null,sum:false,wiz:null,player:null,plNum:false,rmove:null,assign:null,defInn:null,gMsg:'',hMsg:'',attMsg:'',schMsg:'',fType:'',fComp:''})}
+  hist=[];clearTimeout(PUB_T);PUB_T=null;Object.assign(ui,{panel:null,seq:[],sheet:0,confirm:false,msg:['',''],edit:null,sub:null,ren:null,endC:false,tmPending:null,bkPending:null,sum:false,wiz:null,player:null,plNum:false,defSide:'o',rmove:null,assign:null,defInn:null,gMsg:'',hMsg:'',attMsg:'',schMsg:'',fType:'',fComp:''})}
 function switchTeam(tid){if(tid===TEAMS.cur||!TEAMS.list.some(t=>t.id===tid))return;save();saveR();loadTeam(tid);render()}
 function teamsCard(){const L=TEAMS.list;
   return `<div class="card form"><div class="label">Moje týmy · ${L.length}</div>
@@ -709,7 +711,7 @@ function setVs(tid){if(S.pas.length)return;const t=1-ours();snap();delete S.oppI
   else{delete S.vsTid;S.teams[t]={name:t?'Domácí':'Hosté',lineup:range(9).map(i=>'?'+i)}}
   S.bat[t]=0;S.subs=(S.subs||[]).filter(x=>x.t!==t);save();render()}
 function mirrorGame(g){const vs=g.vsTid;if(!vs||vs===TEAMS.cur||!TEAMS.list.some(t=>t.id===vs))return;
-  const m=JSON.parse(JSON.stringify(g));m.gameId=g.mirrorOf||g.gameId+'v';m.mirrorOf=g.gameId;m.vsTid=TEAMS.cur;m.ours=1-(g.ours??1);m.stars=[];delete m.def;delete m.att;
+  const m=JSON.parse(JSON.stringify(g));m.gameId=g.mirrorOf||g.gameId+'v';m.mirrorOf=g.gameId;m.vsTid=TEAMS.cur;m.ours=1-(g.ours??1);m.stars=[];delete m.att;{const a=m.def,b=m.def2;if(b)m.def=b;else delete m.def;if(a)m.def2=a;else delete m.def2}
   const H=loadHFor(vs),i=H.findIndex(x=>x.gameId===m.gameId);if(i>=0)H[i]=m;else H.unshift(m);
   H.sort((a,b)=>String(b.meta&&b.meta.date).localeCompare(String(a.meta&&a.meta.date)));store.set(keyFor(HKEY,vs),H)}
 function twinSchedule(x){const k=keyFor(SKEY,x.vsTid),l=store.get(k,[])||[];l.push({...x,id:newId(),home:!x.home,opp:R.name||S.teams[ours()].name,vsTid:TEAMS.cur,pairId:x.id});store.set(k,l)}
@@ -999,7 +1001,7 @@ COMPS.forEach((c,i)=>{CHG['opc-'+i]=(v,el)=>oppUpd(ui.oppEdit,o=>{const set=new 
 function assignRow(p){return `<div class="addrow assign"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" id="rassnum" placeholder="Číslo pro ${esc(p.name)}" aria-label="Číslo dresu"><button class="solid" data-act="rassgo">Uložit</button><button class="ghost" data-act="rassno">Zrušit</button></div>`}
 function swapNumIn(g,side,old,neu){if(!g||!g.teams||!g.teams[side])return;const T=g.teams[side];T.lineup=T.lineup.map(n=>n===old?neu:n);
   (g.pas||[]).forEach(r=>{if(r.t===side&&r.num===old)r.num=neu});(g.subs||[]).forEach(x=>{if(x.t===side){if(x.in===old)x.in=neu;if(x.out===old)x.out=neu}});
-  if(g.def)Object.values(g.def).forEach(d=>{if(d&&d[old]!==undefined){d[neu]=d[old];delete d[old]}});
+  {const D=g[side===(g.ours??1)?'def':'def2'];if(D)Object.values(D).forEach(d=>{if(d&&d[old]!==undefined){d[neu]=d[old];delete d[old]}})}
   if(Array.isArray(g.att))g.att=g.att.map(n=>n===old?neu:n);if(Array.isArray(g.stars))g.stars=g.stars.map(n=>n===old?neu:n)}
 function assignNumber(old,raw){const num=jersey(raw),p=R.players.find(x=>x.num===old);if(!p)return;
   if(!num){ui.rmsg='Zadej číslo dresu.';return render()}if(R.players.some(x=>x.num===num)){ui.rmsg='Číslo #'+num+' už má někdo jiný.';return render()}
@@ -1075,7 +1077,7 @@ function prepView(){const w=ui.wiz;if(!w)return nextCard();const x=w.x,ps=sorted
       :`<p class="msg" style="margin:0">Soupiska je prázdná. Přidej hráče v záložce Tým, nebo pokračuj a čísla zadáš ručně v Nastavení zápasu.</p>`}
   else if(st==='order'){const O=wizOrder();h+=`<div class="label">Pálkařské pořadí · ${esc(me)}</div>`;
     h+=O.length?ordList(O,n=>lbl(ours(),n),'')+`<div class="row"><button class="ghost" data-act="wzsort">Podle čísel</button><button class="ghost" data-act="wzrot">První na konec</button><button class="ghost" data-act="wzmix">Zamíchat</button></div>`:'<p class="next" style="margin:0">Bez soupisky. Pořadí zadáš v Nastavení zápasu.</p>';
-    h+=`<label class="radio" for="wz-def"><input type="checkbox" id="wz-def" ${w.def?'checked':''}> Férově rozdělit obranu na všechny směny</label>`}
+    h+=`<label class="radio" for="wz-def"><input type="checkbox" id="wz-def" ${w.def?'checked':''}> Férově rozdělit obranu na všechny směny${wzSteps(w).includes('them')?' (u obou týmů)':''}</label>`}
   else if(st==='them'){const T=wzThem(w),O=wizOrder2(),nameOf=n=>{const p=T.players.find(q=>q.num===n);return numTxt(n)+(p&&p.name?' '+p.name:'')};
     h+=`<div class="label">${esc(T.name)} · přítomno ${w.att2.length} z ${T.players.length}</div>${attList2(T.players,w.att2,'wb-')}
     <div class="row"><button class="ghost" data-act="wzall2">Všichni</button><button class="ghost" data-act="wznone2">Nikdo</button></div>
@@ -1084,7 +1086,7 @@ function prepView(){const w=ui.wiz;if(!w)return nextCard();const x=w.x,ps=sorted
     h+=`<div class="fin-score">${esc(x.home?(x.opp||'Soupeř'):me)} – ${esc(x.home?me:(x.opp||'Soupeř'))}</div>
     <span class="next">${schLine(x)}${w.stats?'':' · mimo statistiky'}</span>
     <div class="next">${esc(me)}: ${O.length?O.map(n=>esc(short(n))).join(', '):'pořadí zadáš ručně'}${w.def&&O.length?' · obrana férově na '+S.settings.innings+' '+(S.settings.innings<5?'směny':'směn'):''}</div>
-    ${O2.length?`<div class="next">${esc(x.opp)}: ${O2.map(n=>esc(short(n))).join(', ')}</div>`:''}
+    ${O2.length?`<div class="next">${esc(x.opp)}: ${O2.map(n=>esc(short(n))).join(', ')}${w.def&&x.vsTid?' · obrana férově':''}</div>`:''}
     ${cur?'<div class="msg">Rozehraný zápas se nejdřív uloží do historie.</div>':''}`}
   if(w.msg)h+=`<div class="msg">${esc(w.msg)}</div>`;
   h+=`<div class="row">${st!=='go'?'<button class="solid" data-act="wznext">Dál</button>':'<button class="solid" data-act="wzgo">▶ Začít zápas</button>'}${w.step>0?'<button class="ghost" data-act="wzback">Zpět</button>':''}<button class="ghost" data-act="wzcancel">Zrušit</button></div></div>`;
@@ -1099,7 +1101,7 @@ function wizStart(){const w=ui.wiz;if(!w)return;const x=w.x,O=wizOrder().slice()
   const o=ours(),me={name:R.name||S.teams[o].name,lineup:O.length?O:S.teams[o].lineup.slice()},vs=x.vsTid&&TEAMS.list.some(t=>t.id===x.vsTid&&t.id!==TEAMS.cur)?x.vsTid:null,so=!vs&&oppById(x.oppId),
     them={name:vs?teamName(TEAMS.list.find(t=>t.id===vs)):so?so.name:(x.opp||'Soupeř'),lineup:O2.length?O2:vs?sideLineup(vs):so?oppLineup(so):range(9).map(i=>'?'+i)};
   const keep=S.settings;S=fresh();S.settings=keep;S.teams=x.home?[them,me]:[me,them];S.ours=x.home?1:0;S.meta={date:x.date||todayISO(),field:x.field||'',type:x.type||'',comp:x.comp||''};
-  S.example=false;S.prepped=true;S.att=w.att.slice();if(!w.stats)S.noStats=true;if(vs)S.vsTid=vs;else if(so)S.oppId=so.id;if(w.def&&O.length)fairDef(1);
+  S.example=false;S.prepped=true;S.att=w.att.slice();if(!w.stats)S.noStats=true;if(vs)S.vsTid=vs;else if(so)S.oppId=so.id;if(w.def&&O.length)fairDef(1);if(w.def&&vs&&O2.length)onSide('t',()=>fairDef(1));
   if(w.sch){const l=loadSch(),y=l.find(z=>z.id===w.sch);if(y){y.played=true;y.gameId=S.gameId;saveSch(l);if(y.vsTid)twinPlayed(y)}}
   hist=[];ui.wiz=null;ui.tab='game';ui.defInn=null;commit()}
 const wzMove=(O,i,d)=>{[O[i],O[i+d]]=[O[i+d],O[i]];render()},wzMix=O=>{for(let i=O.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[O[i],O[j]]=[O[j],O[i]]}render()};
@@ -1120,10 +1122,10 @@ CHG['pf-theme']=v=>{prefSet('theme',v);render()};CHG['pf-wake']=(v,el)=>{prefSet
 /* ----- férová obrana: každý se vystřídá ve vnitřním i vnějším poli, bez opakování pozice ----- */
 const FAIR_POS=['1','3','6','4','5','2','8','7','9'];
 const isInf=p=>+p>=1&&+p<=6;
-function seasonPos(skipId){const c={};gamesChrono().forEach(g=>{if(g.gameId===skipId||!g.def)return;Object.values(g.def).forEach(d=>Object.entries(d||{}).forEach(([n,p])=>{if(p){(c[n]=c[n]||{})[p]=(c[n][p]||0)+1}}))});return c}
-function fairDef(from){const L=defL(),n=innCount();if(!L.length)return;const sea=seasonPos(S.gameId),slots=FAIR_POS.slice(0,Math.min(L.length,9)).concat(Array(Math.max(0,L.length-9)).fill('10'));
-  for(let i=from;i<=n;i++){const gm={},grp={};for(let k=1;k<i;k++){const d=(S.def||{})[k]||{};Object.entries(d).forEach(([m,p])=>{if(!p||p==='B')return;(gm[m]=gm[m]||{})[p]=(gm[m][p]||0)+1;const g=grp[m]=grp[m]||{i:0,o:0};isInf(p)?g.i++:g.o++})}
-    const prev=(S.def||{})[i-1]||{};
+function seasonPos(skipId,G){const c={};(G||gamesChrono()).forEach(g=>{if(g.gameId===skipId||!g.def)return;Object.values(g.def).forEach(d=>Object.entries(d||{}).forEach(([n,p])=>{if(p){(c[n]=c[n]||{})[p]=(c[n][p]||0)+1}}))});return c}
+function fairDef(from){const L=defL(),n=innCount(),K=DEFK();if(!L.length)return;const sea=seasonPos(S.gameId,K==='def2'?loadHFor(S.vsTid):null),slots=FAIR_POS.slice(0,Math.min(L.length,9)).concat(Array(Math.max(0,L.length-9)).fill('10'));
+  for(let i=from;i<=n;i++){const gm={},grp={};for(let k=1;k<i;k++){const d=(S[K]||{})[k]||{};Object.entries(d).forEach(([m,p])=>{if(!p||p==='B')return;(gm[m]=gm[m]||{})[p]=(gm[m][p]||0)+1;const g=grp[m]=grp[m]||{i:0,o:0};isInf(p)?g.i++:g.o++})}
+    const prev=(S[K]||{})[i-1]||{};
     const cost=(m,p)=>{const g=grp[m]||{i:0,o:0},s=sea[m]||{};let c=((gm[m]||{})[p]||0)*12+(s[p]||0)+(prev[m]===p?40:0);
       const sIn=Object.keys(s).filter(isInf).reduce((a,q)=>a+s[q],0),sOut=Object.keys(s).filter(q=>!isInf(q)&&q!=='B').reduce((a,q)=>a+s[q],0);
       c+=isInf(p)?6*Math.max(0,g.i-g.o)+.5*Math.max(0,sIn-sOut):6*Math.max(0,g.o-g.i)+.5*Math.max(0,sOut-sIn);return c+Math.random()*.01};
@@ -1131,7 +1133,7 @@ function fairDef(from){const L=defL(),n=innCount();if(!L.length)return;const sea
     for(let t=0;t<80;t++){const order=slots.slice();for(let a=order.length-1;a>0;a--){const b=Math.floor(Math.random()*(a+1));[order[a],order[b]]=[order[b],order[a]]}
       const free=new Set(L),as={};let tot=0;order.forEach(p=>{let bm=null,bv=Infinity;free.forEach(m=>{const v=cost(m,p);if(v<bv){bv=v;bm=m}});free.delete(bm);as[bm]=p;tot+=bv});
       if(tot<bc){bc=tot;best=as}}
-    defOf(i);S.def[i]=best}}
+    defOf(i);S[K][i]=best}}
 function posSeasonCard(){const o=ours(),c={},inn={};gamesChrono().forEach(g=>{if(!g.def)return;Object.values(g.def).forEach(d=>Object.entries(d||{}).forEach(([n,p])=>{if(!p)return;(c[n]=c[n]||{})[p]=(c[n][p]||0)+1;inn[n]=(inn[n]||0)+1}))});
   const ns=Object.keys(c).filter(n=>!anon(n)).sort((a,b)=>byNum({num:a,name:rname(a)},{num:b,name:rname(b)}));if(!ns.length)return'';const P=['1','2','3','4','5','6','7','8','9','10','B'];
   return `<div class="card"><div class="label">Pozice v obraně · celá sezóna (směny)</div><div class="ls-wrap"><table class="pt pos"><thead><tr><th>Hráč</th><th>Směn</th>${P.map(p=>`<th title="${esc(posTxt(p))}">${posShort(p)}</th>`).join('')}<th>Vnitř.</th><th>Vnější</th></tr></thead><tbody>
