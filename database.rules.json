@@ -43,7 +43,13 @@
     "public": {
       "$tid": {
         ".read": true,
-        ".write": "auth != null && root.child('claims').child(auth.uid).exists() && (root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin' || root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('team').val() === $tid)"
+        ".write": "auth != null && root.child('claims').child(auth.uid).exists() && (root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin' || root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('team').val() === $tid)",
+        "training": {
+          ".write": "auth != null && root.child('claims').child(auth.uid).exists() && (root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin' || root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'coach')",
+          "$id": {
+            ".validate": "newData.hasChildren(['ts','json']) && newData.child('json').isString() && newData.child('json').val().length < 20000"
+          }
+        }
       }
     },
     "training": {
