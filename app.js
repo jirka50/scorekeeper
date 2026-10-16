@@ -46,7 +46,7 @@ function startPA(code){const t=bt();const r={id:S.pas.length,t,num:S.teams[t].li
 const lim=()=>S.settings.runLimit??5;
 const swl=()=>S.settings.swingLimit??5;
 /* nadhoz: tee | coach (coachball) | cbtee (N nadhozů trenéra, pak tee) */
-const PRESETS=[['tee0','Tee – do odpalu',{pitch:'tee',swingLimit:0}],['tee5','Tee – 5 švihů',{pitch:'tee',swingLimit:5}],['cb3tee','Coachball 3 + tee',{pitch:'cbtee',coachN:3,swingLimit:5}],['cb','Coachball',{pitch:'coach',swingLimit:5}]];
+const PRESETS=[['tee0','Tee – do odpalu',{pitch:'tee',swingLimit:0}],['tee5','Tee – 5 švihů',{pitch:'tee',swingLimit:5}],['cb3tee','Coachball + tee',{pitch:'cbtee',coachN:3,swingLimit:5}],['cb','Coachball',{pitch:'coach',swingLimit:5}]];
 const pmode=st=>(st||S.settings).pitch||'tee',cbN=st=>(st||S.settings).coachN??3;
 const swTot=st=>{st=st||S.settings;const l=st.swingLimit??5;return l>0?l:0};
 const dlv=()=>pmode()==='coach'||(pmode()==='cbtee'&&(S.swings||0)<cbN())?'c':'t';
