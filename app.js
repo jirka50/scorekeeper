@@ -2,6 +2,8 @@
 var WEB={role:null,team:null,code:null,uid:null,online:false,setupDone:null,msg:'',busy:false,pins:null,parentTeam:null,parentName:''};
 var SYNC={st:'off',last:0,err:''};
 var FBX=null; /* {db,auth} */
+const APP_VERSION='1.0',APP_DATE='2026-10-16';
+const verTxt=()=>'verze '+APP_VERSION;
 const KEY='tball-zapisnik-v2';
 const POS=['','nadhazovač','catcher','1. metař','2. metař','3. metař','spojka','levý zadák','střední zadák','pravý zadák'];
 const LABEL={'1B':'odpal na metu','2B':'dvoumetový odpal','3B':'třímetový odpal','HR':'homerun','FC':'volba polaře'};
@@ -801,7 +803,7 @@ function renderLogin(){document.getElementById('tabs').innerHTML='';document.get
   <label for="lg-code">Kód<input type="text" id="lg-code" autocomplete="off" autocapitalize="characters" placeholder="např. K4PX-7QMR"></label>
   <button class="solid" data-act="lgin" ${WEB.busy?'disabled':''}>Přihlásit</button>`}
   ${WEB.msg?`<div class="msg">${esc(WEB.msg)}</div>`:''}
-  </div><p class="next" style="margin:0">Jsi rodič? Skóre sleduješ na odkazu, který ti pošle trenér.</p>`}
+  </div><p class="next" style="margin:0">Jsi rodič? Skóre sleduješ na odkazu, který ti pošle trenér.</p><p class="next ver">${verTxt()}</p>`}
 async function doLogin(){const f=document.getElementById('lg-code'),code=normCode(f&&f.value);if(code.length<9){WEB.msg='Zadej celý kód.';return render()}
   WEB.busy=true;WEB.msg='';render();
   try{const p=await claim(code);WEB.busy=false;WEB.msg='';startSession(code,p)}
@@ -923,7 +925,7 @@ function scoreView(){const on=!!S.settings.pubOn,auto=S.settings.autoPub!==false
   <p class="next" style="margin:0">Pošli ho rodičům do skupiny týmu. Odkaz je stálý, platí pro všechny zápasy tohoto týmu.</p></div>
   <div class="label">Takhle to uvidí rodiče</div>${board(liveData(false))}${infoHtml(infoData(TEAMS.cur))}`}
 function renderParent(){document.getElementById('tabs').innerHTML='';document.getElementById('sub').textContent=WEB.parentName?WEB.parentName+' · živé skóre':'živé skóre';
-  document.getElementById('view').innerHTML=WEB.msg?`<div class="card msg">${esc(WEB.msg)}</div>`:(LIVE?board(LIVE)+'<p class="next" style="margin:0">Stránka se obnovuje sama, jakmile trenér zapíše další akci.</p>'+liveSheet(LIVE):'<div class="card">Skóre zatím nebylo zveřejněno. Stránka se obnoví sama, až zápas začne.</div>')+infoHtml(WEB.pinfo)}
+  document.getElementById('view').innerHTML=WEB.msg?`<div class="card msg">${esc(WEB.msg)}</div>`:(LIVE?board(LIVE)+'<p class="next" style="margin:0">Stránka se obnovuje sama, jakmile trenér zapíše další akci.</p>'+liveSheet(LIVE):'<div class="card">Skóre zatím nebylo zveřejněno. Stránka se obnoví sama, až zápas začne.</div>')+infoHtml(WEB.pinfo)+`<p class="next ver">${verTxt()}</p>`}
 
 /* ---------- přístup, správa týmů a kódů ---------- */
 function syncCard(){const st=SYNC.st,msg={off:'Nepřipojeno.',connecting:'Připojuji…',saving:'Ukládám…',ok:'Uloženo online'+(SYNC.last?' · '+fmtTime(new Date(SYNC.last).toISOString()):''),offline:'Bez internetu. Zápis se ukládá v telefonu a odešle se po připojení.',error:SYNC.err||'Chyba ukládání.'}[st]||'';
@@ -1060,10 +1062,10 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 const TABS={game:'Zápas',sheet:'Zápis',def:'Obrana',score:'Skóre',games:'Zápasy',team:'Tým',stats:'Statistiky',opp:'Soupeři',set:'Nastavení zápasu',admin:'Správa',prep:'Příprava zápasu'};
 const MENU=[['Zápas',['game','sheet','def','score']],['Sezóna',['games','team','stats','opp']],['Nastavení',['set','admin']]];
 function navHtml(){const cur=TABS[ui.tab]||TABS.game;
-  return teamSwitch()+`<button class="sun-btn ${PREF.theme==='sun'?'on':''}" data-act="sun" aria-label="Režim na slunce" aria-pressed="${PREF.theme==='sun'}" title="Režim na slunce">☀</button><div class="menu"><button class="menu-btn" data-act="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}"><span class="burger" aria-hidden="true"></span>${cur}<span class="caret" aria-hidden="true">${ui.menu?'▴':'▾'}</span></button>${ui.menu?`<div class="menu-list" role="menu">${MENU.map(([h,ks])=>`<div class="menu-h">${h}</div>${ks.map(k=>`<button role="menuitem" class="${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}`).join('')}</div>`:''}</div>`}
+  return teamSwitch()+`<button class="sun-btn ${PREF.theme==='sun'?'on':''}" data-act="sun" aria-label="Režim na slunce" aria-pressed="${PREF.theme==='sun'}" title="Režim na slunce">☀</button><div class="menu"><button class="menu-btn" data-act="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}"><span class="burger" aria-hidden="true"></span>${cur}<span class="caret" aria-hidden="true">${ui.menu?'▴':'▾'}</span></button>${ui.menu?`<div class="menu-list" role="menu">${MENU.map(([h,ks])=>`<div class="menu-h">${h}</div>${ks.map(k=>`<button role="menuitem" class="${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}`).join('')}<div class="menu-ver">${verTxt()}</div></div>`:''}</div>`}
 const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>defView(),score:()=>scoreView(),games:()=>scheduleCard()+historyCard(),team:()=>teamView(),
   stats:()=>statsView(),opp:()=>oppCard(),set:()=>attendCard()+setView(),admin:()=>adminView(),prep:()=>prepView()};
-const adminView=()=>accessCard()+(WEB.role==='admin'?teamsCard()+adminCard():'')+syncCard()+appCard()+settingsExtra()+teamTransferCard()+resetCard();
+const adminView=()=>accessCard()+(WEB.role==='admin'?teamsCard()+adminCard():'')+syncCard()+appCard()+settingsExtra()+teamTransferCard()+resetCard()+`<p class="next ver">Baseball Scorekeeper · ${verTxt()} · ${esc(gDate({meta:{date:APP_DATE}}))}</p>`;
 /* ----- vymazání statistik: historie zápasů + rozehraný zápas (soupisky, rozpis, soupeři a pravidla zůstanou) ----- */
 const resetTids=()=>ui.rsAll&&WEB.role==='admin'?TEAMS.list.map(t=>t.id).filter(canWrite):[TEAMS.cur];
 function resetCard(){const tids=resetTids(),n=tids.reduce((a,t)=>a+loadHFor(t).length,0),cur=TEAMS.list.find(t=>t.id===TEAMS.cur)||{id:TEAMS.cur};
