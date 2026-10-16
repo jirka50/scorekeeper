@@ -351,3 +351,4 @@ button.pa.editing{outline:2px solid var(--ink)}
 .danger-solid{background:var(--pencil);color:#fff}
 .menu-ver{padding:8px 12px 4px;border-top:1px solid var(--line);margin-top:4px;font-size:.75rem;color:var(--muted)}
 .ver{margin:0;text-align:center;font-size:.75rem}
+h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
