@@ -46,11 +46,11 @@ function startPA(code){const t=bt();const r={id:S.pas.length,t,num:S.teams[t].li
 const lim=()=>S.settings.runLimit??5;
 const swl=()=>S.settings.swingLimit??5;
 /* nadhoz: tee | coach (coachball) | cbtee (N nadhozů trenéra, pak tee) */
-const PRESETS=[['tee0','Tee – do odpalu',{pitch:'tee',swingLimit:0}],['tee5','Tee – 5 švihů',{pitch:'tee',swingLimit:5}],['cb3tee','Coachball 3 + tee',{pitch:'cbtee',coachN:3,swingLimit:0}],['cb','Coachball',{pitch:'coach',swingLimit:5}]];
+const PRESETS=[['tee0','Tee – do odpalu',{pitch:'tee',swingLimit:0}],['tee5','Tee – 5 švihů',{pitch:'tee',swingLimit:5}],['cb3tee','Coachball 3 + tee',{pitch:'cbtee',coachN:3,swingLimit:5}],['cb','Coachball',{pitch:'coach',swingLimit:5}]];
 const pmode=st=>(st||S.settings).pitch||'tee',cbN=st=>(st||S.settings).coachN??3;
-const swTot=st=>{st=st||S.settings;const l=st.swingLimit??5;return l>0?(pmode(st)==='cbtee'?cbN(st)+l:l):0};
+const swTot=st=>{st=st||S.settings;const l=st.swingLimit??5;return l>0?l:0};
 const dlv=()=>pmode()==='coach'||(pmode()==='cbtee'&&(S.swings||0)<cbN())?'c':'t';
-const pitchTxt=st=>{st=st||S.settings;const m=pmode(st),l=st.swingLimit??5;return m==='tee'?'tee'+(l?', max. '+l+' švihů':' do odpalu'):m==='coach'?'coachball'+(l?', max. '+l+' švihů':''):'coachball '+cbN(st)+'× + tee'+(l?' ('+l+' švihů)':' do odpalu')};
+const pitchTxt=st=>{st=st||S.settings;const m=pmode(st),l=st.swingLimit??5;return m==='tee'?'tee'+(l?', max. '+l+' švihů':' do odpalu'):m==='coach'?'coachball'+(l?', max. '+l+' švihů':''):'coachball '+cbN(st)+(l?' + tee '+Math.max(0,l-cbN(st)):', pak tee do odpalu')};
 const maxB=()=>S.settings.maxAdvance??4;
 const halfRuns=()=>S.runs[bt()][S.inning-1]||0;
 function score(r){if(lim()>0&&halfRuns()>=lim())return;r.reach=4;r.scored=true;const a=S.runs[r.t];a[S.inning-1]=(a[S.inning-1]||0)+1;log(pn(r)+' doběhl domů, bod')}
@@ -127,7 +127,7 @@ function gameView(){const t=bt(),p=S.bat[t],len=S.teams[t].lineup.length,sw=S.sw
   else if(ui.endC)b+=endConfirm();
   else if(ui.panel)b+=panel();
   else{
-    b+=`<button class="big bad swingbtn" data-act="swing"><b>Švih ${sw+1}${tot>0?' / '+tot:''}</b>${pm!=='tee'?`<span class="pitchtag ${dv==='c'?'c':''}">${dv==='c'?'coachball'+(pm==='cbtee'?' '+(sw+1)+'/'+cbN():''):'tee'}</span>`:''}${d(last?'poslední švih = aut':'nezasáhl nebo faul',last?'Poslední povolený švih. Když netrefí, je pálkař aut.':'Pálkař netrefil míček nebo ho odpálil do autu (faul).')}</button>
+    b+=`<button class="big bad swingbtn" data-act="swing"><b>Švih ${sw+1}${tot>0?' / '+tot:''}</b>${pm!=='tee'?`<span class="pitchtag ${dv==='c'?'c':''}">${dv==='c'?'coachball'+(pm==='cbtee'?' '+(sw+1)+'/'+cbN():''):'tee'+(pm==='cbtee'&&tot>cbN()?' '+(sw+1-cbN())+'/'+(tot-cbN()):'')}</span>`:''}${d(last?'poslední švih = aut':'nezasáhl nebo faul',last?'Poslední povolený švih. Když netrefí, je pálkař aut.':'Pálkař netrefil míček nebo ho odpálil do autu (faul).')}</button>
     <div class="label">Výsledek odpalu ${dv==='c'?'z nadhozu trenéra':'z tee'}</div>
     <div class="grid" style="grid-template-columns:repeat(${maxB()},minmax(0,1fr))">${RES.slice(0,maxB()).map(([c,sh,lo],i)=>`<button class="big hit" data-act="hit" data-v="${i+1}"><b>${c}</b>${d(sh,lo)}</button>`).join('')}</div>
     ${maxB()<4?`<div class="next">Pálkař smí po odpalu postoupit nejvýš o ${maxB()} ${maxB()===1?'metu':'mety'}.</div>`:''}
@@ -189,8 +189,8 @@ function addRoster(){const name=(document.getElementById('rname').value||'').tri
 const presetOf=st=>st.preset||(PRESETS.find(([,,v])=>Object.entries(v).every(([a,b])=>(a==='pitch'?pmode(st):a==='coachN'?cbN(st):st.swingLimit??5)===b))||[''])[0];
 function rulesHtml(st,p){const m=pmode(st),l=st.swingLimit??5,ma=st.maxAdvance??4,cur=presetOf(st);
   return `<div class="cols2"><label for="${p}pmode">Nadhoz<select id="${p}pmode" class="sel">${cur?'':'<option value="">vlastní nastavení</option>'}${PRESETS.map(([k,t])=>`<option value="${k}" ${cur===k?'selected':''}>${t}</option>`).join('')}</select></label>
-  ${m==='cbtee'?`<label for="${p}cbn">Počet nadhozů trenéra, pak tee<input type="number" id="${p}cbn" min="1" max="10" inputmode="numeric" value="${cbN(st)}"></label>`:''}
-  <label for="${p}swl">${m==='cbtee'?'Švihů z tee, pak aut (0 = do odpalu)':'Maximum švihů na pálkaře, pak aut (0 = do odpalu)'}<input type="number" id="${p}swl" min="0" max="20" inputmode="numeric" value="${l}"></label>
+  ${m==='cbtee'?`<label for="${p}cbn">Z toho nadhozů trenéra (zbytek z tee)<input type="number" id="${p}cbn" min="1" max="10" inputmode="numeric" value="${cbN(st)}"></label>`:''}
+  <label for="${p}swl">${m==='cbtee'?'Celkem švihů, pak aut (0 = do odpalu)':'Maximum švihů na pálkaře, pak aut (0 = do odpalu)'}<input type="number" id="${p}swl" min="0" max="20" inputmode="numeric" value="${l}"></label>
   <label for="${p}inn">Počet směn<input type="number" id="${p}inn" min="1" max="12" value="${st.innings}"></label>
   <label for="${p}maxa">Nejvýš met po odpalu<select id="${p}maxa" class="sel">${[[1,'1 meta (jen 1B)'],[2,'2 mety (do 2B)'],[3,'3 mety (do 3B)'],[4,'bez omezení (i homerun)']].map(([v,t])=>`<option value="${v}" ${ma===v?'selected':''}>${t}</option>`).join('')}</select></label>
   <label for="${p}lim">Bodů na polovinu směny (0 = bez limitu)<input type="number" id="${p}lim" min="0" max="30" inputmode="numeric" value="${st.runLimit??5}"></label>
