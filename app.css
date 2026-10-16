@@ -348,3 +348,4 @@ button.pa.editing{outline:2px solid var(--ink)}
 .plph{align-items:center}.plph>*{flex:0 1 auto}
 .pitchtag{display:inline-block;margin-top:2px;padding:1px 8px;border-radius:999px;font:700 .72rem var(--body);letter-spacing:.04em;text-transform:uppercase;background:var(--paper);color:var(--muted);border:1px solid var(--line)}
 .pitchtag.c{background:var(--warn-soft);border-color:var(--warn);color:var(--ink)}
+.danger-solid{background:var(--pencil);color:#fff}

@@ -778,7 +778,7 @@ async function startSession(code,p){WEB.code=code;WEB.role=p.role;WEB.team=p.tea
   if(ROLE==='login'){try{await signIn();const sd=(await f.db.ref('setupDone').once('value')).val();WEB.setupDone=!!sd}catch(e){WEB.setupDone=true}return render()}
   let a=null;try{a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch(e){}
   if(a&&a.role){WEB.code=a.code;WEB.role=a.role;WEB.team=a.team;startSession(a.code,a)} /* hned pracuj z paměti telefonu */
-  try{const p=await claim(a.code);if(p.role!==a.role||(p.team||null)!==(a.team||null))startSession(a.code,p)}
+  try{const p=await claim(a.code);if(p.role!==a.role||(p.team||null)!==(a.team||null))startSession(a.code,p);else{listenTeamlist();listenOpp();if(FS.tlOn)subscribeTeams()}}
   catch(e){if(e&&e.code==='offline')return;if(String(e&&(e.code||e.message)).toLowerCase().includes('permission')||e.code==='bad'||e.code==='coach'){logout('Kód už neplatí. Přihlas se znovu.')}}
 })();
 
@@ -830,6 +830,7 @@ async function pushSlot(slot){const db=FBX.db;
   const [kind,tid]=slot.split('|');
   if(kind==='games'){await pushGames(tid);return pushInfo(tid)}
   if(kind==='info')return pushInfo(tid);
+  if(kind==='reset'){if(!canWrite(tid))return;return db.ref('teams/'+tid+'/reset').set({ts:FS.meta[slot]||Date.now(),dev:DEV})}
   if(!canWrite(tid))return;
   const cur=tid===TEAMS.cur,val=cur&&kind==='state'?S:cur&&kind==='team'?R:store.get(keyFor(BASE[kind],tid),null);if(val==null)return;
   const ts=FS.meta[slot]||Date.now();FS.meta[slot]=ts;metaSave();
@@ -846,11 +847,11 @@ function listenTeamlist(){if(!FBX||FS.tlOn)return;FS.tlOn=true;const ref=FBX.db.
       if(WEB.role==='scorer'&&!list.some(t=>t.id===WEB.team))list=[...list,{id:WEB.team,name:''}];
       TEAMS.list=list;quiet(()=>store.set(TEAMS_KEY,{list,ts:Date.now()}));
       if(!list.some(t=>t.id===TEAMS.cur))loadTeam(WEB.role==='scorer'?WEB.team:list[0].id)}
-    first=false;subscribeTeams();render()},()=>{});
+    first=false;subscribeTeams();render()},()=>{FS.tlOn=false});
   FS.subs.push(()=>ref.off('value',cb))}
 function subscribeTeams(){const want=WEB.role==='admin'?TEAMS.list.map(t=>t.id):[WEB.team];
   want.forEach(tid=>{if(FS.seen[tid]!==undefined)return;FS.seen[tid]=false;const ref=FBX.db.ref('teams/'+tid);
-    const cb=ref.on('value',snap=>{applyTeam(tid,snap.val()||{},!FS.seen[tid]);FS.seen[tid]=true},e=>{SYNC.st='error';SYNC.err='K týmu nemáš přístup.';render()});
+    const cb=ref.on('value',snap=>{applyTeam(tid,snap.val()||{},!FS.seen[tid]);FS.seen[tid]=true},e=>{delete FS.seen[tid];SYNC.st='error';SYNC.err='K týmu nemáš přístup.';render()});
     FS.subs.push(()=>ref.off('value',cb))});
   if(WEB.role==='scorer')TEAMS.list.filter(t=>t.id!==WEB.team).forEach(t=>{const k='r:'+t.id;if(FS.seen[k]!==undefined)return;FS.seen[k]=true;
     FBX.db.ref('teams/'+t.id+'/roster').once('value').then(s=>{const v=s.val();if(v&&v.json)quiet(()=>store.set(keyFor(RKEY,t.id),JSON.parse(v.json)))}).catch(()=>{})})}
@@ -869,6 +870,9 @@ function applyTeam(tid,v,initial){const cur=tid===TEAMS.cur;let changed=false;
       quiet(()=>{if(cur){R=next;saveR()}else store.set(keyFor(RKEY,tid),next)})}
     else{if(!Array.isArray(val))return;quiet(()=>store.set(keyFor(BASE[kind],tid),val))}
     FS.meta[slot]=FS.dirty.has(slot)?Date.now():node.ts;metaSave();changed=true});
+  /* vymazané statistiky na jiném zařízení: zahodit místní zápasy starší než výmaz, ať se nevrátí */
+  {const rs=v.reset&&v.reset.ts||0,lr=FS.meta['reset|'+tid]||0;if(rs>lr){const cut=new Date(rs).toISOString(),H0=loadHFor(tid),keep=H0.filter(g=>String(g.savedAt||'')>cut);
+    if(keep.length!==H0.length){H0.forEach(g=>{if(!keep.includes(g))delete FS.pushed[g.gameId]});quiet(()=>store.set(keyFor(HKEY,tid),keep));changed=true}FS.meta['reset|'+tid]=rs;metaSave()}}
   /* historie */
   const rh=v.history||{},H=loadHFor(tid);let hc=false;
   Object.keys(rh).forEach(gid=>{const e=rh[gid];FS.pushed[gid]={s:e.savedAt||'',t:tid};const i=H.findIndex(x=>x.gameId===gid);
@@ -1053,7 +1057,23 @@ function navHtml(){const cur=TABS[ui.tab]||TABS.game;
   return teamSwitch()+`<button class="sun-btn ${PREF.theme==='sun'?'on':''}" data-act="sun" aria-label="Režim na slunce" aria-pressed="${PREF.theme==='sun'}" title="Režim na slunce">☀</button><div class="menu"><button class="menu-btn" data-act="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}"><span class="burger" aria-hidden="true"></span>${cur}<span class="caret" aria-hidden="true">${ui.menu?'▴':'▾'}</span></button>${ui.menu?`<div class="menu-list" role="menu">${MENU.map(([h,ks])=>`<div class="menu-h">${h}</div>${ks.map(k=>`<button role="menuitem" class="${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}`).join('')}</div>`:''}</div>`}
 const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>defView(),score:()=>scoreView(),games:()=>scheduleCard()+historyCard(),team:()=>teamView(),
   stats:()=>statsView(),opp:()=>oppCard(),set:()=>attendCard()+setView(),admin:()=>adminView(),prep:()=>prepView()};
-const adminView=()=>accessCard()+(WEB.role==='admin'?teamsCard()+adminCard():'')+syncCard()+appCard()+settingsExtra()+teamTransferCard();
+const adminView=()=>accessCard()+(WEB.role==='admin'?teamsCard()+adminCard():'')+syncCard()+appCard()+settingsExtra()+teamTransferCard()+resetCard();
+/* ----- vymazání statistik: historie zápasů + rozehraný zápas (soupisky, rozpis, soupeři a pravidla zůstanou) ----- */
+const resetTids=()=>ui.rsAll&&WEB.role==='admin'?TEAMS.list.map(t=>t.id).filter(canWrite):[TEAMS.cur];
+function resetCard(){const tids=resetTids(),n=tids.reduce((a,t)=>a+loadHFor(t).length,0),cur=TEAMS.list.find(t=>t.id===TEAMS.cur)||{id:TEAMS.cur};
+  return `<div class="card form"><div class="label">Vymazat statistiky</div>
+  <p class="next" style="margin:0">Smaže historii odehraných zápasů i rozehraný zápas. Tím se vynulují statistiky hráčů, úspěchy, hvězdy, pozice v obraně a výsledky na odkazu pro rodiče. Soupisky, fotky, rozpis, soupeři a pravidla zůstanou. Vymazání se projeví na všech telefonech a nejde vrátit, proto si nejdřív ulož zálohu.</p>
+  ${WEB.role==='admin'&&TEAMS.list.length>1?`<div class="row filt"><button class="ghost ${ui.rsAll?'':'on-btn'}" data-act="rsone">Jen ${esc(teamName(cur))}</button><button class="ghost ${ui.rsAll?'on-btn':''}" data-act="rsall">Všechny týmy</button></div>`:''}
+  <div class="row"><button class="ghost" data-act="bkup">💾 Nejdřív zálohovat</button>${ui.rsAsk?`<button class="solid danger-solid" data-act="rsyes">Opravdu smazat (${n} ${gamesWord(n)})</button><button class="ghost" data-act="rsno">Zpět</button>`:`<button class="ghost danger" data-act="rsask">Vymazat statistiky…</button>`}</div>
+  ${ui.rsMsg?`<div class="next">${esc(ui.rsMsg)}</div>`:''}</div>`}
+function resetStats(){const tids=resetTids(),now=Date.now();let n=0;
+  tids.forEach(tid=>{const H=loadHFor(tid);n+=H.length;store.set(keyFor(HKEY,tid),[]);
+    const st=tid===TEAMS.cur?S:store.get(keyFor(KEY,tid),null);
+    if(st&&st.teams){const nx=fresh();nx.settings=st.settings;nx.teams=st.teams.map(x=>({name:x.name,lineup:x.lineup.slice()}));nx.ours=st.ours;nx.example=false;if(st.vsTid)nx.vsTid=st.vsTid;if(st.oppId)nx.oppId=st.oppId;
+      if(tid===TEAMS.cur){S=nx;hist=[];save()}else store.set(keyFor(KEY,tid),nx)}
+    if(typeof FS!=='undefined'){FS.meta['reset|'+tid]=now;metaSave();FS.dirty.add('reset|'+tid);FS.dirty.add('games|'+tid);flushSoon()}});
+  ui.rsAsk=false;ui.rsMsg='Smazáno: '+n+' '+gamesWord(n)+(tids.length>1?' ve '+tids.length+' týmech':'')+'. Statistiky začínají znovu od nuly.';render()}
+Object.assign(ACT,{rsask:()=>{ui.rsAsk=true;ui.rsMsg='';render()},rsno:()=>{ui.rsAsk=false;render()},rsyes:()=>resetStats(),rsall:()=>{ui.rsAll=true;ui.rsAsk=false;render()},rsone:()=>{ui.rsAll=false;ui.rsAsk=false;render()}});
 
 /* ----- chytrý start: další zápas z rozpisu ----- */
 const nextSch=()=>loadSch().filter(x=>!x.played).sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')))[0]||null;
