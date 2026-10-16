@@ -1169,7 +1169,8 @@ function seasonPages(){const k=pdfKit(),{W,M,C,D,B}=k;
 ACT.spdf=()=>pdfSave(seasonPages,'sezona-'+(allTeams()?'vsechny-tymy':(R.name||S.teams[ours()].name)),'spdfMsg','spdfBusy');
 
 /* =========== osobní stránka hráče =========== */
-const BATS={P:'pravou',L:'levou',O:'obouručně'};
+const BATS={P:'zprava',L:'zleva',O:'switch hitter'},THROWS={P:'pravou',L:'levou'};
+const handTxt=p=>[p.bats?(p.bats==='O'?'switch hitter':'pálí '+BATS[p.bats]):'',p.throws?'hází '+THROWS[p.throws]:''].filter(Boolean).join(' · ');
 const plFind=num=>R.players.find(p=>p.num===num)||null;
 const plLink=(num,txt)=>plFind(num)?`<button class="plink" data-act="pl" data-v="${esc(num)}">${esc(txt)}</button>`:esc(txt);
 const sameName=(a,b)=>!!a&&!!b&&a.trim().toLowerCase()===b.trim().toLowerCase();
@@ -1199,10 +1200,11 @@ function playerView(){const p=plFind(ui.player);if(!p){ui.tab=ui.plBack||'team';
   const inf=Object.keys(s.def).filter(isInf).reduce((a,q)=>a+s.def[q],0),out=Object.keys(s.def).filter(q=>!isInf(q)&&q!=='B').reduce((a,q)=>a+s.def[q],0);
   const ach=achievements().filter(a=>a.num===p.num),team=R.name||S.teams[o].name;
   let h=`<div class="plnav"><button class="ghost" data-act="plback">‹ Zpět</button>${ps.length>1?`<span class="plnav-r"><button class="ghost" data-act="pl" data-v="${esc(prev.num)}" aria-label="Předchozí hráč">‹</button><button class="ghost" data-act="pl" data-v="${esc(next.num)}" aria-label="Další hráč">›</button></span>`:''}</div>
-  <div class="card plhead">${p.photo?`<div class="plphoto"><img src="${esc(p.photo)}" alt="${esc(p.name||'Hráč')}"><span class="plbadge">${noNum(p.num)?'–':esc(p.num)}</span></div>`:`<div class="plnum ${noNum(p.num)?'none':''}">${noNum(p.num)?'–':esc(p.num)}</div>`}<div class="plwho"><h2>${esc(p.name||'Hráč')}</h2><span class="next">${esc(team)}${p.since?' · hraje od '+esc(p.since):''}${p.bats?' · pálí '+BATS[p.bats]:''}${p.pos?' · '+esc(POS[p.pos]||''):''}</span></div></div>`;
+  <div class="card plhead">${p.photo?`<div class="plphoto"><img src="${esc(p.photo)}" alt="${esc(p.name||'Hráč')}"><span class="plbadge">${noNum(p.num)?'–':esc(p.num)}</span></div>`:`<div class="plnum ${noNum(p.num)?'none':''}">${noNum(p.num)?'–':esc(p.num)}</div>`}<div class="plwho"><h2>${esc(p.name||'Hráč')}</h2><span class="next">${esc(team)}${p.since?' · hraje od '+esc(p.since):''}${handTxt(p)?' · '+handTxt(p):''}${p.pos?' · '+esc(POS[p.pos]||''):''}</span></div></div>`;
   h+=`<div class="card form"><div class="label">Údaje o hráči</div>
    <div class="cols2"><label for="pl-name">Jméno<input type="text" id="pl-name" value="${esc(p.name||'')}"></label>
    <label for="pl-bats">Pálí<select id="pl-bats" class="sel"><option value="">–</option>${Object.entries(BATS).map(([k,v])=>`<option value="${k}" ${p.bats===k?'selected':''}>${v}</option>`).join('')}</select></label>
+   <label for="pl-throws">Hází<select id="pl-throws" class="sel"><option value="">–</option>${Object.entries(THROWS).map(([k,v])=>`<option value="${k}" ${p.throws===k?'selected':''}>${v}</option>`).join('')}</select></label>
    <label for="pl-pos">Oblíbená pozice<select id="pl-pos" class="sel"><option value="">–</option>${range(9).map(n=>`<option value="${n}" ${String(p.pos)===String(n)?'selected':''}>${n} · ${POS[n]}</option>`).join('')}</select></label>
    <label for="pl-since">Hraje od (sezóna)<input type="text" id="pl-since" inputmode="numeric" maxlength="9" placeholder="např. 2025" value="${esc(p.since||'')}"></label></div>
    ${ui.plNum?`<div class="addrow"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" id="pl-num" placeholder="Nové číslo dresu" aria-label="Nové číslo dresu"><button class="solid" data-act="plnum">Uložit číslo</button><button class="ghost" data-act="plnumno">Zrušit</button></div>`
@@ -1228,7 +1230,7 @@ function playerView(){const p=plFind(ui.player);if(!p){ui.tab=ui.plBack||'team';
 function playerPages(){const p=plFind(ui.player),k=pdfKit(),{W,M,C,D,B}=k,G=plGames(p),s=plSum(G),team=R.name||S.teams[ours()].name,fl=[ui.fType,ui.fComp].filter(Boolean).join(' · ');
   const g=k.g,img=ui.plImg;if(img){g.drawImage(img,M,k.y,190,190);g.fillStyle=C.GREEN;g.fillRect(M+120,k.y+130,70,60);k.txt(noNum(p.num)?'–':p.num,`700 46px ${D}`,'#fff',M+155,k.y+161,64,'center')}
   else{g.fillStyle=C.GREEN;g.fillRect(M,k.y,190,190);k.txt(noNum(p.num)?'–':p.num,`700 120px ${D}`,'#fff',M+95,k.y+100,180,'center')}
-  k.txt(p.name||'Hráč',`700 80px ${D}`,C.INK,M+230,k.y+60,W-2*M-230);k.txt(team+(p.bats?' · pálí '+BATS[p.bats]:'')+(p.pos?' · oblíbená pozice: '+POS[p.pos]:'')+(p.since?' · hraje od '+p.since:''),`400 30px ${B}`,C.MUT,M+230,k.y+125,W-2*M-230);
+  k.txt(p.name||'Hráč',`700 80px ${D}`,C.INK,M+230,k.y+60,W-2*M-230);k.txt(team+(handTxt(p)?' · '+handTxt(p):'')+(p.pos?' · oblíbená pozice: '+POS[p.pos]:'')+(p.since?' · hraje od '+p.since:''),`400 30px ${B}`,C.MUT,M+230,k.y+125,W-2*M-230);
   k.txt('Karta hráče · sezóna'+(fl?' · '+fl:'')+(allTeams()?' · všechny týmy':'')+' · '+new Date().toLocaleDateString('cs-CZ'),`400 26px ${B}`,C.MUT,M+230,k.y+170,W-2*M-230);k.y+=230;
   k.head('Sezóna v číslech');k.table([['',.01],['Zápasy',1],['Pálil',1],['Odpaly',1],['Dlouhé',1],['Na metě',1],['Body',1],['K',1],['Úspěšnost',1.3]],[['',s.g,s.pa,s.h,s.xb,s.ob,s.r,s.k,s.pa?avg(s.ob,s.pa):'–']]);
   if(G.length){k.head('Zápas po zápase');k.table([['Datum',2],['Soupeř',3.4],['Skóre',1.4],['Pálení',5]],G.map(x=>[gDate(x.g)||'–',x.g.teams[1-x.o].name,gTot(x.g,x.o)+' : '+gTot(x.g,1-x.o),x.pas.length?x.pas.map(r=>r.code+(r.scored?' •':'')).join(' · '):'jen v obraně']))}
@@ -1243,6 +1245,7 @@ Object.assign(ACT,{pl:v=>{if(ui.tab!=='player')ui.plBack=ui.tab;ui.player=v;ui.p
   plpdf:async()=>{const p=plFind(ui.player);if(!p)return;ui.plImg=p.photo?await loadImg(p.photo).catch(()=>null):null;pdfSave(playerPages,'karta-'+(p.name||'hrac')+(noNum(p.num)?'':'-'+p.num),'plPdfMsg','plBusy')}});
 CHG['pl-name']=v=>{const n=v.trim();if(n)plUpd(p=>{p.name=n})};
 CHG['pl-bats']=v=>{plUpd(p=>{if(v)p.bats=v;else delete p.bats});render()};
+CHG['pl-throws']=v=>{plUpd(p=>{if(v)p.throws=v;else delete p.throws});render()};
 CHG['pl-pos']=v=>{plUpd(p=>{if(v)p.pos=v;else delete p.pos});render()};
 CHG['pl-since']=v=>{plUpd(p=>{const x=v.trim();if(x)p.since=x;else delete p.since})};
 CHG['pl-notes']=v=>{plUpd(p=>{const x=v.trim();if(x)p.notes=v;else delete p.notes})};
