@@ -845,6 +845,7 @@ function applyTeam(tid,v,initial){const cur=tid===TEAMS.cur;let changed=false;
       if(cur){if(S.pas.length&&S.gameId!==val.gameId)archiveGame();quiet(()=>{S=val;save()});hist=[];ui.panel=null;ui.endC=false}
       else{const old=store.get(keyFor(KEY,tid),null);if(old&&old.pas&&old.pas.length&&old.gameId!==val.gameId)storeGameLocal(tid,{...old,savedAt:new Date().toISOString()});quiet(()=>store.set(keyFor(KEY,tid),val))}}
     else if(kind==='team'){if(!val||!Array.isArray(val.players))return;let next=val;
+      const ren=next.players.filter(p=>p&&p.was);if(ren.length){next={...next,players:next.players.map(p=>{if(!p||!p.was)return p;const q={...p};delete q.was;return q})};ren.forEach(p=>renumAll(tid,p.was,p.num));if(canWrite(tid))FS.dirty.add(slot)}
       if(initial&&lt===0){const local=cur?R:store.get(keyFor(RKEY,tid),null),have=new Set(val.players.map(p=>p.num)),add=(local&&local.players||[]).filter(p=>!have.has(p.num));if(add.length){next={...val,players:[...val.players,...add]};FS.dirty.add(slot)}}
       quiet(()=>{if(cur){R=next;saveR()}else store.set(keyFor(RKEY,tid),next)})}
     else{if(!Array.isArray(val))return;quiet(()=>store.set(keyFor(BASE[kind],tid),val))}
@@ -858,6 +859,15 @@ function applyTeam(tid,v,initial){const cur=tid===TEAMS.cur;let changed=false;
   if(hc){H.sort((a,b)=>String(b.meta&&b.meta.date).localeCompare(String(a.meta&&a.meta.date)));quiet(()=>store.set(keyFor(HKEY,tid),H));changed=true}
   if(initial){if(canWrite(tid))FS.dirty.add('info|'+tid);SYNC.st=WEB.online?'ok':'offline';SYNC.last=Date.now();flushSoon()}
   if(changed&&cur&&ROLE==='scorer')render()}
+/* číslo přidělené jinde (Tréninkový plánovač pošle hráče s „was“ = staré číslo): přepsat i v zápase a historii, jako assignNumber */
+function renumAll(tid,old,neu){if(!old||old===neu)return;const stamp=()=>new Date().toISOString();
+  const st=tid===TEAMS.cur?S:store.get(keyFor(KEY,tid),null);
+  if(st&&st.teams){const b=J(st);swapNumIn(st,st.ours??1,old,neu);if(J(st)!==b){quiet(()=>{if(tid===TEAMS.cur)save();else store.set(keyFor(KEY,tid),st)});if(canWrite(tid)){FS.meta['state|'+tid]=Date.now();metaSave();FS.dirty.add('state|'+tid)}}}
+  const H=loadHFor(tid);let ch=false;H.forEach(g=>{const b=J(g);swapNumIn(g,g.ours??1,old,neu);if(J(g)!==b){g.savedAt=stamp();ch=true}});
+  if(ch){quiet(()=>store.set(keyFor(HKEY,tid),H));FS.dirty.add('games|'+tid)}
+  TEAMS.list.filter(t=>t.id!==tid).forEach(t=>{const h=loadHFor(t.id);let c2=false;h.forEach(g=>{if(g.vsTid!==tid)return;const b=J(g);swapNumIn(g,1-(g.ours??1),old,neu);if(J(g)!==b){g.savedAt=stamp();c2=true}});
+    if(c2){quiet(()=>store.set(keyFor(HKEY,t.id),h));FS.dirty.add('games|'+t.id)}});
+  flushSoon()}
 function storeGameLocal(tid,g){const H=loadHFor(tid),i=H.findIndex(x=>x.gameId===g.gameId);if(i>=0)H[i]=g;else H.push(g);quiet(()=>store.set(keyFor(HKEY,tid),H))}
 function syncDropTeam(tid){if(!FBX||WEB.role!=='admin')return;const db=FBX.db;
   db.ref('teams/'+tid).remove().catch(()=>{});db.ref('public/'+tid).remove().catch(()=>{});
