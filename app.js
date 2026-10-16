@@ -3,7 +3,7 @@ var WEB={role:null,team:null,code:null,uid:null,online:false,setupDone:null,msg:
 var SYNC={st:'off',last:0,err:''};
 var FBX=null; /* {db,auth} */
 const APP_VERSION='1.1',APP_DATE='2026-10-16';
-const setSub=t=>{const el=document.getElementById('sub');if(el)el.innerHTML=esc(t)+'<span class="hver">'+verTxt()+'</span>'};
+const setSub=t=>{const el=document.getElementById('sub');if(el)el.innerHTML=(t?esc(t):'')+'<span class="hver">'+verTxt()+'</span>'};
 const verTxt=()=>'verze '+APP_VERSION;
 const KEY='tball-zapisnik-v2';
 const POS=['','nadhazovač','catcher','1. metař','2. metař','3. metař','spojka','levý zadák','střední zadák','pravý zadák'];
@@ -220,7 +220,7 @@ function setView(){const s=S.settings;
   ${ui.confirm?'<div class="row"><button class="solid" style="background:var(--pencil)" data-act="reset">Ano, smazat zápis</button><button class="ghost" data-act="noreset">Zpět</button></div>':'<button class="ghost danger" data-act="askreset">Začít nový zápas</button>'}</div>
   <p class="next" style="margin:0">${SYNC&&SYNC.st==='ok'?'Zápis se ukládá v telefonu a online pro tvůj tým.':'Zápis se ukládá v tomto prohlížeči na tomto zařízení.'} Připojení, zálohu a vzhled najdeš ve Správě.</p>`}
 
-function render(){applyTheme();if(ROLE==='login'){renderLogin();return}if(ROLE!=='scorer'){renderParent();return}setSub('t-ball · '+pitchTxt());
+function render(){applyTheme();if(ROLE==='login'){renderLogin();return}if(ROLE!=='scorer'){renderParent();return}setSub('');
   document.getElementById('tabs').innerHTML=navHtml();document.getElementById('view').innerHTML=(VIEWS[ui.tab]||VIEWS.game)();wakeSync()}
 
 function addPlayer(t){const inp=document.getElementById('add'+t);const v=jersey(inp.value);
