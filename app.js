@@ -120,31 +120,29 @@ function panel(){const err=ui.panel==='err';
 function gameView(){const t=bt(),p=S.bat[t],len=S.teams[t].lineup.length,sw=S.swings||0,tot=swTot(),last=tot>0&&sw+1>=tot,dv=dlv(),pm=pmode();
   const RES=[['1B','na metu','pálkař doběhl na 1. metu'],['2B','dvoumetový','pálkař doběhl na 2. metu'],['3B','třímetový','pálkař doběhl na 3. metu'],['HR','homerun','pálkař oběhl všechny mety']];
   const d=(short,long)=>`<small><span class="ds">${short}</span><span class="dl">${long}</span></small>`;
-  let a=(!started()&&!S.prepped&&!S.final?nextCard():'')+lineScore();
-  if(S.example)a+='<div class="note">Ukázková čísla hráčů. Svoji sestavu zadáš v Nastavení.</div>';
-  if(S.inning>S.settings.innings)a+=`<div class="note">Odehráno ${S.settings.innings} směn. Můžeš pokračovat, nebo v Nastavení začít nový zápas.</div>`;
-  a+=`<div class="card status"><div class="inn">${S.inning}. ${S.top?'▲':'▼'}<span>${S.top?'horní':'dolní'} polovina</span></div>
-    <div class="counts"><span class="cnt">Švihy ${tot>0?dots(sw,tot,'s'):sw}</span><span class="cnt">Auty ${dots(S.outs,3,'o')}</span><span class="cnt">Body ${lim()>0?dots(halfRuns(),lim(),'b'):halfRuns()}</span></div></div>`;
-  a+=clockCard();
-  a+=`<div class="card field">${diamond()}${runners()}</div>`;
-  a+=`<div class="card batter"><div><div class="label">Na pálce · ${esc(S.teams[t].name)} (${t?'domácí':'hosté'})</div><div class="who"><i>${p+1}.</i>${esc(nm(t,p))}</div></div><div class="next">Další: ${esc(nm(t,(p+1)%len))}</div></div>`;
-  a+=`<div class="wide">${orderCard(t)}</div>`;
-  let b='';
-  if(S.final)b+=finalCard();
-  else if(ui.endC)b+=endConfirm();
-  else if(ui.panel)b+=panel();
-  else{
-    b+=`<button class="big bad swingbtn" data-act="swing"><b>Švih ${sw+1}${tot>0?' / '+tot:''}</b>${pm!=='tee'?`<span class="pitchtag ${dv==='c'?'c':''}">${dv==='c'?'coachball'+(pm==='cbtee'?' '+(sw+1)+'/'+cbN():''):'tee'+(pm==='cbtee'&&tot>cbN()?' '+(sw+1-cbN())+'/'+(tot-cbN()):'')}</span>`:''}${d(last?'poslední švih = aut':'nezasáhl nebo faul',last?'Poslední povolený švih. Když netrefí, je pálkař aut.':'Pálkař netrefil míček nebo ho odpálil do autu (faul).')}</button>
+  /* poskládané díly; na telefonu se řadí podle čísla (o1…o9), aby tlačítka zápisu byla hned pod diamantem */
+  const g=(o,h)=>h?`<div class="gp o${o}">${h}</div>`:'',tot0=t=>gTot(S,t);
+  const notes=(S.example?'<div class="note">Ukázková čísla hráčů. Svoji sestavu zadáš v Nastavení.</div>':'')+(S.inning>S.settings.innings?`<div class="note">Odehráno ${S.settings.innings} směn. Můžeš pokračovat, nebo zápas ukončit.</div>`:'');
+  const stat=`<div class="card status"><div class="inn">${S.inning}. ${S.top?'▲':'▼'}<span>${S.top?'horní':'dolní'} polovina</span></div>
+    <div class="counts"><span class="cnt">Švihy ${tot>0?dots(sw,tot,'s'):sw}</span><span class="cnt">Auty ${dots(S.outs,3,'o')}</span><span class="cnt">Body ${lim()>0?dots(halfRuns(),lim(),'b'):halfRuns()}</span></div>
+    <div class="stline"><span class="stscore"><span class="stn">${esc(S.teams[0].name)}</span><b>${tot0(0)} : ${tot0(1)}</b><span class="stn">${esc(S.teams[1].name)}</span></span>${clockCard()}</div></div>`;
+  const field=`<div class="card field">${diamond()}${runners()}</div>`;
+  const bat=`<div class="card batter"><div><div class="label">Na pálce · ${esc(S.teams[t].name)} (${t?'domácí':'hosté'})</div><div class="who"><i>${p+1}.</i>${esc(nm(t,p))}</div></div><div class="next">Další: ${esc(nm(t,(p+1)%len))}</div></div>`;
+  let act='',endb='';
+  if(S.final)act=finalCard();
+  else if(ui.endC)act=endConfirm();
+  else if(ui.panel)act=panel();
+  else{act=`<div class="acts"><button class="big bad swingbtn" data-act="swing"><b>Švih ${sw+1}${tot>0?' / '+tot:''}</b>${pm!=='tee'?`<span class="pitchtag ${dv==='c'?'c':''}">${dv==='c'?'coachball'+(pm==='cbtee'?' '+(sw+1)+'/'+cbN():''):'tee'+(pm==='cbtee'&&tot>cbN()?' '+(sw+1-cbN())+'/'+(tot-cbN()):'')}</span>`:''}${d(last?'poslední švih = aut':'nezasáhl nebo faul',last?'Poslední povolený švih. Když netrefí, je pálkař aut.':'Pálkař netrefil míček nebo ho odpálil do autu (faul).')}</button>
     <div class="label">Výsledek odpalu ${dv==='c'?'z nadhozu trenéra':'z tee'}</div>
     <div class="grid" style="grid-template-columns:repeat(${maxB()},minmax(0,1fr))">${RES.slice(0,maxB()).map(([c,sh,lo],i)=>`<button class="big hit" data-act="hit" data-v="${i+1}"><b>${c}</b>${d(sh,lo)}</button>`).join('')}</div>
     ${maxB()<4?`<div class="next">Pálkař smí po odpalu postoupit nejvýš o ${maxB()} ${maxB()===1?'metu':'mety'}.</div>`:''}
     <div class="grid g3"><button class="big bad" data-act="openout"><b>Aut…</b>${d('zem / chycený','míček chycen ve vzduchu nebo hozen na metu')}</button><button class="big err" data-act="openerr"><b>Chyba…</b>${d('E + pozice','polař chyboval, pálkař je na metě')}</button><button class="big" data-act="FC"><b>FC</b>${d('volba polaře','polař vyautoval jiného běžce')}</button></div>
-    <div class="row"><button class="ghost" data-act="undo" ${hist.length?'':'disabled'}>↶ Vrátit${S.lastLbl&&hist.length?': '+esc(S.lastLbl):' krok'}</button><button class="ghost" data-act="endhalf">Ukončit polovinu směny</button></div>
-    <button class="ghost danger endbtn" data-act="endask">🏁 Konec zápasu</button>`;
-    if(PUB_T)b+='<div class="next">Skóre pro rodiče se za chvíli odešle.</div>';
-  }
-  if(S.log.length)b+=`<div class="card"><div class="label">Průběh</div><ul class="log">${S.log.slice(0,20).map((l,i)=>`<li class="${i>=8?'wide-li':''}">${esc(l)}</li>`).join('')}</ul></div>`;
-  if(!started())b+=`<div class="card swap"><span>Hosté pálí první (▲), domácí druzí (▼).</span><button class="ghost" data-act="swap">⇄ Prohodit domácí a hosty</button></div>`;
+    <div class="row"><button class="ghost" data-act="undo" ${hist.length?'':'disabled'}>↶ Vrátit${S.lastLbl&&hist.length?': '+esc(S.lastLbl):' krok'}</button><button class="ghost" data-act="endhalf">Ukončit polovinu směny</button></div></div>`;
+    endb=`<button class="ghost danger endbtn" data-act="endask">🏁 Konec zápasu</button>`+(PUB_T?'<div class="next">Skóre pro rodiče se za chvíli odešle.</div>':'')}
+  const logc=S.log.length?`<div class="card"><div class="label">Průběh</div><ul class="log">${S.log.slice(0,20).map((l,i)=>`<li class="${i>=8?'wide-li':''}">${esc(l)}</li>`).join('')}</ul></div>`:'';
+  const swapc=!started()?`<div class="card swap"><span>Hosté pálí první (▲), domácí druzí (▼).</span><button class="ghost" data-act="swap">⇄ Prohodit domácí a hosty</button></div>`:'';
+  const a=g(0,!started()&&!S.prepped&&!S.final?nextCard():'')+g(7,lineScore())+g(1,notes)+g(2,stat)+g(3,field)+g(4,bat)+`<div class="wide">${orderCard(t)}</div>`;
+  const b=g(5,act)+g(6,endb)+g(8,logc)+g(9,swapc);
   return `<div class="gv"><div class="col">${a}</div><div class="col">${b}</div></div>`}
 function orderCard(t){const L=S.teams[t].lineup,cur=S.bat[t];
   return `<div class="card"><div class="label">Pálkařské pořadí · ${esc(S.teams[t].name)}</div><ol class="order">${L.map((num,i)=>{const res=S.pas.filter(r=>r.t===t&&r.num===num).map(r=>r.code);
@@ -342,8 +340,8 @@ function clockNow(){const c=S.clock;if(!c||!c.start)return null;const s=Math.max
 function clockState(){const c=clockNow(),L=tlim()*60;if(!c||!L)return'';const left=L-c.s;return left<=0?'over':left<=600?'warn':''}
 function clockCard(){const c=clockNow(),st=clockState(),L=tlim();let msg='';
   if(st==='over')msg='Čas vypršel. Dohrajte rozehranou směnu.';else if(st==='warn')msg='Zbývá '+Math.ceil((L*60-c.s)/60)+' min. Zvaž, jestli začít další směnu.';
-  const btn=!c?'<button class="mini-btn" data-act="clkstart">Spustit</button>':ui.clkC?'<button class="mini-btn out" data-act="clkyes">Opravdu vynulovat</button><button class="mini-btn" data-act="clkno">Ne</button>':'<button class="mini-btn" data-act="clkreset">Vynulovat</button>';
-  return `<div class="card clock ${st}"><span class="label">Čas zápasu</span><b id="clk">${c?c.txt:'0:00'}</b>${L?`<span class="next">z ${L} min</span>`:''}<span class="clkbtns">${btn}</span>${msg?`<div class="clkmsg">${msg}</div>`:''}</div>`}
+  const btn=!c?'<button class="mini-btn" data-act="clkstart">▶ Čas</button>':ui.clkC?'<button class="mini-btn out" data-act="clkyes">Vynulovat?</button><button class="mini-btn" data-act="clkno">Ne</button>':'<button class="mini-btn" data-act="clkreset" aria-label="Vynulovat čas">↺</button>';
+  return `<span class="clock ${st}"><span aria-hidden="true">⏱</span><b id="clk">${c?c.txt:'0:00'}</b>${L?`<span class="next">/ ${L} min</span>`:''}${btn}</span>${msg?`<div class="clkmsg ${st}">${msg}</div>`:''}`}
 let CLK_ST=null;
 setInterval(()=>{const el=document.getElementById('clk');if(!el)return;const c=clockNow();if(c)el.textContent=c.txt;const st=clockState();if(CLK_ST!==null&&st!==CLK_ST&&ROLE==='scorer'&&ui.tab==='game'&&!ui.panel)render();CLK_ST=st},1000);
 

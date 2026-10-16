@@ -352,3 +352,22 @@ button.pa.editing{outline:2px solid var(--ink)}
 .menu-ver{padding:8px 12px 4px;border-top:1px solid var(--line);margin-top:4px;font-size:.75rem;color:var(--muted)}
 .ver{margin:0;text-align:center;font-size:.75rem}
 h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
+/* zápas: kompaktní stavová karta s časem a skóre; na telefonu tlačítka zápisu hned pod diamantem */
+.stline{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;border-top:1px solid var(--line);padding-top:8px}
+.stscore{display:flex;align-items:baseline;gap:6px;min-width:0;font-size:.85rem}
+.stscore b{font-family:var(--display);font-size:1.3rem;white-space:nowrap;font-variant-numeric:tabular-nums}
+.stn{max-width:28vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.status .clock{display:inline-flex;align-items:center;gap:6px;padding:0;border:0;background:none;margin-left:auto;flex-wrap:nowrap}
+.status .clock b{font-family:var(--display);font-size:1.3rem;font-variant-numeric:tabular-nums}
+.status .clock.warn b{color:var(--warn)}.status .clock.over b{color:var(--pencil)}
+.status .clock .mini-btn{padding:4px 9px}
+.status .clkmsg{flex-basis:100%;font-size:.85rem;font-weight:700}.status .clkmsg.over{color:var(--pencil)}.status .clkmsg.warn{color:var(--warn)}
+.acts{display:flex;flex-direction:column;gap:10px}
+@media (max-width:759px){
+  .gv>.col{display:contents}
+  .gp.o0{order:0}.gp.o1{order:1}.gp.o2{order:2}.gp.o3{order:3}.gp.o4{order:4}.gp.o5{order:5}.gp.o6{order:6}.gp.o7{order:7}.gp.o8{order:8}.gp.o9{order:9}
+  .status{padding:10px 12px;gap:8px}.status .inn{font-size:2rem}
+  .batter{padding:8px 12px}.batter .who{font-size:1.4rem}
+}
+@media (min-width:760px){.stscore{display:none}.stline{justify-content:flex-end}}
+.field .runner{flex-wrap:nowrap}.field .runner b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
