@@ -9,7 +9,7 @@
       ".write": "auth != null && (!root.child('setupDone').exists() || (root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin'))",
       "$code": {
         ".read": "auth != null && root.child('claims').child(auth.uid).val() === $code",
-        ".validate": "$code.matches(/^[A-Z0-9]{4}-[A-Z0-9]{4,12}$/) && newData.child('role').isString() && (newData.child('role').val() === 'admin' || (newData.child('role').val() === 'scorer' && newData.child('team').isString()))"
+        ".validate": "$code.matches(/^[A-Z0-9]{4}-[A-Z0-9]{4,12}$/) && newData.child('role').isString() && (newData.child('role').val() === 'admin' || newData.child('role').val() === 'coach' || (newData.child('role').val() === 'scorer' && newData.child('team').isString()))"
       }
     },
     "claims": {
@@ -44,6 +44,10 @@
         ".read": true,
         ".write": "auth != null && root.child('claims').child(auth.uid).exists() && (root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin' || root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('team').val() === $tid)"
       }
+    },
+    "training": {
+      ".read": "auth != null && root.child('claims').child(auth.uid).exists() && (root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin' || root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'coach')",
+      ".write": "auth != null && root.child('claims').child(auth.uid).exists() && (root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin' || root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'coach')"
     }
   }
 }

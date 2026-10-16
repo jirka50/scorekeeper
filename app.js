@@ -741,7 +741,7 @@ function fbInit(){if(FBX)return FBX;if(typeof firebase==='undefined'){WEB.msg='N
   catch(e){WEB.msg='Připojení se nepodařilo spustit.';FBX=null}return FBX}
 async function signIn(){const f=fbInit();if(!f)throw{code:'offline'};if(f.auth.currentUser)return f.auth.currentUser.uid;
   const u=await new Promise(res=>{const off=f.auth.onAuthStateChanged(x=>{off();res(x)})});if(u)return u.uid;const c=await f.auth.signInAnonymously();return c.user.uid}
-async function claim(code){const uid=await signIn();WEB.uid=uid;await FBX.db.ref('claims/'+uid).set(code);const p=(await FBX.db.ref('pinmap/'+code).once('value')).val();if(!p||!p.role)throw{code:'bad'};return p}
+async function claim(code){const uid=await signIn();WEB.uid=uid;await FBX.db.ref('claims/'+uid).set(code);const p=(await FBX.db.ref('pinmap/'+code).once('value')).val();if(!p||!p.role)throw{code:'bad'};if(p.role==='coach')throw{code:'coach'};return p}
 async function startSession(code,p){WEB.code=code;WEB.role=p.role;WEB.team=p.team||null;
   try{localStorage.setItem(AUTH_KEY,JSON.stringify({code,role:p.role,team:p.team||null}))}catch(e){}
   ROLE='scorer';SYNC.st='connecting';
@@ -756,7 +756,7 @@ async function startSession(code,p){WEB.code=code;WEB.role=p.role;WEB.team=p.tea
   let a=null;try{a=JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch(e){}
   if(a&&a.role){WEB.code=a.code;WEB.role=a.role;WEB.team=a.team;startSession(a.code,a)} /* hned pracuj z paměti telefonu */
   try{const p=await claim(a.code);if(p.role!==a.role||(p.team||null)!==(a.team||null))startSession(a.code,p)}
-  catch(e){if(e&&e.code==='offline')return;if(String(e&&(e.code||e.message)).toLowerCase().includes('permission')||e.code==='bad'){logout('Kód už neplatí. Přihlas se znovu.')}}
+  catch(e){if(e&&e.code==='offline')return;if(String(e&&(e.code||e.message)).toLowerCase().includes('permission')||e.code==='bad'||e.code==='coach'){logout('Kód už neplatí. Přihlas se znovu.')}}
 })();
 
 /* ---------- přihlášení ---------- */
@@ -776,7 +776,7 @@ function renderLogin(){document.getElementById('tabs').innerHTML='';document.get
 async function doLogin(){const f=document.getElementById('lg-code'),code=normCode(f&&f.value);if(code.length<9){WEB.msg='Zadej celý kód.';return render()}
   WEB.busy=true;WEB.msg='';render();
   try{const p=await claim(code);WEB.busy=false;WEB.msg='';startSession(code,p)}
-  catch(e){WEB.busy=false;WEB.msg=e&&e.code==='offline'?'Bez internetu se nejde přihlásit. Připoj se a zkus to znovu.':'Neplatný kód. Zkontroluj ho a zkus to znovu.';render()}}
+  catch(e){WEB.busy=false;WEB.msg=e&&e.code==='offline'?'Bez internetu se nejde přihlásit. Připoj se a zkus to znovu.':e&&e.code==='coach'?'Tohle je kód pro Tréninkový plánovač. Do zápisníku se přihlas kódem zapisovatele.':'Neplatný kód. Zkontroluj ho a zkus to znovu.';render()}}
 async function doSetup(){const a=normCode(document.getElementById('lg-new').value),b=normCode(document.getElementById('lg-new2').value);
   const n=a.replace('-','').length;if(n<8||n>16){WEB.msg='Kód musí mít 8 až 16 znaků (písmena a číslice).';return render()}if(a!==b){WEB.msg='Kódy se neshodují.';return render()}
   WEB.busy=true;WEB.msg='';render();
