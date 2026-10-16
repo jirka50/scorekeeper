@@ -112,9 +112,9 @@ function panel(){const err=ui.panel==='err';
   for(let i=1;i<=9;i++)h+=`<button class="big chip" data-act="chip" data-v="${i}"><b>${i}</b><small>${POS[i]}</small></button>`;
   h+='</div><div class="row" style="margin-top:10px">';
   if(!err){const dis=ui.seq.length?'':'disabled';const last=ui.seq[ui.seq.length-1];
-    h+=`<button class="solid" data-act="ground" ${dis}>Zemní aut${dis?'':' '+esc(ui.seq.join('-'))}</button>
-        <button class="solid" data-act="fly" ${dis}>Chycený${dis?'':' F'+last}</button>
-        <button class="solid" data-act="sac" ${dis}>Obětovaný</button>`}
+    h+=`<button class="solid" data-act="ground" ${dis}>GO${dis?'':' '+esc(ui.seq.join('-'))}</button>
+        <button class="solid" data-act="fly" ${dis}>FO${dis?'':' '+last}</button>
+        <button class="solid" data-act="sac" ${dis}>SAC</button>`}
   return h+'<button class="ghost" data-act="cancel">Zrušit</button></div></div>'}
 
 function gameView(){const t=bt(),p=S.bat[t],len=S.teams[t].lineup.length,sw=S.swings||0,tot=swTot(),last=tot>0&&sw+1>=tot,dv=dlv(),pm=pmode();
