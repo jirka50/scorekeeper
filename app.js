@@ -6,7 +6,7 @@ const APP_VERSION='1.1',APP_DATE='2026-10-16';
 const setSub=t=>{const el=document.getElementById('sub');if(el)el.innerHTML=(t?esc(t):'')+'<span class="hver">'+verTxt()+'</span>'};
 const verTxt=()=>'verze '+APP_VERSION;
 const KEY='tball-zapisnik-v2';
-const POS=['','nadhazovač','catcher','1. metař','2. metař','3. metař','spojka','levý zadák','střední zadák','pravý zadák'];
+const POS=['','nadhazovač','catcher','1B','2B','3B','SS','levý zadák','střední zadák','pravý zadák'];
 const LABEL={'1B':'odpal na metu','2B':'dvoumetový odpal','3B':'třímetový odpal','HR':'homerun','FC':'volba polaře'};
 const EX=[['7','12','3','21','9','15','4','18','11'],['2','10','5','14','8','23','6','17','1']];
 function fresh(){return{gameId:newId(),settings:{innings:3,runLimit:5,swingLimit:5},teams:[{name:'Hosté',lineup:EX[0].slice()},{name:'Domácí',lineup:EX[1].slice()}],inning:1,top:true,bat:[0,0],outs:0,bases:[null,null,null],pas:[],runs:[[],[]],hits:[0,0],errs:[0,0],log:[],example:true}}
@@ -1191,7 +1191,7 @@ function posSeasonCard(){const o=ours(),c={},inn={};gamesChrono().forEach(g=>{if
   return `<div class="card"><div class="label">Pozice v obraně · celá sezóna (směny)</div><div class="ls-wrap"><table class="pt pos"><thead><tr><th>Hráč</th><th>Směn</th>${P.map(p=>`<th title="${esc(posTxt(p))}">${posShort(p)}</th>`).join('')}<th>Vnitř.</th><th>Vnější</th></tr></thead><tbody>
   ${ns.map(n=>{const x=c[n],i=Object.keys(x).filter(isInf).reduce((a,q)=>a+x[q],0),out=Object.keys(x).filter(q=>!isInf(q)&&q!=='B').reduce((a,q)=>a+x[q],0);
     return `<tr><td class="nm">${plLink(n,lbl(o,n))}</td><td>${inn[n]}</td>${P.map(p=>`<td>${x[p]||''}</td>`).join('')}<td>${i}</td><td class="${inn[n]>=4&&(!i||!out)?'low':''}">${out}</td></tr>`}).join('')}</tbody></table></div>
-  <p class="next" style="margin:6px 0 0">1 nadhazovač, 2 catcher, 3–6 metaři a spojka, 7–9 zadáci, Z+ další zadák, L lavička. Červeně: hráč zatím hrál jen vnitřní, nebo jen vnější pole.</p></div>`}
+  <p class="next" style="margin:6px 0 0">1 nadhazovač, 2 catcher, 3–6 metaři (1B, 2B, 3B) a spojka (SS), 7–9 zadáci, Z+ další zadák, L lavička. Červeně: hráč zatím hrál jen vnitřní, nebo jen vnější pole.</p></div>`}
 Object.assign(ACT,{deffair:()=>{snap();fairDef(ui.defInn||1);commit()}});
 
 
@@ -1279,7 +1279,7 @@ function plChart(G){const pts=G.filter(x=>x.pas.length).map(x=>({v:x.pas.filter(
     <polyline class="plc-line" points="${pts.map((p,i)=>X(i)+','+Y(p.v)).join(' ')}"/>${pts.map((p,i)=>`<circle class="plc-dot" cx="${X(i)}" cy="${Y(p.v)}" r="${i===pts.length-1?5:3.5}"><title>${esc(p.d)}: ${p.v.toFixed(3)}</title></circle>`).join('')}
     <text class="plc-t" x="${L}" y="${H-6}">${esc(pts[0].d)}</text><text class="plc-t" x="${W-Rr}" y="${H-6}" text-anchor="end">${esc(pts[pts.length-1].d)}</text></svg>
     <figcaption class="next">Úspěšnost zápas po zápase: jak často se po svém odpalu dostal na metu.</figcaption></figure>`}
-const DIA_POS={1:[120,138,1],2:[120,206,1],3:[172,120,1],4:[150,88,0],5:[68,120,1],6:[90,88,0],7:[40,58,0],8:[120,44,0],9:[200,58,0]},DIA_L={1:'nadhazovač',2:'catcher',3:'1. meta',4:'2. meta',5:'3. meta',6:'spojka',7:'levý',8:'střední',9:'pravý'};
+const DIA_POS={1:[120,138,1],2:[120,206,1],3:[172,120,1],4:[150,88,0],5:[68,120,1],6:[90,88,0],7:[40,58,0],8:[120,44,0],9:[200,58,0]},DIA_L={1:'nadhazovač',2:'catcher',3:'1B',4:'2B',5:'3B',6:'SS',7:'levý',8:'střední',9:'pravý'};
 function plDiamond(def){const max=Math.max(1,...Object.values(def));
   return `<svg viewBox="0 0 240 240" class="pld" role="img" aria-label="Odehrané směny na pozicích"><polygon class="pld-in" points="120,190 172,138 120,86 68,138"/>
   ${Object.entries(DIA_POS).map(([p,[x,y,below]])=>{const c=def[p]||0,a=c?.3+.7*c/max:0;return `<g><title>${esc(POS[p])}: ${c} ${c===1?'směna':c>=2&&c<=4?'směny':'směn'}</title><circle cx="${x}" cy="${y}" r="14" class="pld-c ${c?'on':''}" style="fill-opacity:${c?a.toFixed(2):1}"/><text x="${x}" y="${y+5}" text-anchor="middle" class="pld-n ${a>.6?'inv':''}">${c||''}</text><text x="${x}" y="${below?y+27:y-19}" text-anchor="middle" class="pld-l">${DIA_L[p]}</text></g>`}).join('')}</svg>`}
