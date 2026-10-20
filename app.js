@@ -778,7 +778,7 @@ function dugoutData(){const o=ours(),fi=bt()===o&&o===1?S.inning+1:S.inning,D=S.
   return{v:1,us:R.name||S.teams[o].name,them:S.teams[1-o].name,ours:o,inning:S.inning,top:S.top,outs:S.outs,runs:S.runs.map(a=>Array.from(a,x=>x||0)),final:!!S.final,
     innings:S.settings.innings,bat:S.bat[o],lineup:S.teams[o].lineup.slice(),names:nm,pas:S.pas.filter(r=>r.t===o).map(r=>[r.num,r.code,r.scored?1:0]),
     defInn:fi,def:D[fi]||null,example:!!S.example}}
-function dugSoon(){if(!FBX||!WEB.role||WEB.role==='parent'||!S||!canWrite(TEAMS.cur))return;clearTimeout(DUG_T);DUG_T=setTimeout(dugPub,2500)}
+function dugSoon(){if(!FBX||!WEB.role||WEB.role==='parent'||!S||!canWrite(TEAMS.cur))return;clearTimeout(DUG_T);DUG_T=setTimeout(dugPub,500)}
 function dugPub(){if(!FBX||!S)return;const j=J(dugoutData()),k=TEAMS.cur+j;if(k===DUG_LAST)return;DUG_LAST=k;
   FBX.db.ref('public/'+TEAMS.cur+'/dugout').set({ts:Date.now(),json:j}).catch(()=>{DUG_LAST=''})}
 function genCode(){let c='';const r=crypto.getRandomValues(new Uint32Array(8));for(let i=0;i<8;i++)c+=CODE_ABC[r[i]%CODE_ABC.length];return c.slice(0,4)+'-'+c.slice(4)}

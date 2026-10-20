@@ -49,7 +49,7 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 <style id="dyn"></style></head>
 <body><div id="app"><div class="box">Načítám…</div></div>
 <script>
-var DB='https://eagles-scorekeeper-default-rtdb.europe-west1.firebasedatabase.app',POLL=4000;
+var DB='https://eagles-scorekeeper-default-rtdb.europe-west1.firebasedatabase.app',POLL=2000,POLL_SLOW=30000,STREAM=false,ES=null;
 var TID='',G=null,lastOk=0,lastTs=null,loaded=false,timer=null;
 var POSL={'1':'P','2':'C','3':'1B','4':'2B','5':'3B','6':'SS','7':'LF','8':'CF','9':'RF','10':'OF'};
 /* pozice v obdélníku 400×300 (střed jmenovky, horní okraj) */
@@ -60,13 +60,23 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 function qs(n){var m=new RegExp('[?&]'+n+'=([^&#]*)').exec(location.search);return m?decodeURIComponent(m[1]):''}
 
 /* ---------- čtení veřejných dat public/<tým>/dugout, bez přihlášení ---------- */
+function url(){return DB+'/public/'+encodeURIComponent(TID)+'/dugout.json'}
+function apply(v){lastOk=Date.now();loaded=true;if(!v||!v.json){G=null;lastTs=null}else if(lastTs==null||v.ts>lastTs){try{G=JSON.parse(v.json);lastTs=v.ts}catch(e){}}render()}
+/* záložní/kontrolní čtení: bez živého spojení každé 2 s, se živým spojením jednou za 30 s */
 function tick(){clearTimeout(timer);var x=new XMLHttpRequest();
-  x.open('GET',DB+'/public/'+encodeURIComponent(TID)+'/dugout.json?t='+Date.now(),true);x.timeout=15000;
+  x.open('GET',url()+'?t='+Date.now(),true);x.timeout=15000;
   x.onreadystatechange=function(){if(x.readyState!==4)return;
-    if(x.status===200){lastOk=Date.now();loaded=true;var v=null;try{v=JSON.parse(x.responseText)}catch(e){}
-      if(!v){G=null}else if(v.ts!==lastTs){try{G=JSON.parse(v.json);lastTs=v.ts}catch(e){}}}
-    render();timer=setTimeout(tick,POLL)};
+    if(x.status===200){var v=null;try{v=JSON.parse(x.responseText)}catch(e){}apply(v)}else render();
+    timer=setTimeout(tick,STREAM?POLL_SLOW:POLL)};
   x.send(null)}
+/* živé spojení: databáze sama pošle změnu hned, jak ji zapisovatel uloží */
+function stream(){if(!window.EventSource)return;try{ES=new EventSource(url())}catch(e){ES=null;return}
+  var on=function(ev){var m=null;try{m=JSON.parse(ev.data)}catch(e){}
+    if(m&&m.path==='/')apply(m.data);else tick()};
+  ES.addEventListener('put',on,false);ES.addEventListener('patch',function(){tick()},false);
+  ES.addEventListener('keep-alive',function(){lastOk=Date.now();render()},false);
+  ES.onopen=function(){STREAM=true};
+  ES.onerror=function(){if(ES.readyState===2){STREAM=false;ES=null;tick();setTimeout(stream,15000)}}}
 
 /* ---------- pomocné ---------- */
 function anon(n){return String(n).charAt(0)==='?'}
@@ -86,7 +96,7 @@ function view(){
   if(!G||G.example)return msg('Zápas zatím není rozehraný. Stránka se obnoví sama.')+foot();
   var o=G.ours,batting=(G.top?0:1)===o,fin=!!G.final,us=G.us||'Náš tým',them=G.them||'Soupeř';
   var h='';
-  if(Date.now()-lastOk>30000)h+='<div class="stale">Bez spojení od '+hm(lastOk)+'. Údaje nemusí být aktuální.</div>';
+  if(Date.now()-lastOk>(STREAM?75000:30000))h+='<div class="stale">Bez spojení od '+hm(lastOk)+'. Údaje nemusí být aktuální.</div>';
   h+='<div class="top"><table><tr><td class="tm l'+(us.length>14?' long':'')+'">'+esc(us)+'<small>náš tým</small></td><td class="sc">'+sum(G.runs&&G.runs[o])+' : '+sum(G.runs&&G.runs[1-o])+'</td><td class="tm r'+(them.length>14?' long':'')+'">'+esc(them)+'<small>soupeř</small></td><td class="st">'+(fin?'<span class="big">Konec</span><span>zápasu</span>':'<span>'+G.inning+'. směna '+(G.top?'▲':'▼')+'</span><span class="big">'+(batting?'pálíme':'bráníme')+'</span><span>Auty'+dots(G.outs||0)+'</span>')+'</td></tr></table></div>';
   /* pálkařské pořadí */
   var L=G.lineup||[],cur=G.bat||0;
@@ -143,5 +153,5 @@ function fsUpd(){setTimeout(fit,300);render()}
 document.onclick=function(e){var t=e.target||e.srcElement;if(t&&t.id==='fs')fsGo();if(t&&t.id==='voice')voiceToggle()};
 ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange'].forEach(function(ev){document.addEventListener(ev,fsUpd,false)});
 
-TID=qs('tym');render();if(TID)tick();
+TID=qs('tym');render();if(TID){tick();stream()}
 </script></body></html>
