@@ -129,7 +129,7 @@ function stream(){if(!window.EventSource)return;try{ES=new EventSource(url())}ca
 function anon(n){return String(n).charAt(0)==='?'}
 function noNum(n){return String(n).charAt(0)==='~'}
 function numTxt(n){return anon(n)?'P'+String(n).slice(1):noNum(n)?'—':'#'+n}
-function first(n){var x=G.names&&G.names[n],nm=x?String(x).split(' ')[0]:'';return noNum(n)?(nm||'—'):anon(n)?'Hráč '+String(n).slice(1):numTxt(n)+(nm?' '+nm:'')}
+function first(n){var x=G.names&&G.names[n],nm=x?String(x):'';return noNum(n)?(nm||'—'):anon(n)?'Hráč '+String(n).slice(1):numTxt(n)+(nm?' '+nm:'')}
 function sum(a){var t=0;for(var i=0;i<(a||[]).length;i++)t+=a[i]||0;return t}
 function dots(n){var h='';for(var i=0;i<3;i++)h+='<i class="dot'+(i<n?' on':'')+'"></i>';return h}
 function stat(n){var pa=0,h=0,r=0;(G.pas||[]).forEach(function(x){if(x[0]===n){pa++;if(HITS[x[1]])h++;if(x[2])r++}});return pa?h+'/'+pa+(r?' · '+r+' R':''):''}
@@ -199,7 +199,7 @@ var VOICE=false,lastSaid=null;try{VOICE=localStorage.getItem('sk-dug-voice')==='
 function voiceCan(){return !!(window.speechSynthesis&&window.SpeechSynthesisUtterance)}
 function say(t){if(!voiceCan())return;try{var u=new SpeechSynthesisUtterance(t);u.lang='cs-CZ';u.rate=0.9;var vs=speechSynthesis.getVoices()||[];
   for(var i=0;i<vs.length;i++)if(/^cs/i.test(vs[i].lang)){u.voice=vs[i];break}speechSynthesis.speak(u)}catch(e){}}
-function spoken(n){var x=G.names&&G.names[n],nm=x?String(x).split(' ')[0]:'';return (!anon(n)&&!noNum(n)?'číslo '+n+' ':'')+(nm||'hráč')}
+function spoken(n){var x=G.names&&G.names[n],nm=x?String(x):'';return (!anon(n)&&!noNum(n)?'číslo '+n+' ':'')+(nm||'hráč')}
 function sayText(n){return 'Připraví se '+spoken(n)}
 /* hlášení: změna poloviny (jdeme pálit / do pole), pak kdo se připraví */
 var lastBat=null;
