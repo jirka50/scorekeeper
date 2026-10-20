@@ -11,10 +11,15 @@ button,input{font-weight:bold}
 .top{background:#173a2a;color:#fff;padding:4px 14px;text-align:center}
 .top table{width:100%;border:0;background:none;table-layout:fixed}
 .top td{border:0;padding:0;color:#fff;font-weight:bold;vertical-align:middle;overflow:hidden;word-wrap:break-word}
-.tm{font-size:40px;line-height:1.05}.tm.long{font-size:30px}.tm.l{text-align:right}.tm.r{text-align:left}
-.tm small{display:block;font-size:16px;font-weight:bold;color:#b9d4c4}
-.top td.sc{font-size:128px;line-height:1;color:#ffd54a;width:370px;padding:0 8px;white-space:nowrap;text-align:center;letter-spacing:-2px}
-.top td.st{width:190px;font-size:26px;line-height:1.35;text-align:right;border-left:2px solid #2f5a44;padding-left:10px;white-space:nowrap}
+.top td.tm{white-space:nowrap;text-align:center;padding:0 6px;vertical-align:bottom}
+.tm span{display:inline-block;font-size:80px;line-height:.95;white-space:nowrap}
+.top td.ls{width:1px;padding-right:12px;vertical-align:middle}
+table.lsc{border-collapse:collapse;table-layout:auto;width:auto}
+.lsc td,.lsc th{border:1px solid #2f5a44;padding:1px 6px;font-size:17px;color:#fff;text-align:center;min-width:16px}
+.lsc th{color:#b9d4c4;font-size:14px;border-top:0}.lsc td.nm{text-align:left;max-width:80px;overflow:hidden;color:#b9d4c4}
+.lsc td.cur{background:#ffd54a;color:#14202c}.lsc td.tot{color:#ffd54a;font-size:19px}
+.top td.sc{font-size:104px;line-height:.9;color:#ffd54a;padding:0 8px;white-space:nowrap;text-align:center;letter-spacing:-2px}
+.top td.st{width:180px;font-size:26px;line-height:1.35;text-align:right;border-left:2px solid #2f5a44;padding-left:10px;white-space:nowrap}
 .st span{display:block}.st .big{font-size:30px;color:#ffd54a;text-transform:uppercase}
 .dot{display:inline-block;width:24px;height:24px;border-radius:12px;border:3px solid #fff;margin-left:6px;vertical-align:-4px;box-sizing:border-box}
 .dot.on{background:#ff6b5a;border-color:#ff6b5a}
@@ -48,10 +53,11 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 #fs,#voice{float:right;font-size:15px;padding:5px 10px;margin-left:8px;background:#173a2a;color:#fff;border:0;border-radius:5px}
 .stale{background:#c0392b;color:#fff;text-align:center;padding:4px;font-size:16px}
 .prep{background:#fff7d6;border:3px solid #c9a227;padding:2px 12px 4px;margin-bottom:8px;font-size:28px;line-height:1.1;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prep .tv{font-size:40px;line-height:1.05}.prep.late{background:#ffe0dc;border-color:#c0392b;color:#a32a1d}.prep.off{background:#fff;border-color:#cdd8cb;color:#4a5a52}
 .prep small{display:block;font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#4a5a52}
 #voice.on{background:#c97a00}
-@media (max-width:860px){.fb button{font-size:13px;padding:4px 7px}.prep{font-size:22px;padding:4px 10px}.prep small{font-size:12px}.tm{font-size:28px}.tm.long{font-size:21px}.top td.sc{font-size:92px;width:270px}.top td.st{width:150px;font-size:20px}.st .big{font-size:23px}.lu td.s{width:96px}.tag{font-size:12px}.sum{font-size:14px}}
-@media (max-width:700px){.col,.col.r{float:none;width:auto;margin-bottom:12px}.top td.sc{font-size:72px;width:170px}.top td.st{width:120px;font-size:17px}.st .big{font-size:19px}.tm{font-size:22px}.tm.long{font-size:17px}.lu td{font-size:20px}}
+@media (max-width:860px){.fb button{font-size:13px;padding:4px 7px}.prep{font-size:22px;padding:4px 10px}.prep small{font-size:12px}.top td.sc{font-size:84px}.lsc td,.lsc th{font-size:13px;padding:0 4px}.lsc td.tot{font-size:15px}.top td.st{width:150px;font-size:20px}.st .big{font-size:23px}.lu td.s{width:96px}.tag{font-size:12px}.sum{font-size:14px}}
+@media (max-width:700px){.col,.col.r{float:none;width:auto;margin-bottom:12px}.top td.sc{font-size:64px}.top td.st{width:120px;font-size:17px}.st .big{font-size:19px}.lu td{font-size:20px}}
 </style>
 <style id="dyn"></style></head>
 <body><div id="app"><div class="box">Načítám…</div></div>
@@ -68,7 +74,7 @@ function qs(n){var m=new RegExp('[?&]'+n+'=([^&#]*)').exec(location.search);retu
 
 /* ---------- čtení veřejných dat public/<tým>/dugout, bez přihlášení ---------- */
 function url(){return DB+'/public/'+encodeURIComponent(TID)+'/dugout.json'}
-function apply(v){lastOk=Date.now();loaded=true;if(!v||!v.json){G=null;lastTs=null}else if(lastTs==null||v.ts>lastTs){try{G=JSON.parse(v.json);lastTs=v.ts}catch(e){}}render()}
+function apply(v){lastOk=Date.now();if(v&&v.ts){var d=Date.now()-v.ts;if(Math.abs(d)<43200000&&(SKEW===null||d<SKEW))SKEW=d}loaded=true;if(!v||!v.json){G=null;lastTs=null}else if(lastTs==null||v.ts>lastTs){try{G=JSON.parse(v.json);lastTs=v.ts}catch(e){}}render()}
 /* záložní/kontrolní čtení: bez živého spojení každé 2 s, se živým spojením jednou za 30 s */
 function tick(){clearTimeout(timer);var x=new XMLHttpRequest();
   x.open('GET',url()+'?t='+Date.now(),true);x.timeout=15000;
@@ -93,6 +99,27 @@ function first(n){var x=G.names&&G.names[n],nm=x?String(x).split(' ')[0]:'';retu
 function sum(a){var t=0;for(var i=0;i<(a||[]).length;i++)t+=a[i]||0;return t}
 function dots(n){var h='';for(var i=0;i<3;i++)h+='<i class="dot'+(i<n?' on':'')+'"></i>';return h}
 function stat(n){var pa=0,h=0,r=0;(G.pas||[]).forEach(function(x){if(x[0]===n){pa++;if(HITS[x[1]])h++;if(x[2])r++}});return pa?h+'/'+pa+(r?' · '+r+' R':''):''}
+function short(n){n=String(n||'').split(' ')[0];return n.length>8?n.slice(0,7)+'.':n}
+function lsW(){var n=Math.max(G.innings||0,G.inning||1,1),c=window.innerWidth<=860?22:28;return 76+(n+1)*c+14}
+function lineScore(){var o=G.ours,n=Math.max(G.innings||0,G.inning||1,1),R=G.runs||[[],[]],h='<table class="lsc"><tr><th></th>',i,t;
+  for(i=1;i<=n;i++)h+='<th>'+i+'</th>';h+='<th>R</th></tr>';
+  for(var k=0;k<2;k++){t=k===0?o:1-o;h+='<tr><td class="nm">'+esc(short(k===0?G.us:G.them))+'</td>';
+    for(i=1;i<=n;i++){var played=i<G.inning||(i===G.inning&&(t===0||!G.top))||G.final,cur=!G.final&&i===G.inning&&(G.top?0:1)===t;
+      h+='<td'+(cur?' class="cur"':'')+'>'+(played||cur?((R[t]||[])[i-1]||0):'')+'</td>'}
+    h+='<td class="tot">'+sum(R[t])+'</td></tr>'}
+  return h+'</table>'}
+/* čas zápasu: odhad rozdílu hodin tabletu a telefonu zapisovatele (nejmenší pozorovaný rozdíl) */
+var SKEW=null;
+function mmss(ms){var s=Math.max(0,Math.floor(ms/1000));return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60}
+function timerInfo(){var c=G&&G.clock,L=(G&&G.tl||0)*60000;if(!c)return{cls:'off',lb:L?'Časový limit '+G.tl+' min':'Čas zápasu',tv:'neběží'};
+  var now=(c.e||(Date.now()-(SKEW||0))),el=now-c.s;
+  if(G.final||c.e)return{cls:'off',lb:'Zápas skončil',tv:'hrálo se '+mmss(el)};
+  if(!L)return{cls:'',lb:'Hraje se',tv:mmss(el)};
+  if(el<L)return{cls:'',lb:'Do konce zápasu zbývá',tv:mmss(L-el)};
+  return{cls:'late',lb:'Čas vypršel, přetahuje se',tv:'+'+mmss(el-L)}}
+function timerBox(){var t=timerInfo();return '<div class="prep '+t.cls+'" id="tmr"><small>'+t.lb+'</small><span class="tv">'+t.tv+'</span></div>'}
+function timerTick(){var e=document.getElementById('tmr');if(!e||!G)return;var t=timerInfo();e.className='prep '+t.cls;e.innerHTML='<small>'+t.lb+'</small><span class="tv">'+t.tv+'</span>'}
+setInterval(timerTick,1000);
 function hm(t){var d=new Date(t);return(d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()}
 
 /* ---------- vykreslení ---------- */
@@ -104,11 +131,10 @@ function view(){
   var o=G.ours,batting=(G.top?0:1)===o,fin=!!G.final,us=G.us||'Náš tým',them=G.them||'Soupeř';
   var h='';
   if(Date.now()-lastOk>(STREAM?75000:30000))h+='<div class="stale">Bez spojení od '+hm(lastOk)+'. Údaje nemusí být aktuální.</div>';
-  h+='<div class="top"><table><tr><td class="tm l'+(us.length>14?' long':'')+'">'+esc(us)+'<small>náš tým</small></td><td class="sc">'+sum(G.runs&&G.runs[o])+' : '+sum(G.runs&&G.runs[1-o])+'</td><td class="tm r'+(them.length>14?' long':'')+'">'+esc(them)+'<small>soupeř</small></td><td class="st">'+(fin?'<span class="big">Konec</span><span>zápasu</span>':'<span>'+G.inning+'. směna '+(G.top?'▲':'▼')+'</span><span class="big">'+(batting?'pálíme':'bráníme')+'</span><span>Auty'+dots(G.outs||0)+'</span>')+'</td></tr></table></div>';
+  h+='<div class="top"><table><tr><td class="ls" rowspan="2" style="width:'+lsW()+'px">'+lineScore()+'</td><td class="tm"><span>'+esc(us)+'</span></td><td class="tm"><span>'+esc(them)+'</span></td><td class="st" rowspan="2">'+(fin?'<span class="big">Konec</span><span>zápasu</span>':'<span>'+G.inning+'. směna '+(G.top?'▲':'▼')+'</span><span class="big">'+(batting?'pálíme':'bráníme')+'</span><span>Auty'+dots(G.outs||0)+'</span>')+'</td></tr><tr><td class="sc" colspan="2">'+sum(G.runs&&G.runs[o])+' : '+sum(G.runs&&G.runs[1-o])+'</td></tr></table></div>';
   /* pálkařské pořadí */
   var L=G.lineup||[],cur=G.bat||0;
-  var pn=prepNum();
-  h+='<div class="wrap"><div class="col">'+(pn!=null?'<div class="prep"><small>'+'Připrav se, jdeš po '+esc(first(L[((G.bat||0)+(batting?1:0))%L.length]))+'</small>'+esc(first(pn))+'</div>':'<h2>Pálkařské pořadí</h2>');
+  h+='<div class="wrap"><div class="col">'+timerBox();
   if(!L.length)h+='<div class="empty">Sestava není nastavená.</div>';
   else{h+='<div id="luw"><table class="lu">';L.forEach(function(n,i){var k=fin?-1:(i-cur+L.length)%L.length,pk=batting?2:1,cls=k===0?'now':k===pk?'prp':k===1?'next':'',
       tag=k===0?(batting?'PÁLÍ':'NA ŘADĚ'):k===1&&batting?'NA ŘADĚ':k===pk?'PŘIPRAV SE':'';
@@ -153,7 +179,10 @@ function fitField(){var fw=document.getElementById('fw'),f=document.getElementBy
   if(window.innerWidth>700)sc=Math.min(sc,(window.innerHeight-top-below)/300);else sc=Math.min(sc,1.6);
   sc=Math.max(0.7,Math.floor(sc*100)/100);var lf=Math.max(17,Math.round(15/sc)),ps=f.getElementsByTagName('div');for(var i=0;i<ps.length;i++)ps[i].style.fontSize=lf+'px';fw.style.width=Math.floor(400*sc)+'px';fw.style.height=Math.floor(300*sc)+'px';
   f.style.webkitTransform=f.style.transform='scale('+sc+')'}
-function fit(){fitField();var d=document.getElementById('dyn'),w=document.getElementById('luw');
+function fitNames(){var ss=document.querySelectorAll('.tm span');for(var i=0;i<ss.length;i++){var sp=ss[i],w=sp.parentNode.clientWidth-12,f=window.innerWidth<=700?40:window.innerWidth<=860?60:80;
+  sp.style.whiteSpace='nowrap';sp.style.fontSize=f+'px';while(f>34&&sp.offsetWidth>w){f-=2;sp.style.fontSize=f+'px'}
+  if(sp.offsetWidth>w){sp.style.whiteSpace='normal';sp.style.width=w+'px';f=Math.min(f,48);sp.style.fontSize=f+'px';while(f>16&&sp.offsetHeight>f*2.05){f-=2;sp.style.fontSize=f+'px'}}else sp.style.width=''}}
+function fit(){fitNames();fitField();var d=document.getElementById('dyn'),w=document.getElementById('luw');
   if(!w||window.innerWidth<=700){d.textContent='';if(w)w.style.height='';return}
   var av=window.innerHeight-w.getBoundingClientRect().top-(window.pageYOffset||0)-10,rh=Math.max(30,Math.floor(av/11)),fz=Math.min(30,Math.max(17,Math.round(rh*0.58)));
   d.textContent='.lu td{height:'+(rh-1)+'px;font-size:'+fz+'px}';w.style.height=Math.max(av,rh*5)+'px'}
