@@ -52,11 +52,11 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 .foot{padding:6px 0 0;font-size:16px;line-height:30px;color:#4a5a52;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #fs,#voice{float:right;font-size:15px;padding:5px 10px;margin-left:8px;background:#173a2a;color:#fff;border:0;border-radius:5px}
 .stale{background:#c0392b;color:#fff;text-align:center;padding:4px;font-size:16px}
-.prep{background:#fff7d6;border:3px solid #c9a227;padding:2px 12px 4px;margin-bottom:8px;font-size:28px;line-height:1.1;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.prep .tv{font-size:40px;line-height:1.05}.prep.late{background:#ffe0dc;border-color:#c0392b;color:#a32a1d}.prep.off{background:#fff;border-color:#cdd8cb;color:#4a5a52}
-.prep small{display:block;font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#4a5a52}
+.prep{background:#fff7d6;border:3px solid #c9a227;padding:2px 12px;margin-bottom:8px;font-size:28px;line-height:1.1;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prep .tv{float:right;font-size:36px;line-height:1.1;margin-left:10px}.prep.late{background:#ffe0dc;border-color:#c0392b;color:#a32a1d}.prep.off{background:#fff;border-color:#cdd8cb;color:#4a5a52}
+.prep small{display:inline;font-size:18px;line-height:40px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px;color:#4a5a52}
 #voice.on{background:#c97a00}
-@media (max-width:860px){.fb button{font-size:13px;padding:4px 7px}.prep{font-size:22px;padding:4px 10px}.prep small{font-size:12px}.top td.sc{font-size:84px}.lsc td,.lsc th{font-size:13px;padding:0 4px}.lsc td.tot{font-size:15px}.top td.st{width:150px;font-size:20px}.st .big{font-size:23px}.lu td.s{width:76px;font-size:15px!important}.tag{font-size:11px;padding:1px 3px;margin-left:4px}.sum{font-size:14px}}
+@media (max-width:860px){.fb button{font-size:13px;padding:4px 7px}.prep{padding:2px 8px}.prep .tv{font-size:28px}.prep small{font-size:14px;line-height:31px}.top td.sc{font-size:84px}.lsc td,.lsc th{font-size:13px;padding:0 4px}.lsc td.tot{font-size:15px}.top td.st{width:150px;font-size:20px}.st .big{font-size:23px}.lu td.s{width:76px;font-size:15px!important}.tag{font-size:11px;padding:1px 3px;margin-left:4px}.sum{font-size:14px}}
 @media (max-width:700px){.top td.ls{display:none}.top td.st{width:110px}.col,.col.r{float:none;width:auto;margin-bottom:12px}.top td.sc{font-size:64px}.top td.st{width:120px;font-size:17px}.st .big{font-size:19px}.lu td{font-size:20px}}
 </style>
 <style id="dyn"></style><style id="dyn2"></style></head>
@@ -119,8 +119,8 @@ function timerInfo(){var c=G&&G.clock,L=(G&&G.tl||0)*60000;if(!c)return{cls:'off
   if(!L)return{cls:'',lb:'Hraje se',tv:mmss(el)};
   if(el<L)return{cls:'',lb:'Do konce zápasu zbývá',tv:mmss(L-el)};
   return{cls:'late',lb:'Čas vypršel, přetahuje se',tv:'+'+mmss(el-L)}}
-function timerBox(){var t=timerInfo();return '<div class="prep '+t.cls+'" id="tmr"><small>'+t.lb+'</small><span class="tv">'+t.tv+'</span></div>'}
-function timerTick(){var u=document.getElementById('upd');if(u&&lastOk)u.innerHTML='Aktualizováno '+hm(lastOk);var e=document.getElementById('tmr');if(!e||!G)return;var t=timerInfo();e.className='prep '+t.cls;e.innerHTML='<small>'+t.lb+'</small><span class="tv">'+t.tv+'</span>'}
+function timerBox(){var t=timerInfo();return '<div class="prep '+t.cls+'" id="tmr"><span class="tv">'+t.tv+'</span><small>'+t.lb+'</small></div>'}
+function timerTick(){var u=document.getElementById('upd');if(u&&lastOk)u.innerHTML='Aktualizováno '+hm(lastOk);var e=document.getElementById('tmr');if(!e||!G)return;var t=timerInfo();e.className='prep '+t.cls;e.innerHTML='<span class="tv">'+t.tv+'</span><small>'+t.lb+'</small>'}
 setInterval(timerTick,1000);
 function hm(t){var d=new Date(t);return(d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()}
 
