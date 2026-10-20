@@ -7,25 +7,28 @@
      Bez přihlášení: jen čte public/<tým>/dugout přes REST, data tam posílá aplikace zapisovatele. -->
 <style>
 body{margin:0;background:#f4f6f2;color:#14202c;font:18px/1.3 Arial,Helvetica,sans-serif}
-.top{background:#173a2a;color:#fff;padding:6px 14px 8px;text-align:center}
+.top{background:#173a2a;color:#fff;padding:4px 14px;text-align:center}
 .top table{width:100%;border:0;background:none;table-layout:fixed}
 .top td{border:0;padding:0;color:#fff;font-weight:bold;vertical-align:middle;overflow:hidden;word-wrap:break-word}
-.tm{font-size:38px;line-height:1.05}.tm.long{font-size:30px}.tm.l{text-align:right}.tm.r{text-align:left}
+.tm{font-size:40px;line-height:1.05}.tm.long{font-size:30px}.tm.l{text-align:right}.tm.r{text-align:left}
 .tm small{display:block;font-size:16px;font-weight:normal;color:#b9d4c4}
-.top td.sc{font-size:92px;line-height:1;color:#ffd54a;width:260px;white-space:nowrap;text-align:center}
-.st{font-size:26px;margin-top:2px}
+.top td.sc{font-size:128px;line-height:1;color:#ffd54a;width:370px;padding:0 8px;white-space:nowrap;text-align:center;letter-spacing:-2px}
+.top td.st{width:190px;font-size:26px;line-height:1.35;text-align:right;border-left:2px solid #2f5a44;padding-left:10px;white-space:nowrap}
+.st span{display:block}.st .big{font-size:30px;color:#ffd54a;text-transform:uppercase}
 .dot{display:inline-block;width:24px;height:24px;border-radius:12px;border:3px solid #fff;margin-left:6px;vertical-align:-4px;box-sizing:border-box}
 .dot.on{background:#ff6b5a;border-color:#ff6b5a}
 .wrap{overflow:hidden;padding:8px 10px}
-.col{float:left;width:49%}.col.r{float:right}
+.col{float:left;width:52%}.col.r{float:right;width:46%}
+#luw{overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid #cdd8cb;background:#fff}
+#luw table.lu{border:0}
 h2{margin:0 0 6px;font-size:18px;text-transform:uppercase;color:#4a5a52;letter-spacing:1px}
 table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #cdd8cb;table-layout:fixed}
-.lu td{padding:4px 8px;border-bottom:1px solid #e3e9e1;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lu td.n{width:24px;color:#6b7a73;text-align:right}
-.lu td.s{width:96px;text-align:right;color:#4a5a52}
+.lu td{padding:0 8px;height:38px;border-bottom:1px solid #e3e9e1;font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu td.n{width:30px;color:#6b7a73;text-align:right}
+.lu td.s{width:120px;text-align:right;color:#4a5a52}
 .lu tr.now td{background:#ffd54a;font-weight:bold}
 .lu tr.next td{background:#fff4c4}
-.tag{font-size:13px;background:#14202c;color:#fff;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:2px}
+.tag{font-size:15px;background:#14202c;color:#fff;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:2px}
 .field{position:relative;width:400px;height:300px;margin:0 auto;-webkit-transform-origin:0 0;transform-origin:0 0;background:#fff;border:1px solid #cdd8cb}
 .field svg{position:absolute;left:0;top:0}
 .p{position:absolute;width:120px;margin-left:-60px;text-align:center;font-size:17px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -34,14 +37,14 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 .empty{background:#fff;border:1px solid #cdd8cb;padding:16px;color:#4a5a52}
 .box{max-width:420px;margin:40px auto;background:#fff;border:1px solid #cdd8cb;padding:20px}
 .box h1{margin:0 0 8px;font-size:26px}
-.foot{padding:0 10px 10px;font-size:14px;color:#6b7a73;overflow:hidden}
-#fs{position:fixed;right:10px;bottom:10px;font-size:18px;padding:10px 16px;background:#173a2a;color:#fff;border:2px solid #fff;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.3);display:none}
+.foot{padding:6px 0 0;font-size:14px;color:#6b7a73}
+#fs{float:right;font-size:16px;padding:6px 12px;margin-left:8px;background:#173a2a;color:#fff;border:0;border-radius:5px}
 .stale{background:#c0392b;color:#fff;text-align:center;padding:4px;font-size:16px}
-@media (max-width:860px){.tm{font-size:28px}.tm.long{font-size:22px}.top td.sc{font-size:70px;width:190px}.st{font-size:21px}.lu td{font-size:17px}.lu td.s{width:84px}.tag{font-size:11px}.field{margin:0 0 -30px;-webkit-transform:scale(.9);transform:scale(.9)}}
-@media (max-width:700px){.col,.col.r{float:none;width:auto;margin-bottom:12px}.field{margin:0 auto;-webkit-transform:none;transform:none}.top td.sc{font-size:64px;width:160px}.tm{font-size:24px}.tm.long{font-size:19px}}
-</style></head>
+@media (max-width:860px){.tm{font-size:28px}.tm.long{font-size:21px}.top td.sc{font-size:92px;width:270px}.top td.st{width:150px;font-size:20px}.st .big{font-size:23px}.lu td.s{width:96px}.tag{font-size:12px}.field{margin:0 0 -54px;-webkit-transform:scale(.82);transform:scale(.82)}.sum{font-size:14px}}
+@media (max-width:700px){.col,.col.r{float:none;width:auto;margin-bottom:12px}.field{margin:0 auto;-webkit-transform:none;transform:none}.top td.sc{font-size:72px;width:170px}.top td.st{width:120px;font-size:17px}.st .big{font-size:19px}.tm{font-size:22px}.tm.long{font-size:17px}.lu td{font-size:20px}}
+</style>
+<style id="dyn"></style></head>
 <body><div id="app"><div class="box">Načítám…</div></div>
-<button id="fs" type="button">Celá obrazovka</button>
 <script>
 var DB='https://eagles-scorekeeper-default-rtdb.europe-west1.firebasedatabase.app',POLL=4000;
 var TID='',G=null,lastOk=0,lastTs=null,loaded=false,timer=null;
@@ -81,16 +84,15 @@ function view(){
   var o=G.ours,batting=(G.top?0:1)===o,fin=!!G.final,us=G.us||'Náš tým',them=G.them||'Soupeř';
   var h='';
   if(Date.now()-lastOk>30000)h+='<div class="stale">Bez spojení od '+hm(lastOk)+'. Údaje nemusí být aktuální.</div>';
-  h+='<div class="top"><table><tr><td class="tm l'+(us.length>14?' long':'')+'">'+esc(us)+'<small>náš tým</small></td><td class="sc">'+sum(G.runs&&G.runs[o])+' : '+sum(G.runs&&G.runs[1-o])+'</td><td class="tm r'+(them.length>14?' long':'')+'">'+esc(them)+'<small>soupeř</small></td></tr></table>';
-  h+='<div class="st">'+(fin?'Konec zápasu':G.inning+'. směna '+(G.top?'▲':'▼')+' &nbsp;·&nbsp; '+(batting?'pálíme':'bráníme')+' &nbsp;·&nbsp; Auty'+dots(G.outs||0))+'</div></div>';
+  h+='<div class="top"><table><tr><td class="tm l'+(us.length>14?' long':'')+'">'+esc(us)+'<small>náš tým</small></td><td class="sc">'+sum(G.runs&&G.runs[o])+' : '+sum(G.runs&&G.runs[1-o])+'</td><td class="tm r'+(them.length>14?' long':'')+'">'+esc(them)+'<small>soupeř</small></td><td class="st">'+(fin?'<span class="big">Konec</span><span>zápasu</span>':'<span>'+G.inning+'. směna '+(G.top?'▲':'▼')+'</span><span class="big">'+(batting?'pálíme':'bráníme')+'</span><span>Auty'+dots(G.outs||0)+'</span>')+'</td></tr></table></div>';
   /* pálkařské pořadí */
   var L=G.lineup||[],cur=G.bat||0;
   h+='<div class="wrap"><div class="col"><h2>Pálkařské pořadí</h2>';
   if(!L.length)h+='<div class="empty">Sestava není nastavená.</div>';
-  else{h+='<table class="lu">';L.forEach(function(n,i){var k=fin?-1:(i-cur+L.length)%L.length,cls=k===0?'now':k===1?'next':'',
+  else{h+='<div id="luw"><table class="lu">';L.forEach(function(n,i){var k=fin?-1:(i-cur+L.length)%L.length,cls=k===0?'now':k===1?'next':'',
       tag=k===0?(batting?'PÁLÍ':'NA ŘADĚ'):k===1?(batting?'NA ŘADĚ':'PŘIPRAV'):'';
     h+='<tr class="'+cls+'"><td class="n">'+(i+1)+'</td><td>'+esc(first(n))+(tag?'<span class="tag">'+tag+'</span>':'')+'</td><td class="s">'+esc(stat(n))+'</td></tr>'});
-    h+='</table>'}
+    h+='</table></div>'}
   /* obrana: směna, kterou bráníme teď nebo jako další */
   var fi=G.defInn,D=G.def,bench=[],extra=[],at={};
   if(D)for(var n in D){if(D[n]==='10')extra.push(first(n));else if(POSXY[D[n]])at[D[n]]=n;else bench.push(first(n))}
@@ -102,9 +104,19 @@ function view(){
       '<rect x="194" y="114" width="12" height="12" fill="#fff" stroke="#888"/><rect x="104" y="199" width="12" height="12" fill="#fff" stroke="#888"/></svg>';
     for(var p in POSXY)if(at[p])h+='<div class="p" style="left:'+POSXY[p][0]+'px;top:'+POSXY[p][1]+'px"><b>'+POSL[p]+'</b>'+esc(first(at[p]))+'</div>';
     h+='</div><div class="sum">'+(extra.length?'Další zadák: '+esc(extra.join(', '))+' · ':'')+'Lavička: '+esc(bench.length?bench.join(', '):'—')+'</div>'}
-  h+='</div></div>'+foot();return h}
-function foot(){return '<div class="foot">'+(lastOk?'Aktualizováno '+hm(lastOk)+' · obnovuje se samo':'')+(fsCan()?' · celou obrazovku zavřeš tlačítkem Zpět':'')+'</div>'}
-function render(){document.getElementById('app').innerHTML=view()}
+  h+=foot()+'</div></div>';return h}
+function foot(){return '<div class="foot">'+(fsCan()&&!fsEl()?'<button id="fs" type="button">Celá obrazovka</button>':'')+(lastOk?'Aktualizováno '+hm(lastOk)+' · obnovuje se samo':'')+'</div>'}
+var lastCur=null;
+function render(){var w=document.getElementById('luw'),st=w?w.scrollTop:0;document.getElementById('app').innerHTML=view();fit();
+  w=document.getElementById('luw');if(!w)return;w.scrollTop=st;
+  var cur=G&&!G.final?G.bat:null;if(cur!==lastCur){lastCur=cur;var r=w.getElementsByTagName('tr')[cur||0];
+    if(r&&(r.offsetTop<w.scrollTop||r.offsetTop+r.offsetHeight>w.scrollTop+w.clientHeight))w.scrollTop=Math.max(0,r.offsetTop-r.offsetHeight)}}
+/* pořadí: velikost řádků tak, aby se vešlo 11 pálkařů, zbytek se posouvá */
+function fit(){var d=document.getElementById('dyn'),w=document.getElementById('luw');
+  if(!w||window.innerWidth<=700){d.textContent='';if(w)w.style.height='';return}
+  var av=window.innerHeight-w.getBoundingClientRect().top-(window.pageYOffset||0)-10,rh=Math.max(30,Math.floor(av/11)),fz=Math.min(30,Math.max(17,Math.round(rh*0.58)));
+  d.textContent='.lu td{height:'+(rh-1)+'px;font-size:'+fz+'px}';w.style.height=Math.max(av,rh*5)+'px'}
+window.onresize=function(){fit()};
 
 /* ---------- celá obrazovka (Chrome 71: webkit, Firefox 68: moz) ---------- */
 function fsEl(){return document.fullscreenElement||document.webkitFullscreenElement||document.mozFullScreenElement||null}
@@ -112,10 +124,9 @@ function fsCan(){var e=document.documentElement;return !!(e.requestFullscreen||e
 function fsGo(){var e=document.documentElement;
   if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen).call(document);return}
   if(e.requestFullscreen)e.requestFullscreen();else if(e.webkitRequestFullscreen)e.webkitRequestFullscreen();else if(e.mozRequestFullScreen)e.mozRequestFullScreen()}
-function fsUpd(){var b=document.getElementById('fs');if(!fsCan()){b.style.display='none';return}b.style.display=fsEl()?'none':'block'}
-document.getElementById('fs').onclick=fsGo;
+function fsUpd(){setTimeout(fit,300);render()}
+document.onclick=function(e){var t=e.target||e.srcElement;if(t&&t.id==='fs')fsGo()};
 ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange'].forEach(function(ev){document.addEventListener(ev,fsUpd,false)});
-fsUpd();
 
 TID=qs('tym');render();if(TID)tick();
 </script></body></html>
