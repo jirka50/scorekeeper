@@ -12,7 +12,7 @@ button,input{font-weight:bold}
 .top table{width:100%;border:0;background:none;table-layout:fixed}
 .top td{border:0;padding:0;color:#fff;font-weight:bold;vertical-align:middle;overflow:hidden;word-wrap:break-word}
 .top td.tm{white-space:nowrap;text-align:center;padding:0 6px;vertical-align:bottom}
-.tm span{display:inline-block;font-size:80px;line-height:.95;white-space:nowrap}
+.tm span{display:inline-block;font-size:40px;line-height:.95;white-space:nowrap}
 .top td.ls{width:1px;padding-right:12px;vertical-align:middle}
 table.lsc{border-collapse:collapse;table-layout:auto;width:auto}
 .lsc td,.lsc th{border:1px solid #2f5a44;padding:1px 6px;font-size:17px;color:#fff;text-align:center;min-width:16px}
@@ -186,9 +186,9 @@ function fitField(){var fw=document.getElementById('fw'),f=document.getElementBy
   if(window.innerWidth>700)sc=Math.min(sc,(window.innerHeight-top-below)/300);else sc=Math.min(sc,1.6);
   sc=Math.max(0.7,Math.floor(sc*100)/100);var lf=Math.max(17,Math.round(15/sc)),ps=f.getElementsByTagName('div');for(var i=0;i<ps.length;i++)ps[i].style.fontSize=lf+'px';fw.style.width=Math.floor(400*sc)+'px';fw.style.height=Math.floor(300*sc)+'px';
   f.style.webkitTransform=f.style.transform='scale('+sc+')'}
-function fitNames(){var ss=document.querySelectorAll('.tm span');for(var i=0;i<ss.length;i++){var sp=ss[i],w=sp.parentNode.clientWidth-12,f=window.innerWidth<=700?40:window.innerWidth<=860?60:80;
-  sp.style.whiteSpace='nowrap';sp.style.fontSize=f+'px';while(f>34&&sp.offsetWidth>w){f-=2;sp.style.fontSize=f+'px'}
-  if(sp.offsetWidth>w){sp.style.whiteSpace='normal';sp.style.width=w+'px';f=Math.min(f,48);sp.style.fontSize=f+'px';while(f>16&&sp.offsetHeight>f*2.05){f-=2;sp.style.fontSize=f+'px'}}else sp.style.width=''}}
+function fitNames(){var ss=document.querySelectorAll('.tm span');for(var i=0;i<ss.length;i++){var sp=ss[i],w=sp.parentNode.clientWidth-12,f=window.innerWidth<=700?20:window.innerWidth<=860?30:40;
+  sp.style.whiteSpace='nowrap';sp.style.fontSize=f+'px';while(f>17&&sp.offsetWidth>w){f-=2;sp.style.fontSize=f+'px'}
+  if(sp.offsetWidth>w){sp.style.whiteSpace='normal';sp.style.width=w+'px';f=Math.min(f,24);sp.style.fontSize=f+'px';while(f>12&&sp.offsetHeight>f*2.05){f-=2;sp.style.fontSize=f+'px'}}else sp.style.width=''}}
 function fit(){fitNames();fitField();var d=document.getElementById('dyn'),w=document.getElementById('luw');
   if(!w||window.innerWidth<=700){d.textContent='';if(w)w.style.height='';return}
   var av=window.innerHeight-w.getBoundingClientRect().top-(window.pageYOffset||0)-10,rh=Math.max(30,Math.floor(av/11)),fz=Math.min(30,Math.max(17,Math.round(rh*0.58)));
