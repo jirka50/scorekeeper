@@ -33,12 +33,11 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 .lu td{padding:0 8px;line-height:1;height:38px;border-bottom:1px solid #e3e9e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lu td.n{width:1.6em;padding:0 4px 0 6px;text-overflow:clip;overflow:visible;color:#6b7a73;text-align:right}
 .lu td.s{width:4.6em;font-size:.62em;text-align:right;color:#4a5a52;padding-left:2px}
-.lu td.t{width:6.4em;text-align:center;padding:0 4px;text-overflow:clip}
 .lu tr.now td{background:#2c6a43;color:#fff;font-weight:bold}
 .lu tr.now .tag{background:#fff;color:#2c6a43}
 .lu tr.next td{background:#ffe88a}
 .lu tr.prp td{background:#fff7d6}
-.tag{display:inline-block;font-size:1em;line-height:1.15;background:#14202c;color:#fff;border-radius:4px;padding:0 .25em;vertical-align:middle}
+.tag{display:inline-block;font-size:.75em;line-height:1.2;background:#14202c;color:#fff;border-radius:4px;padding:0 .3em;margin-left:.6em;vertical-align:middle}
 #fw{position:relative;margin:0 auto;overflow:hidden;width:400px;height:300px}
 .ftl{position:absolute;left:8px;bottom:5px;line-height:1.25;font-size:14px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#4a5a52;z-index:2}
 .fb{position:absolute;top:4px;z-index:3}.fb.l{left:4px}.fb.r{right:4px}.fb button{float:none!important;margin:0!important}
@@ -143,7 +142,7 @@ function view(){
   if(!L.length)h+='<div class="empty">Sestava není nastavená.</div>';
   else{h+='<div id="luw"><table class="lu">';L.forEach(function(n,i){var k=fin?-1:(i-cur+L.length)%L.length,pk=batting?2:1,cls=k===0?'now':k===pk?'prp':k===1?'next':'',
       tag=k===0?(batting?'PÁLÍ':'NA ŘADĚ'):k===1&&batting?'NA ŘADĚ':k===pk?'PŘIPRAV SE':'';
-    h+='<tr class="'+cls+'"><td class="n">'+(i+1)+'</td><td class="nm">'+esc(first(n))+'</td><td class="t">'+(tag?'<span class="tag">'+tag+'</span>':'')+'</td><td class="s">'+esc(stat(n))+'</td></tr>'});
+    h+='<tr class="'+cls+'"><td class="n">'+(i+1)+'</td><td class="nm">'+esc(first(n))+(tag?'<span class="tag">'+tag+'</span>':'')+'</td><td class="s">'+esc(stat(n))+'</td></tr>'});
     h+='</table></div>'}
   /* obrana: směna, kterou bráníme teď nebo jako další */
   var fi=G.defInn,D=G.def,bench=[],extra=[],at={};
