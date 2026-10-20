@@ -19,12 +19,12 @@ const keyFor=(base,tid)=>tid==='t1'?base:base+':'+tid;
 const tkey=base=>keyFor(base,TEAMS.cur);
 S=store.get(tkey(KEY),null);
 if(!S||!S.teams)S=fresh();
-const save=()=>store.set(tkey(KEY),S);
+const save=()=>{store.set(tkey(KEY),S);dugSoon()};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const bt=()=>S.top?0:1;
 const RKEY='tball-tym-v1';
 let R=store.get(tkey(RKEY),null);if(!R||!Array.isArray(R.players))R={name:'',players:[]};
-const saveR=()=>store.set(tkey(RKEY),R);
+const saveR=()=>{store.set(tkey(RKEY),R);dugSoon()};
 const ours=()=>S.ours??1;
 const rname=num=>{const p=R.players.find(p=>p.num===num);return p?p.name:''};
 const anon=num=>String(num)[0]==='?';
@@ -770,7 +770,17 @@ const canWrite=tid=>WEB.role==='admin'||WEB.team===tid;
 const liveOn=()=>!!(FBX&&WEB.role);
 const baseUrl=()=>location.origin+location.pathname;
 const parentUrl=tid=>baseUrl()+'?tym='+encodeURIComponent(tid);
-const dugoutUrl=()=>baseUrl().replace(/[^/]*$/,'')+'dugout.html';
+const dugoutUrl=tid=>baseUrl().replace(/[^/]*$/,'')+'dugout.html?tym='+encodeURIComponent(tid);
+/* veřejná data pro tablet v dugoutu (public/<tid>/dugout): skóre, naše sestava se jmény, dnešní odpaly, obrana */
+var DUG_T=null,DUG_LAST='';
+function dugoutData(){const o=ours(),fi=bt()===o&&o===1?S.inning+1:S.inning,D=S.def||{},nm={};
+  S.teams[o].lineup.forEach(n=>{const x=rname(n);if(x)nm[n]=x});Object.keys(D[fi]||{}).concat(Object.keys(D[S.inning]||{})).forEach(n=>{const x=rname(n);if(x)nm[n]=x});
+  return{v:1,us:R.name||S.teams[o].name,them:S.teams[1-o].name,ours:o,inning:S.inning,top:S.top,outs:S.outs,runs:S.runs.map(a=>Array.from(a,x=>x||0)),final:!!S.final,
+    innings:S.settings.innings,bat:S.bat[o],lineup:S.teams[o].lineup.slice(),names:nm,pas:S.pas.filter(r=>r.t===o).map(r=>[r.num,r.code,r.scored?1:0]),
+    defInn:fi,def:D[fi]||null,example:!!S.example}}
+function dugSoon(){if(!FBX||!WEB.role||WEB.role==='parent'||!S||!canWrite(TEAMS.cur))return;clearTimeout(DUG_T);DUG_T=setTimeout(dugPub,2500)}
+function dugPub(){if(!FBX||!S)return;const j=J(dugoutData()),k=TEAMS.cur+j;if(k===DUG_LAST)return;DUG_LAST=k;
+  FBX.db.ref('public/'+TEAMS.cur+'/dugout').set({ts:Date.now(),json:j}).catch(()=>{DUG_LAST=''})}
 function genCode(){let c='';const r=crypto.getRandomValues(new Uint32Array(8));for(let i=0;i<8;i++)c+=CODE_ABC[r[i]%CODE_ABC.length];return c.slice(0,4)+'-'+c.slice(4)}
 const normCode=v=>String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/^(.{4})(.+)$/,'$1-$2');
 
@@ -786,7 +796,7 @@ async function startSession(code,p){WEB.code=code;WEB.role=p.role;WEB.team=p.tea
   try{localStorage.setItem(AUTH_KEY,JSON.stringify({code,role:p.role,team:p.team||null}))}catch(e){}
   ROLE='scorer';SYNC.st='connecting';
   if(WEB.role==='scorer'&&WEB.team){if(!TEAMS.list.some(t=>t.id===WEB.team)){TEAMS.list.push({id:WEB.team,name:''})}if(TEAMS.cur!==WEB.team){save();saveR();loadTeam(WEB.team)}}
-  listenTeamlist();listenOpp();render()}
+  listenTeamlist();listenOpp();render();dugSoon()}
 (async()=>{await null;
   if(ROLE==='parent'){const tid=new URLSearchParams(location.search).get('tym');WEB.parentTeam=tid;const f=fbInit();if(!f)return render();
     f.db.ref('public/'+tid+'/live').on('value',s=>{const v=s.val();try{LIVE=v&&v.json?JSON.parse(v.json):null}catch(e){LIVE=null}WEB.parentName=v&&v.name||'';render()},()=>{WEB.msg='Odkaz není platný.';render()});
@@ -924,7 +934,7 @@ function autoPub(){if(!(S.settings.pubOn&&S.settings.autoPub!==false))return;cle
   PUB_T=setTimeout(function fire(){if(ui.panel||ui.pubBusy){PUB_T=setTimeout(fire,3000);return}PUB_T=null;publishLive(false)},3000)}
 function scoreView(){const on=!!S.settings.pubOn,auto=S.settings.autoPub!==false,url=parentUrl(TEAMS.cur);
   return `<div class="card form"><div class="label">Živé skóre pro rodiče · ${esc(R.name||S.teams[ours()].name)}</div>
-  <p class="next" style="margin:0">Rodiče na odkazu svého týmu uvidí tabuli se skóre a pořadí pálkařů. Jména dětí se nezveřejňují, jen čísla dresů.</p>
+  <p class="next" style="margin:0">Rodiče na odkazu svého týmu uvidí tabuli se skóre a pořadí pálkařů. Na tomto odkazu jsou jen čísla dresů, jména dětí ne.</p>
   <label class="radio"><input type="checkbox" id="pub-auto" ${auto?'checked':''}> Odeslat automaticky po každém pálkaři${on?'':' (po prvním odeslání)'}</label>
   <div class="row"><button class="solid" data-act="pubnow" ${ui.pubBusy?'disabled':''}>Odeslat skóre teď</button><button class="ghost" data-act="pubfinal" ${ui.pubBusy?'disabled':''}>Konec zápasu</button></div>
   ${ui.pubMsg?`<div class="next">${esc(ui.pubMsg)}</div>`:S.pubLast?`<div class="next">Naposledy odesláno v ${fmtTime(S.pubLast)}.</div>`:''}
@@ -932,9 +942,10 @@ function scoreView(){const on=!!S.settings.pubOn,auto=S.settings.autoPub!==false
   <div class="card form"><div class="label">Odkaz pro rodiče</div><div class="linkbox" id="plink">${esc(url)}</div>
   <div class="row"><button class="ghost" data-act="copylink" data-v="${esc(url)}">Kopírovat odkaz</button></div>${ui.linkMsg?`<div class="next">${esc(ui.linkMsg)}</div>`:''}
   <p class="next" style="margin:0">Pošli ho rodičům do skupiny týmu. Odkaz je stálý, platí pro všechny zápasy tohoto týmu.</p></div>
-  <div class="card form"><div class="label">Tablet do dugoutu</div><div class="linkbox">${esc(dugoutUrl())}</div>
-  <div class="row"><button class="ghost" data-act="copylink" data-v="${esc(dugoutUrl())}">Kopírovat odkaz</button></div>
-  <p class="next" style="margin:0">Velké skóre, pořadí pálkařů se jmény a kdo je na řadě, obrana na hřišti. Funguje i na starých tabletech (Android 4.1 s Chrome nebo Firefoxem). Na tabletu se jednou přihlas kódem týmu. Stránka se obnovuje sama a nic nemění.</p></div>
+  <div class="card form"><div class="label">Tablet do dugoutu</div><div class="linkbox">${esc(dugoutUrl(TEAMS.cur))}</div>
+  <div class="row"><button class="ghost" data-act="copylink" data-v="${esc(dugoutUrl(TEAMS.cur))}">Kopírovat odkaz</button></div>
+  <p class="next" style="margin:0">Velké skóre, pořadí pálkařů se jmény a kdo je na řadě, obrana na hřišti. Funguje i na starých tabletech (Android 4.1 s Chrome nebo Firefoxem), bez přihlášení. Odesílá se samo, když je zapisovatel přihlášený online.</p>
+  <p class="next" style="margin:0">Pozor: tento odkaz ukazuje jména dětí. Kdo ho má, uvidí je, proto ho dávej jen na tablet, ne do skupin.</p></div>
   <div class="label">Takhle to uvidí rodiče</div>${board(liveData(false))}${infoHtml(infoData(TEAMS.cur))}`}
 function renderParent(){document.getElementById('tabs').innerHTML='';setSub(WEB.parentName?WEB.parentName+' · živé skóre':'živé skóre');
   document.getElementById('view').innerHTML=WEB.msg?`<div class="card msg">${esc(WEB.msg)}</div>`:(LIVE?board(LIVE)+'<p class="next" style="margin:0">Stránka se obnovuje sama, jakmile trenér zapíše další akci.</p>'+liveSheet(LIVE):'<div class="card">Skóre zatím nebylo zveřejněno. Stránka se obnoví sama, až zápas začne.</div>')+infoHtml(WEB.pinfo)}
