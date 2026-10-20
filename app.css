@@ -138,7 +138,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .msg{color:var(--pencil);font-size:.85rem}
 .swingbtn{min-height:58px;width:100%}
 .roster{display:flex;flex-direction:column}
-.rrow{display:grid;grid-template-columns:52px 44px minmax(0,1fr) auto;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.rrow{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
 .rrow:last-child{border-bottom:0}
 .rrow b{font-family:var(--display);font-size:1.25rem;font-variant-numeric:tabular-nums}
 .rrow span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -394,7 +394,3 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 .qnav button.on{background:var(--ink);color:var(--paper)}
 /* název týmu v hlavičce */
 .tchip{font:700 .85rem var(--body);color:var(--muted);max-width:46vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-/* fotka na soupisce */
-.rph{width:40px;height:40px;border-radius:50%;border:1px dashed var(--line);display:grid;place-items:center;font-size:1.1rem;cursor:pointer;overflow:hidden;background:var(--field-soft)}
-.rph.has{border:2px solid var(--field)}.rph img{width:100%;height:100%;object-fit:cover}
