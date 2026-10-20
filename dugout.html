@@ -21,7 +21,7 @@ body{margin:0;background:#f4f6f2;color:#14202c;font:18px/1.3 Arial,Helvetica,san
 h2{margin:0 0 6px;font-size:18px;text-transform:uppercase;color:#4a5a52;letter-spacing:1px}
 table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #cdd8cb;table-layout:fixed}
 .lu td{padding:4px 8px;border-bottom:1px solid #e3e9e1;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lu td.n{width:24px;color:#6b7a73;text-align:right}.lu td.c{width:44px;font-weight:bold}
+.lu td.n{width:24px;color:#6b7a73;text-align:right}
 .lu td.s{width:96px;text-align:right;color:#4a5a52}
 .lu tr.now td{background:#ffd54a;font-weight:bold}
 .lu tr.next td{background:#fff4c4}
@@ -64,8 +64,7 @@ function tick(){clearTimeout(timer);var x=new XMLHttpRequest();
 function anon(n){return String(n).charAt(0)==='?'}
 function noNum(n){return String(n).charAt(0)==='~'}
 function numTxt(n){return anon(n)?'P'+String(n).slice(1):noNum(n)?'—':'#'+n}
-function nameOf(n){var x=G.names&&G.names[n];return x?x:anon(n)?'Hráč '+String(n).slice(1):numTxt(n)}
-function first(n){var x=G.names&&G.names[n],nm=x?String(x).split(' ')[0]:'';return noNum(n)?(nm||'—'):numTxt(n)+(nm?' '+nm:'')}
+function first(n){var x=G.names&&G.names[n],nm=x?String(x).split(' ')[0]:'';return noNum(n)?(nm||'—'):anon(n)?'Hráč '+String(n).slice(1):numTxt(n)+(nm?' '+nm:'')}
 function sum(a){var t=0;for(var i=0;i<(a||[]).length;i++)t+=a[i]||0;return t}
 function dots(n){var h='';for(var i=0;i<3;i++)h+='<i class="dot'+(i<n?' on':'')+'"></i>';return h}
 function stat(n){var pa=0,h=0,r=0;(G.pas||[]).forEach(function(x){if(x[0]===n){pa++;if(HITS[x[1]])h++;if(x[2])r++}});return pa?h+'/'+pa+(r?' · '+r+' R':''):''}
@@ -88,7 +87,7 @@ function view(){
   if(!L.length)h+='<div class="empty">Sestava není nastavená.</div>';
   else{h+='<table class="lu">';L.forEach(function(n,i){var k=fin?-1:(i-cur+L.length)%L.length,cls=k===0?'now':k===1?'next':'',
       tag=k===0?(batting?'PÁLÍ':'NA ŘADĚ'):k===1?(batting?'NA ŘADĚ':'PŘIPRAV'):'';
-    h+='<tr class="'+cls+'"><td class="n">'+(i+1)+'</td><td class="c">'+esc(noNum(n)?'—':numTxt(n))+'</td><td>'+esc(nameOf(n))+(tag?'<span class="tag">'+tag+'</span>':'')+'</td><td class="s">'+esc(stat(n))+'</td></tr>'});
+    h+='<tr class="'+cls+'"><td class="n">'+(i+1)+'</td><td>'+esc(first(n))+(tag?'<span class="tag">'+tag+'</span>':'')+'</td><td class="s">'+esc(stat(n))+'</td></tr>'});
     h+='</table>'}
   /* obrana: směna, kterou bráníme teď nebo jako další */
   var fi=G.defInn,D=G.def,bench=[],extra=[],at={};
