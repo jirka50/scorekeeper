@@ -35,11 +35,13 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 .box{max-width:420px;margin:40px auto;background:#fff;border:1px solid #cdd8cb;padding:20px}
 .box h1{margin:0 0 8px;font-size:26px}
 .foot{padding:0 10px 10px;font-size:14px;color:#6b7a73;overflow:hidden}
+#fs{position:fixed;right:10px;bottom:10px;font-size:18px;padding:10px 16px;background:#173a2a;color:#fff;border:2px solid #fff;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.3);display:none}
 .stale{background:#c0392b;color:#fff;text-align:center;padding:4px;font-size:16px}
 @media (max-width:860px){.tm{font-size:28px}.tm.long{font-size:22px}.top td.sc{font-size:70px;width:190px}.st{font-size:21px}.lu td{font-size:17px}.lu td.s{width:84px}.tag{font-size:11px}.field{margin:0 0 -30px;-webkit-transform:scale(.9);transform:scale(.9)}}
 @media (max-width:700px){.col,.col.r{float:none;width:auto;margin-bottom:12px}.field{margin:0 auto;-webkit-transform:none;transform:none}.top td.sc{font-size:64px;width:160px}.tm{font-size:24px}.tm.long{font-size:19px}}
 </style></head>
 <body><div id="app"><div class="box">Načítám…</div></div>
+<button id="fs" type="button">Celá obrazovka</button>
 <script>
 var DB='https://eagles-scorekeeper-default-rtdb.europe-west1.firebasedatabase.app',POLL=4000;
 var TID='',G=null,lastOk=0,lastTs=null,loaded=false,timer=null;
@@ -101,8 +103,19 @@ function view(){
     for(var p in POSXY)if(at[p])h+='<div class="p" style="left:'+POSXY[p][0]+'px;top:'+POSXY[p][1]+'px"><b>'+POSL[p]+'</b>'+esc(first(at[p]))+'</div>';
     h+='</div><div class="sum">'+(extra.length?'Další zadák: '+esc(extra.join(', '))+' · ':'')+'Lavička: '+esc(bench.length?bench.join(', '):'—')+'</div>'}
   h+='</div></div>'+foot();return h}
-function foot(){return '<div class="foot">'+(lastOk?'Aktualizováno '+hm(lastOk)+' · obnovuje se samo':'')+'</div>'}
+function foot(){return '<div class="foot">'+(lastOk?'Aktualizováno '+hm(lastOk)+' · obnovuje se samo':'')+(fsCan()?' · celou obrazovku zavřeš tlačítkem Zpět':'')+'</div>'}
 function render(){document.getElementById('app').innerHTML=view()}
+
+/* ---------- celá obrazovka (Chrome 71: webkit, Firefox 68: moz) ---------- */
+function fsEl(){return document.fullscreenElement||document.webkitFullscreenElement||document.mozFullScreenElement||null}
+function fsCan(){var e=document.documentElement;return !!(e.requestFullscreen||e.webkitRequestFullscreen||e.mozRequestFullScreen)}
+function fsGo(){var e=document.documentElement;
+  if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen).call(document);return}
+  if(e.requestFullscreen)e.requestFullscreen();else if(e.webkitRequestFullscreen)e.webkitRequestFullscreen();else if(e.mozRequestFullScreen)e.mozRequestFullScreen()}
+function fsUpd(){var b=document.getElementById('fs');if(!fsCan()){b.style.display='none';return}b.style.display=fsEl()?'none':'block'}
+document.getElementById('fs').onclick=fsGo;
+['fullscreenchange','webkitfullscreenchange','mozfullscreenchange'].forEach(function(ev){document.addEventListener(ev,fsUpd,false)});
+fsUpd();
 
 TID=qs('tym');render();if(TID)tick();
 </script></body></html>
