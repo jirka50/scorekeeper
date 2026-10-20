@@ -23,7 +23,7 @@ table.lsc{border-collapse:collapse;table-layout:auto;width:auto}
 .st span{display:block}.st .big{font-size:35px;color:#ffd54a;text-transform:uppercase}
 .dot{display:inline-block;width:27px;height:27px;border-radius:14px;border:3px solid #fff;margin-left:6px;vertical-align:-4px;box-sizing:border-box}
 .dot.on{background:#ff6b5a;border-color:#ff6b5a}
-.wrap{overflow:hidden;padding:8px 10px}
+.wrap{overflow:hidden;padding:8px 10px 8px 20px}
 .col{float:left;width:44%}.col.r{float:right;width:55%}
 #luw{overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid #cdd8cb;background:#fff}
 #luw table.lu{border:0}
@@ -38,12 +38,12 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 .lu tr.next td{background:#ffe88a}
 .lu tr.prp td{background:#fff7d6}
 .tag{display:inline-block;font-size:.75em;line-height:1.2;background:#14202c;color:#fff;border-radius:4px;padding:0 .3em;margin-left:.6em;vertical-align:middle}
-#fw{position:relative;margin:0 auto;overflow:hidden;width:400px;height:336px}
-.fh{text-align:center;font-size:20px;margin:0 0 4px;color:#14202c}body.dark .fh{color:#eef3ef}
+#fw{position:relative;margin:0 auto;overflow:hidden;width:400px;height:336px;background:#fff;border:1px solid #cdd8cb;box-sizing:border-box}
+.fh{text-align:center;font-size:20px;margin:0;padding:6px 4px 0;color:#14202c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}body.dark .fh{color:#eef3ef}
 .ftl{position:absolute;left:8px;bottom:5px;line-height:1.25;font-size:14px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#4a5a52;z-index:2}
-.fb{position:absolute;top:4px;z-index:3}.fb.l{left:4px}.fb.r{right:4px}.fb button{float:none!important;margin:0!important}
-.upd{position:absolute;right:8px;bottom:5px;font-size:12px;color:#6b7a73;z-index:2}
-.field{position:relative;width:398px;height:334px;-webkit-transform-origin:0 0;transform-origin:0 0;background:#fff;border:1px solid #cdd8cb}
+.fb{position:absolute;bottom:4px;z-index:3}.fb.l{left:4px}.fb.r{right:4px}.fb button{float:none!important;margin:0!important}
+.upd{position:absolute;right:8px;bottom:42px;font-size:12px;color:#6b7a73;z-index:2}
+.field{position:relative;width:398px;height:334px;-webkit-transform-origin:0 0;transform-origin:0 0}
 .field svg{position:absolute;left:0;top:0}
 .p{position:absolute;width:120px;margin-left:-60px;text-align:center;font-size:17px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .p b{display:block;font-size:14px;color:#fff;background:#2c6a43;border-radius:3px;margin:0 auto 2px;width:38px}
@@ -57,7 +57,7 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 .prep.late{background:#ffe0dc;border-color:#c0392b;color:#a32a1d}.prep.off{background:#fff;border-color:#cdd8cb;color:#4a5a52}
 .prep small{display:inline;font-size:18px;line-height:40px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px;color:#4a5a52}
 #voice.on{background:#c97a00}
-@media (max-width:860px){.fb button{font-size:13px;padding:4px 7px}.prep{padding:2px 8px}.prep .tv{font-size:28px}.prep small{font-size:14px;line-height:31px}.tsc{font-size:106px}.lsc td,.lsc th{font-size:15px;padding:0 4px}.lsc td.tot{font-size:17px}.top td.st{width:160px;font-size:23px}.st .big{font-size:26px}.dot{width:22px;height:22px}}
+@media (max-width:860px){.fh{font-size:15px}.wrap{padding-left:16px}.fb button{font-size:13px;padding:4px 7px}.prep{padding:2px 8px}.prep .tv{font-size:28px}.prep small{font-size:14px;line-height:31px}.tsc{font-size:106px}.lsc td,.lsc th{font-size:15px;padding:0 4px}.lsc td.tot{font-size:17px}.top td.st{width:160px;font-size:23px}.st .big{font-size:26px}.dot{width:22px;height:22px}}
 @media (max-width:700px){.top td.ls{display:none}.top td.st{width:110px}.col,.col.r{float:none;width:auto;margin-bottom:12px}.tsc{font-size:64px}.top td.st{width:120px;font-size:17px}.st .big{font-size:19px}.lu tr{font-size:20px}}
 /* tmavé schéma (přepínač dole vpravo) */
 body.dark{background:#0f1517;color:#eef3ef}
@@ -74,7 +74,7 @@ body.dark .lu tr.next .tag{background:#14202c;color:#ffd54a}
 body.dark .lu tr.now td{background:#2f8a52}
 body.dark .prep{background:#172024;border-color:#d9b21f;color:#ffd54a}
 body.dark .prep small{color:#b5c4bd}
-body.dark .field{background:#172024;border-color:#2b3a3d}
+body.dark #fw{background:#172024;border-color:#2b3a3d}
 body.dark .field svg path{fill:#1f3b2b}
 body.dark .field svg polygon{fill:#6b5233;stroke:#a5814f}
 body.dark .field svg rect{fill:#eef3ef;stroke:#8fa39a}
@@ -186,7 +186,7 @@ function view(){
   var ttl='Obrana · '+fi+'. směna'+(batting&&!fin?' (další)':'');
   h+='</div><div class="col r">';
   if(!D)h+='<h2>'+ttl+'</h2><div class="empty">Obrana pro tuto směnu není nastavená.</div>'+foot('');
-  else{h+='<h2 class="fh">Kdo kde hraje · '+fi+'. směna'+(batting&&!fin?' (další)':'')+'</h2><div id="fw"><div class="fb l">'+btnFs()+'</div><div class="fb r">'+btnVoice()+'</div>'+'<div class="upd" id="upd">'+(lastOk?'Aktualizováno '+hm(lastOk):'')+'</div>'+'<div class="field" id="fld"><svg width="400" height="336" viewBox="0 0 400 336"><path d="M200 300 L40 150 A226 226 0 0 1 360 150 Z" fill="#d9ead3"/>'+
+  else{h+='<div id="fw"><h2 class="fh" id="fhd">Kdo kde hraje · '+fi+'. směna'+(batting&&!fin?' (další)':'')+'</h2><div class="fb l">'+btnFs()+'</div><div class="fb r">'+btnVoice()+'</div>'+'<div class="upd" id="upd">'+(lastOk?'Aktualizováno '+hm(lastOk):'')+'</div>'+'<div class="field" id="fld"><svg width="400" height="336" viewBox="0 0 400 336"><path d="M200 300 L40 150 A226 226 0 0 1 360 150 Z" fill="#d9ead3"/>'+
       '<polygon points="200,290 290,205 200,120 110,205" fill="#e8cfa4" stroke="#b08a55" stroke-width="2"/>'+
       '<rect x="194" y="284" width="12" height="12" fill="#fff" stroke="#888"/><rect x="284" y="199" width="12" height="12" fill="#fff" stroke="#888"/>'+
       '<rect x="194" y="114" width="12" height="12" fill="#fff" stroke="#888"/><rect x="104" y="199" width="12" height="12" fill="#fff" stroke="#888"/></svg>';
@@ -226,9 +226,9 @@ function render(){shownStale=stale();var w=document.getElementById('luw'),st=w?w
 /* pořadí: velikost řádků tak, aby se vešlo 11 pálkařů, zbytek se posouvá */
 function fitField(){var fw=document.getElementById('fw'),f=document.getElementById('fld');if(!fw)return;
   var cw=fw.parentNode.clientWidth,top=fw.getBoundingClientRect().top+(window.pageYOffset||0),sm=document.getElementById('sum'),
-    below=(sm?sm.offsetHeight:0)+12,sc=cw/400;
-  if(window.innerWidth>700)sc=Math.min(sc,(window.innerHeight-top-below)/336);else sc=Math.min(sc,1.6);
-  sc=Math.max(0.7,Math.floor(sc*100)/100);var lf=Math.max(17,Math.round(15/sc)),ps=f.getElementsByTagName('div');for(var i=0;i<ps.length;i++)ps[i].style.fontSize=lf+'px';fw.style.width=Math.floor(400*sc)+'px';fw.style.height=Math.floor(336*sc)+'px';
+    fh=document.getElementById('fhd'),hh=fh?fh.offsetHeight:0,below=(sm?sm.offsetHeight:0)+12,sc=(cw-2)/400;
+  if(window.innerWidth>700)sc=Math.min(sc,(window.innerHeight-top-below-hh-2)/336);else sc=Math.min(sc,1.6);
+  sc=Math.max(0.7,Math.floor(sc*100)/100);var lf=Math.max(17,Math.round(15/sc)),ps=f.getElementsByTagName('div');for(var i=0;i<ps.length;i++)ps[i].style.fontSize=lf+'px';fw.style.width=(Math.floor(400*sc)+2)+'px';fw.style.height=(Math.floor(336*sc)+hh+2)+'px';
   f.style.webkitTransform=f.style.transform='scale('+sc+')';
   if(sm){sm.style.width=fw.style.width;sm.style.marginLeft=sm.style.marginRight='auto'}}
 /* názvy týmů: plná velikost; dlouhý název pomalu jezdí tam a zpět */
