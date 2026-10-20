@@ -164,9 +164,16 @@ function prepNum(){if(!G||G.final||G.example)return null;var L=G.lineup||[];if(!
 var VOICE=false,lastSaid=null;try{VOICE=localStorage.getItem('sk-dug-voice')==='1'}catch(e){}
 function voiceCan(){return !!(window.speechSynthesis&&window.SpeechSynthesisUtterance)}
 function say(t){if(!voiceCan())return;try{var u=new SpeechSynthesisUtterance(t);u.lang='cs-CZ';u.rate=0.9;var vs=speechSynthesis.getVoices()||[];
-  for(var i=0;i<vs.length;i++)if(/^cs/i.test(vs[i].lang)){u.voice=vs[i];break}speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
-function sayText(n){var x=G.names&&G.names[n],nm=x?String(x).split(' ')[0]:'';return 'Připraví se '+(nm||'hráč')+(!anon(n)&&!noNum(n)?', číslo '+n:'')}
-function announce(){var n=prepNum();if(n==null||n===lastSaid)return;var isFirst=lastSaid===null;lastSaid=n;if(VOICE&&!isFirst)say(sayText(n))}
+  for(var i=0;i<vs.length;i++)if(/^cs/i.test(vs[i].lang)){u.voice=vs[i];break}speechSynthesis.speak(u)}catch(e){}}
+function spoken(n){var x=G.names&&G.names[n],nm=x?String(x).split(' ')[0]:'';return (nm||'hráč')+(!anon(n)&&!noNum(n)?', číslo '+n:'')}
+function sayText(n){return 'Připraví se '+spoken(n)}
+/* hlášení: změna poloviny (jdeme pálit / do pole), pak kdo se připraví */
+var lastBat=null;
+function announce(){if(!G||G.final||G.example)return;var L=G.lineup||[],bat=(G.top?0:1)===G.ours,key=G.inning+(G.top?'t':'b');
+  if(lastBat!==null&&key!==lastBat.k&&bat!==lastBat.b&&VOICE){
+    if(bat&&L.length)say('Jdeme pálit. Pálí '+spoken(L[(G.bat||0)%L.length]));else if(!bat)say('Jdeme do pole')}
+  lastBat={k:key,b:bat};
+  var n=prepNum();if(n==null||n===lastSaid)return;var isFirst=lastSaid===null;lastSaid=n;if(VOICE&&!isFirst)say(sayText(n))}
 function voiceToggle(){VOICE=!VOICE;try{localStorage.setItem('sk-dug-voice',VOICE?'1':'0')}catch(e){}var n=prepNum();if(VOICE&&n!=null)say(sayText(n));render()}
 function render(){var w=document.getElementById('luw'),st=w?w.scrollTop:0;document.getElementById('app').innerHTML=view();fit();announce();
   w=document.getElementById('luw');if(!w)return;w.scrollTop=st;
