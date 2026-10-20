@@ -29,14 +29,14 @@ table.lsc{border-collapse:collapse;table-layout:auto;width:auto}
 #luw table.lu{border:0}
 h2{margin:0 0 6px;font-size:18px;text-transform:uppercase;color:#4a5a52;letter-spacing:1px}
 table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #cdd8cb;table-layout:fixed}
-.lu td{padding:0 8px;height:38px;border-bottom:1px solid #e3e9e1;font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu td{padding:0 8px;line-height:1;height:38px;border-bottom:1px solid #e3e9e1;font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lu td.n{width:1.6em;padding:0 4px 0 6px;text-overflow:clip;overflow:visible;color:#6b7a73;text-align:right}
 .lu td.s{width:120px;text-align:right;color:#4a5a52}
 .lu tr.now td{background:#2c6a43;color:#fff;font-weight:bold}
 .lu tr.now .tag{background:#fff;color:#2c6a43}
 .lu tr.next td{background:#ffe88a}
 .lu tr.prp td{background:#fff7d6}
-.tag{font-size:15px;background:#14202c;color:#fff;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:2px}
+.tag{font-size:14px;line-height:1.2;background:#14202c;color:#fff;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:2px}
 #fw{position:relative;margin:0 auto;overflow:hidden;width:400px;height:300px}
 .ftl{position:absolute;left:8px;bottom:5px;line-height:1.25;font-size:14px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#4a5a52;z-index:2}
 .fb{position:absolute;top:4px;z-index:3}.fb.l{left:4px}.fb.r{right:4px}.fb button{float:none!important;margin:0!important}
@@ -56,7 +56,7 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 .prep .tv{font-size:40px;line-height:1.05}.prep.late{background:#ffe0dc;border-color:#c0392b;color:#a32a1d}.prep.off{background:#fff;border-color:#cdd8cb;color:#4a5a52}
 .prep small{display:block;font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#4a5a52}
 #voice.on{background:#c97a00}
-@media (max-width:860px){.fb button{font-size:13px;padding:4px 7px}.prep{font-size:22px;padding:4px 10px}.prep small{font-size:12px}.top td.sc{font-size:84px}.lsc td,.lsc th{font-size:13px;padding:0 4px}.lsc td.tot{font-size:15px}.top td.st{width:150px;font-size:20px}.st .big{font-size:23px}.lu td.s{width:96px}.tag{font-size:12px}.sum{font-size:14px}}
+@media (max-width:860px){.fb button{font-size:13px;padding:4px 7px}.prep{font-size:22px;padding:4px 10px}.prep small{font-size:12px}.top td.sc{font-size:84px}.lsc td,.lsc th{font-size:13px;padding:0 4px}.lsc td.tot{font-size:15px}.top td.st{width:150px;font-size:20px}.st .big{font-size:23px}.lu td.s{width:76px;font-size:15px!important}.tag{font-size:11px;padding:1px 3px;margin-left:4px}.sum{font-size:14px}}
 @media (max-width:700px){.col,.col.r{float:none;width:auto;margin-bottom:12px}.top td.sc{font-size:64px}.top td.st{width:120px;font-size:17px}.st .big{font-size:19px}.lu td{font-size:20px}}
 </style>
 <style id="dyn"></style></head>
@@ -191,7 +191,7 @@ function fitNames(){var ss=document.querySelectorAll('.tm span');for(var i=0;i<s
   if(sp.offsetWidth>w){sp.style.whiteSpace='normal';sp.style.width=w+'px';f=Math.min(f,24);sp.style.fontSize=f+'px';while(f>12&&sp.offsetHeight>f*2.05){f-=2;sp.style.fontSize=f+'px'}}else sp.style.width=''}}
 function fit(){fitNames();fitField();var d=document.getElementById('dyn'),w=document.getElementById('luw');
   if(!w||window.innerWidth<=700){d.textContent='';if(w)w.style.height='';return}
-  var av=window.innerHeight-w.getBoundingClientRect().top-(window.pageYOffset||0)-10,rh=Math.max(30,Math.floor(av/11)),fz=Math.min(30,Math.max(17,Math.round(rh*0.58)));
+  var av=window.innerHeight-w.getBoundingClientRect().top-(window.pageYOffset||0)-10,rh=Math.max(30,Math.floor(av/11)),fz=Math.min(38,Math.max(17,Math.round(rh*0.8)));
   d.textContent='.lu td{height:'+(rh-1)+'px;font-size:'+fz+'px}';w.style.height=Math.max(av,rh*5)+'px'}
 window.onresize=function(){fit()};
 
