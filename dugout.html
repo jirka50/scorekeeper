@@ -223,7 +223,8 @@ function fitField(){var fw=document.getElementById('fw'),f=document.getElementBy
     below=(sm?sm.offsetHeight:0)+12,sc=cw/400;
   if(window.innerWidth>700)sc=Math.min(sc,(window.innerHeight-top-below)/336);else sc=Math.min(sc,1.6);
   sc=Math.max(0.7,Math.floor(sc*100)/100);var lf=Math.max(17,Math.round(15/sc)),ps=f.getElementsByTagName('div');for(var i=0;i<ps.length;i++)ps[i].style.fontSize=lf+'px';fw.style.width=Math.floor(400*sc)+'px';fw.style.height=Math.floor(336*sc)+'px';
-  f.style.webkitTransform=f.style.transform='scale('+sc+')'}
+  f.style.webkitTransform=f.style.transform='scale('+sc+')';
+  if(sm){sm.style.width=fw.style.width;sm.style.marginLeft=sm.style.marginRight='auto'}}
 /* názvy týmů: plná velikost; dlouhý název pomalu jezdí tam a zpět */
 function fitNames(){var ss=document.querySelectorAll('.tnm span'),css='';
   for(var i=0;i<ss.length;i++){var sp=ss[i],td=sp.parentNode,w=td.clientWidth-2,f=window.innerWidth<=700?20:window.innerWidth<=860?35:46;
