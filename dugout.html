@@ -11,7 +11,8 @@ button,input{font-weight:bold}
 .top{background:#173a2a;color:#fff;padding:4px 14px;text-align:center}
 .top table{width:100%;border:0;background:none;table-layout:fixed}
 .top td{border:0;padding:0;color:#fff;font-weight:bold;vertical-align:middle;overflow:hidden;word-wrap:break-word}
-.top td.tm{white-space:nowrap;text-align:center;padding:0 6px;vertical-align:bottom}
+.top td.tm{white-space:nowrap;text-align:center;padding:0 6px;vertical-align:middle}
+.top td.sc.a{position:relative;overflow:visible}.sc.a i{position:absolute;right:-.14em;font-style:normal}
 .tm span{display:inline-block;font-size:40px;line-height:.95;white-space:nowrap}
 .top td.ls{width:1px;padding-right:12px;vertical-align:middle}
 table.lsc{border-collapse:collapse;table-layout:auto;width:auto}
@@ -131,7 +132,7 @@ function view(){
   var o=G.ours,batting=(G.top?0:1)===o,fin=!!G.final,us=G.us||'Náš tým',them=G.them||'Soupeř';
   var h='';
   if(Date.now()-lastOk>(STREAM?75000:30000))h+='<div class="stale">Bez spojení od '+hm(lastOk)+'. Údaje nemusí být aktuální.</div>';
-  h+='<div class="top"><table><tr><td class="ls" rowspan="2" style="width:'+lsW()+'px">'+lineScore()+'</td><td class="tm"><span>'+esc(us)+'</span></td><td class="tm"><span>'+esc(them)+'</span></td><td class="st" rowspan="2">'+(fin?'<span class="big">Konec</span><span>zápasu</span>':'<span>'+G.inning+'. směna '+(G.top?'▲':'▼')+'</span><span class="big">'+(batting?'pálíme':'bráníme')+'</span><span>Auty'+dots(G.outs||0)+'</span>')+'</td></tr><tr><td class="sc" colspan="2">'+sum(G.runs&&G.runs[o])+' : '+sum(G.runs&&G.runs[1-o])+'</td></tr></table></div>';
+  h+='<div class="top"><table><tr><td class="ls" rowspan="2" style="width:'+lsW()+'px">'+lineScore()+'</td><td class="tm"><span>'+esc(us)+'</span></td><td class="tm"><span>'+esc(them)+'</span></td><td class="st" rowspan="2">'+(fin?'<span class="big">Konec</span><span>zápasu</span>':'<span>'+G.inning+'. směna '+(G.top?'▲':'▼')+'</span><span class="big">'+(batting?'pálíme':'bráníme')+'</span><span>Auty'+dots(G.outs||0)+'</span>')+'</td></tr><tr><td class="sc a">'+sum(G.runs&&G.runs[o])+'<i>:</i></td><td class="sc b">'+sum(G.runs&&G.runs[1-o])+'</td></tr></table></div>';
   /* pálkařské pořadí */
   var L=G.lineup||[],cur=G.bat||0;
   h+='<div class="wrap"><div class="col">'+timerBox();
