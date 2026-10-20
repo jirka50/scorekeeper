@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dugout · Baseball Scorekeeper</title>
+<link rel="icon" href="favicon-32x32.png">
+<!-- Stránka pro tablet v dugoutu. Záměrně bez moderního JS i CSS, aby běžela i na Androidu 4.1 (Chrome 71, Firefox 68).
+     Čte přímo databázi přes REST: přihlášení kódem týmu, potom stav zápasu a soupiska. Nic nezapisuje kromě vlastního přihlášení. -->
+<style>
+body{margin:0;background:#f4f6f2;color:#14202c;font:18px/1.3 Arial,Helvetica,sans-serif}
+.top{background:#173a2a;color:#fff;padding:6px 14px 8px;text-align:center}
+.top table{width:100%;border:0;background:none;table-layout:fixed}
+.top td{border:0;padding:0;color:#fff;font-weight:bold;vertical-align:middle;overflow:hidden;word-wrap:break-word}
+.tm{font-size:38px;line-height:1.05}.tm.long{font-size:30px}.tm.l{text-align:right}.tm.r{text-align:left}
+.tm small{display:block;font-size:16px;font-weight:normal;color:#b9d4c4}
+.top td.sc{font-size:92px;line-height:1;color:#ffd54a;width:260px;white-space:nowrap;text-align:center}
+.st{font-size:26px;margin-top:2px}
+.dot{display:inline-block;width:24px;height:24px;border-radius:12px;border:3px solid #fff;margin-left:6px;vertical-align:-4px;box-sizing:border-box}
+.dot.on{background:#ff6b5a;border-color:#ff6b5a}
+.wrap{overflow:hidden;padding:8px 10px}
+.col{float:left;width:49%}.col.r{float:right}
+h2{margin:0 0 6px;font-size:18px;text-transform:uppercase;color:#4a5a52;letter-spacing:1px}
+table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #cdd8cb;table-layout:fixed}
+.lu td{padding:4px 8px;border-bottom:1px solid #e3e9e1;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lu td.n{width:24px;color:#6b7a73;text-align:right}.lu td.c{width:44px;font-weight:bold}
+.lu td.s{width:96px;text-align:right;color:#4a5a52}
+.lu tr.now td{background:#ffd54a;font-weight:bold}
+.lu tr.next td{background:#fff4c4}
+.tag{font-size:13px;background:#14202c;color:#fff;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:2px}
+.field{position:relative;width:400px;height:300px;margin:0 auto;-webkit-transform-origin:0 0;transform-origin:0 0;background:#fff;border:1px solid #cdd8cb}
+.field svg{position:absolute;left:0;top:0}
+.p{position:absolute;width:120px;margin-left:-60px;text-align:center;font-size:17px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p b{display:block;font-size:14px;color:#fff;background:#2c6a43;border-radius:3px;margin:0 auto 2px;width:38px}
+.sum{margin-top:8px;font-size:16px;color:#4a5a52}
+.empty{background:#fff;border:1px solid #cdd8cb;padding:16px;color:#4a5a52}
+.box{max-width:420px;margin:40px auto;background:#fff;border:1px solid #cdd8cb;padding:20px}
+.box h1{margin:0 0 8px;font-size:26px}
+.box input{width:100%;box-sizing:border-box;font-size:24px;padding:8px;margin:10px 0;text-transform:uppercase;border:2px solid #9aa9a0}
+.box button{font-size:20px;padding:10px 18px;background:#173a2a;color:#fff;border:0;border-radius:4px}
+.err{color:#c0392b;margin-top:8px}
+.foot{padding:0 10px 10px;font-size:14px;color:#6b7a73;overflow:hidden}
+.foot a{color:#6b7a73;float:right}
+.stale{background:#c0392b;color:#fff;text-align:center;padding:4px;font-size:16px}
+@media (max-width:860px){.tm{font-size:28px}.tm.long{font-size:22px}.top td.sc{font-size:70px;width:190px}.st{font-size:21px}.lu td{font-size:17px}.lu td.s{width:84px}.tag{font-size:11px}.field{margin:0 0 -30px;-webkit-transform:scale(.9);transform:scale(.9)}}
+@media (max-width:700px){.col,.col.r{float:none;width:auto;margin-bottom:12px}.field{margin:0 auto;-webkit-transform:none;transform:none}.top td.sc{font-size:64px;width:160px}.tm{font-size:24px}.tm.long{font-size:19px}}
+</style></head>
+<body><div id="app"><div class="box">Načítám…</div></div>
+<script>
+var CFG={key:'AIzaSyDqwd6A6eaeHlczoLhGvaxQlzdp9od-0Pg',db:'https://eagles-scorekeeper-default-rtdb.europe-west1.firebasedatabase.app'};
+var AK='sk-dugout-auth',POLL=4000,ROSTER_EVERY=300000;
+var A=null,TID=null,S=null,R=null,stTs=null,rosterAt=0,lastOk=0,err='',busy=false,timer=null;
+var POSL={'1':'P','2':'C','3':'1B','4':'2B','5':'3B','6':'SS','7':'LF','8':'CF','9':'RF','10':'OF'};
+/* pozice v obdélníku 400×300 (střed jmenovky, horní okraj) */
+var POSXY={'1':[200,163],'2':[200,260],'3':[340,178],'4':[268,105],'5':[60,178],'6':[132,105],'7':[80,34],'8':[200,6],'9':[320,34]};
+var HITS={'1B':1,'2B':1,'3B':1,'HR':1};
+
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function qs(n){var m=new RegExp('[?&]'+n+'=([^&#]*)').exec(location.search);return m?decodeURIComponent(m[1]):''}
+function lsGet(){try{return JSON.parse(localStorage.getItem(AK)||'null')}catch(e){return null}}
+function lsSet(v){try{if(v)localStorage.setItem(AK,JSON.stringify(v));else localStorage.removeItem(AK)}catch(e){}}
+
+function xhr(method,url,body,type,cb){var x=new XMLHttpRequest();x.open(method,url,true);
+  if(type)x.setRequestHeader('Content-Type',type);x.timeout=15000;
+  x.onreadystatechange=function(){if(x.readyState!==4)return;var j=null;try{j=JSON.parse(x.responseText)}catch(e){}cb(x.status,j)};
+  x.ontimeout=function(){};x.send(body==null?null:body)}
+
+/* ---------- přihlášení (anonymní účet + kód týmu, stejně jako aplikace) ---------- */
+function signUp(cb){xhr('POST','https://identitytoolkit.googleapis.com/v1/accounts:signUp?key='+CFG.key,'{"returnSecureToken":true}','application/json',function(s,j){
+  if(s===200&&j&&j.idToken)cb(null,{uid:j.localId,tok:j.idToken,ref:j.refreshToken,exp:Date.now()+(+j.expiresIn-120)*1000});else cb('signup')})}
+function refresh(cb){xhr('POST','https://securetoken.googleapis.com/v1/token?key='+CFG.key,'grant_type=refresh_token&refresh_token='+encodeURIComponent(A.ref),'application/x-www-form-urlencoded',function(s,j){
+  if(s===200&&j&&j.id_token){A.tok=j.id_token;A.ref=j.refresh_token||A.ref;A.exp=Date.now()+(+j.expires_in-120)*1000;lsSet(A);cb(null)}else cb('refresh')})}
+function withTok(cb){if(A.exp>Date.now())return cb(null);refresh(cb)}
+function dbGet(path,auth,cb){var go=function(){xhr('GET',CFG.db+'/'+path+'.json'+(auth?'?auth='+encodeURIComponent(A.tok):''),null,null,cb)};
+  if(!auth)return go();withTok(function(e){if(e)return cb(401,null);go()})}
+
+function login(code){code=String(code||'').replace(/\s+/g,'').toUpperCase();if(!code){err='Zadej kód týmu.';return render()}
+  busy=true;err='';render();
+  signUp(function(e,a){if(e){busy=false;err='Přihlášení se nepovedlo. Zkontroluj internet.';return render()}
+    xhr('PUT',CFG.db+'/claims/'+a.uid+'.json?auth='+encodeURIComponent(a.tok),JSON.stringify(code),'application/json',function(s){
+      if(s!==200){busy=false;err='Neplatný kód.';return render()}
+      A=a;A.code=code;
+      dbGet('pinmap/'+code,true,function(s2,p){busy=false;
+        if(s2!==200||!p||!p.role){A=null;err='Neplatný kód.';return render()}
+        if(p.role==='coach'){A=null;err='Kód trenéra tréninků tady nejde. Použij kód týmu.';return render()}
+        A.role=p.role;A.team=p.team||qs('tym')||'';if(!A.team){A=null;err='Kód správce: přidej do adresy ?tym= s týmem.';return render()}
+        lsSet(A);start()})})})}
+function logout(){A=null;lsSet(null);S=null;R=null;stTs=null;clearTimeout(timer);render()}
+
+/* ---------- čtení dat ---------- */
+function start(){TID=A.role==='admin'&&qs('tym')||A.team;stTs=null;rosterAt=0;tick()}
+function tick(){clearTimeout(timer);if(!A)return;
+  dbGet('teams/'+TID+'/state/ts',true,function(s,ts){
+    if(s===401||s===403){err='Kód už neplatí. Přihlas se znovu.';logout();return}
+    if(s!==200){render();timer=setTimeout(tick,POLL);return}
+    lastOk=Date.now();
+    var needR=Date.now()-rosterAt>ROSTER_EVERY;
+    var done=function(){render();timer=setTimeout(tick,POLL)};
+    var getR=function(){if(!needR)return done();dbGet('teams/'+TID+'/roster',true,function(s3,v){if(s3===200&&v&&v.json){try{R=JSON.parse(v.json);rosterAt=Date.now()}catch(e){}}done()})};
+    if(ts===stTs&&S)return getR();
+    dbGet('teams/'+TID+'/state/json',true,function(s2,j){if(s2===200&&typeof j==='string'){try{S=JSON.parse(j);stTs=ts}catch(e){}}getR()})})}
+
+/* ---------- pomocné ---------- */
+function ours(){return S.ours==null?1:S.ours}
+function anon(n){return String(n).charAt(0)==='?'}
+function noNum(n){return String(n).charAt(0)==='~'}
+function numTxt(n){return anon(n)?'P'+String(n).slice(1):noNum(n)?'—':'#'+n}
+function player(n){var ps=R&&R.players||[];for(var i=0;i<ps.length;i++)if(ps[i].num===n)return ps[i];return null}
+function nameOf(n){var p=player(n);return p&&p.name?p.name:anon(n)?'Hráč '+String(n).slice(1):numTxt(n)}
+function first(n){var p=player(n),nm=p&&p.name?String(p.name).split(' ')[0]:'';return noNum(n)?(nm||'—'):numTxt(n)+(nm?' '+nm:'')}
+function sum(a){var t=0;for(var i=0;i<(a||[]).length;i++)t+=a[i]||0;return t}
+function dots(n){var h='';for(var i=0;i<3;i++)h+='<i class="dot'+(i<n?' on':'')+'"></i>';return h}
+function stat(t,n){var pa=0,h=0,r=0;(S.pas||[]).forEach(function(x){if(x.t===t&&x.num===n){pa++;if(HITS[x.code])h++;if(x.scored)r++}});return pa?h+'/'+pa+(r?' · '+r+' R':''):''}
+function ago(){if(!lastOk)return'';var d=new Date(lastOk);return(d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()}
+
+/* ---------- vykreslení ---------- */
+function loginView(){return '<div class="box"><h1>Dugout</h1><p>Zadej kód týmu (stejný, jakým se přihlašuje zapisovatel). Stačí jednou, tablet si ho pamatuje.</p>'+
+  '<input id="code" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX">'+
+  '<button id="go"'+(busy?' disabled':'')+'>'+(busy?'Přihlašuji…':'Přihlásit')+'</button>'+(err?'<div class="err">'+esc(err)+'</div>':'')+'</div>'}
+
+function view(){
+  if(!S)return '<div class="box">'+(lastOk?'Zápas zatím není rozehraný.':'Načítám zápas…')+'</div>'+foot();
+  var o=ours(),th=1-o,teams=S.teams||[{},{}],us=(R&&R.name)||teams[o].name||'Náš tým',them=teams[th].name||'Soupeř';
+  var batting=(S.top?0:1)===o,fin=!!S.final;
+  var h='';
+  if(lastOk&&Date.now()-lastOk>30000)h+='<div class="stale">Bez spojení od '+ago()+'. Údaje nemusí být aktuální.</div>';
+  h+='<div class="top"><table><tr><td class="tm l'+(us.length>14?' long':'')+'">'+esc(us)+'<small>náš tým</small></td><td class="sc">'+sum(S.runs&&S.runs[o])+' : '+sum(S.runs&&S.runs[th])+'</td><td class="tm r'+(them.length>14?' long':'')+'">'+esc(them)+'<small>soupeř</small></td></tr></table>';
+  h+='<div class="st">'+(fin?'Konec zápasu':S.inning+'. směna '+(S.top?'▲':'▼')+' &nbsp;·&nbsp; '+(batting?'pálíme':'bráníme')+' &nbsp;·&nbsp; Auty'+dots(S.outs||0))+'</div></div>';
+  /* pálkařské pořadí */
+  var L=(teams[o].lineup||[]),cur=(S.bat||[0,0])[o]||0;
+  h+='<div class="wrap"><div class="col"><h2>Pálkařské pořadí</h2>';
+  if(!L.length)h+='<div class="empty">Sestava není nastavená.</div>';
+  else{h+='<table class="lu">';L.forEach(function(n,i){var k=fin?-1:(i-cur+L.length)%L.length,cls=k===0?'now':k===1?'next':'',
+      tag=k===0?(batting?'PÁLÍ':'NA ŘADĚ'):k===1?(batting?'NA ŘADĚ':'PŘIPRAV'):'';
+    h+='<tr class="'+cls+'"><td class="n">'+(i+1)+'</td><td class="c">'+esc(noNum(n)?'—':numTxt(n))+'</td><td>'+esc(nameOf(n))+(tag?'<span class="tag">'+tag+'</span>':'')+'</td><td class="s">'+esc(stat(o,n))+'</td></tr>'});
+    h+='</table>'}
+  /* obrana: směna, kterou bráníme teď nebo jako další */
+  var fi=batting&&o===1?S.inning+1:S.inning,D=(S.def||{})[fi]||null,bench=[],at={};
+  if(D)for(var n in D){if(D[n]==='B')bench.push(n);else if(POSXY[D[n]])at[D[n]]=n;else bench.push(n)}
+  h+='</div><div class="col r"><h2>Obrana · '+fi+'. směna'+(batting&&!fin?' (další)':'')+'</h2>';
+  if(!D)h+='<div class="empty">Obrana pro tuto směnu není nastavená.</div>';
+  else{h+='<div class="field"><svg width="400" height="300" viewBox="0 0 400 300"><path d="M200 300 L40 150 A226 226 0 0 1 360 150 Z" fill="#d9ead3"/>'+
+      '<polygon points="200,290 290,205 200,120 110,205" fill="#e8cfa4" stroke="#b08a55" stroke-width="2"/>'+
+      '<rect x="194" y="284" width="12" height="12" fill="#fff" stroke="#888"/><rect x="284" y="199" width="12" height="12" fill="#fff" stroke="#888"/>'+
+      '<rect x="194" y="114" width="12" height="12" fill="#fff" stroke="#888"/><rect x="104" y="199" width="12" height="12" fill="#fff" stroke="#888"/></svg>';
+    for(var p in POSXY)if(at[p])h+='<div class="p" style="left:'+POSXY[p][0]+'px;top:'+POSXY[p][1]+'px"><b>'+POSL[p]+'</b>'+esc(first(at[p]))+'</div>';
+    h+='</div>';
+    var extra=[];for(var q in D)if(D[q]==='10')extra.push(first(q));
+    var bn=bench.filter(function(x){return D[x]!=='10'}).map(first);
+    h+='<div class="sum">'+(extra.length?'Další zadák: '+esc(extra.join(', '))+' · ':'')+'Lavička: '+esc(bn.length?bn.join(', '):'—')+'</div>'}
+  h+='</div></div>'+foot();return h}
+function foot(){return '<div class="foot">'+(lastOk?'Aktualizováno '+ago()+' · obnovuje se samo':'')+'<a href="#" id="out">Odhlásit tablet</a></div>'}
+
+function render(){var el=$('app');el.innerHTML=A&&A.team?view():loginView();
+  var g=$('go');if(g)g.onclick=function(){login($('code').value)};
+  var c=$('code');if(c){c.onkeydown=function(e){if((e.keyCode||e.which)===13)login(c.value)};if(!busy)c.focus()}
+  var out=$('out');if(out)out.onclick=function(e){e.preventDefault();logout()}}
+
+A=lsGet();if(A&&A.team)start();render();
+</script></body></html>

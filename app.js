@@ -770,6 +770,7 @@ const canWrite=tid=>WEB.role==='admin'||WEB.team===tid;
 const liveOn=()=>!!(FBX&&WEB.role);
 const baseUrl=()=>location.origin+location.pathname;
 const parentUrl=tid=>baseUrl()+'?tym='+encodeURIComponent(tid);
+const dugoutUrl=()=>baseUrl().replace(/[^/]*$/,'')+'dugout.html';
 function genCode(){let c='';const r=crypto.getRandomValues(new Uint32Array(8));for(let i=0;i<8;i++)c+=CODE_ABC[r[i]%CODE_ABC.length];return c.slice(0,4)+'-'+c.slice(4)}
 const normCode=v=>String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/^(.{4})(.+)$/,'$1-$2');
 
@@ -931,6 +932,9 @@ function scoreView(){const on=!!S.settings.pubOn,auto=S.settings.autoPub!==false
   <div class="card form"><div class="label">Odkaz pro rodiče</div><div class="linkbox" id="plink">${esc(url)}</div>
   <div class="row"><button class="ghost" data-act="copylink" data-v="${esc(url)}">Kopírovat odkaz</button></div>${ui.linkMsg?`<div class="next">${esc(ui.linkMsg)}</div>`:''}
   <p class="next" style="margin:0">Pošli ho rodičům do skupiny týmu. Odkaz je stálý, platí pro všechny zápasy tohoto týmu.</p></div>
+  <div class="card form"><div class="label">Tablet do dugoutu</div><div class="linkbox">${esc(dugoutUrl())}</div>
+  <div class="row"><button class="ghost" data-act="copylink" data-v="${esc(dugoutUrl())}">Kopírovat odkaz</button></div>
+  <p class="next" style="margin:0">Velké skóre, pořadí pálkařů se jmény a kdo je na řadě, obrana na hřišti. Funguje i na starých tabletech (Android 4.1 s Chrome nebo Firefoxem). Na tabletu se jednou přihlas kódem týmu. Stránka se obnovuje sama a nic nemění.</p></div>
   <div class="label">Takhle to uvidí rodiče</div>${board(liveData(false))}${infoHtml(infoData(TEAMS.cur))}`}
 function renderParent(){document.getElementById('tabs').innerHTML='';setSub(WEB.parentName?WEB.parentName+' · živé skóre':'živé skóre');
   document.getElementById('view').innerHTML=WEB.msg?`<div class="card msg">${esc(WEB.msg)}</div>`:(LIVE?board(LIVE)+'<p class="next" style="margin:0">Stránka se obnovuje sama, jakmile trenér zapíše další akci.</p>'+liveSheet(LIVE):'<div class="card">Skóre zatím nebylo zveřejněno. Stránka se obnoví sama, až zápas začne.</div>')+infoHtml(WEB.pinfo)}
