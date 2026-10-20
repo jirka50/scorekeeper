@@ -101,10 +101,10 @@ function view(){
   /* pálkařské pořadí */
   var L=G.lineup||[],cur=G.bat||0;
   var pn=prepNum();
-  h+='<div class="wrap"><div class="col">'+(pn!=null?'<div class="prep"><small>'+(batting?'Na řadě, připrav se':'Pálí jako první, připrav se')+'</small>'+esc(first(pn))+'</div>':'<h2>Pálkařské pořadí</h2>');
+  h+='<div class="wrap"><div class="col">'+(pn!=null?'<div class="prep"><small>'+'Připrav se, jdeš po '+esc(first(L[((G.bat||0)+(batting?1:0))%L.length]))+'</small>'+esc(first(pn))+'</div>':'<h2>Pálkařské pořadí</h2>');
   if(!L.length)h+='<div class="empty">Sestava není nastavená.</div>';
-  else{h+='<div id="luw"><table class="lu">';L.forEach(function(n,i){var k=fin?-1:(i-cur+L.length)%L.length,cls=k===0?'now':k===1?'next':'',
-      tag=k===0?(batting?'PÁLÍ':'NA ŘADĚ'):k===1?(batting?'NA ŘADĚ':'PŘIPRAV'):'';
+  else{h+='<div id="luw"><table class="lu">';L.forEach(function(n,i){var k=fin?-1:(i-cur+L.length)%L.length,pk=batting?2:1,cls=k===0?'now':k===1||k===pk?'next':'',
+      tag=k===0?(batting?'PÁLÍ':'NA ŘADĚ'):k===1&&batting?'NA ŘADĚ':k===pk?'PŘIPRAV':'';
     h+='<tr class="'+cls+'"><td class="n">'+(i+1)+'</td><td>'+esc(first(n))+(tag?'<span class="tag">'+tag+'</span>':'')+'</td><td class="s">'+esc(stat(n))+'</td></tr>'});
     h+='</table></div>'}
   /* obrana: směna, kterou bráníme teď nebo jako další */
@@ -121,9 +121,9 @@ function view(){
   h+=foot()+'</div></div>';return h}
 function foot(){return '<div class="foot">'+(voiceCan()?'<button id="voice" type="button" class="'+(VOICE?'on':'')+'">'+(VOICE?'Hlášení: zap':'Hlásit nahlas')+'</button>':'')+(fsCan()&&!fsEl()?'<button id="fs" type="button">Celá obrazovka</button>':'')+(lastOk?'Aktualizováno '+hm(lastOk):'')+'</div>'}
 var lastCur=null;
-/* kdo se má připravit: když pálíme, další po pálkaři; když bráníme, první na řadě */
+/* kdo se má připravit: hráč za tím, kdo je na řadě (pálíme: pálkař+2, bráníme: první na řadě+1) */
 function prepNum(){if(!G||G.final||G.example)return null;var L=G.lineup||[];if(!L.length)return null;var batting=(G.top?0:1)===G.ours;
-  return L[((G.bat||0)+(batting?1:0))%L.length]}
+  return L[((G.bat||0)+(batting?2:1))%L.length]}
 /* hlášení nahlas (čeština, pokud ji tablet umí) */
 var VOICE=false,lastSaid=null;try{VOICE=localStorage.getItem('sk-dug-voice')==='1'}catch(e){}
 function voiceCan(){return !!(window.speechSynthesis&&window.SpeechSynthesisUtterance)}
