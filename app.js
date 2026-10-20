@@ -774,7 +774,7 @@ const dugoutUrl=tid=>baseUrl().replace(/[^/]*$/,'')+'dugout.html?tym='+encodeURI
 /* veřejná data pro tablet v dugoutu (public/<tid>/dugout): skóre, naše sestava se jmény, dnešní odpaly, obrana */
 var DUG_T=null,DUG_LAST='';
 function dugoutData(){const o=ours(),fi=bt()===o&&o===1?S.inning+1:S.inning,D=S.def||{},nm={};
-  S.teams[o].lineup.forEach(n=>{const x=rname(n);if(x)nm[n]=x});Object.keys(D[fi]||{}).concat(Object.keys(D[S.inning]||{})).forEach(n=>{const x=rname(n);if(x)nm[n]=x});
+  S.teams[o].lineup.forEach(n=>{const x=String(rname(n)).trim().split(/\s+/)[0];if(x)nm[n]=x});Object.keys(D[fi]||{}).concat(Object.keys(D[S.inning]||{})).forEach(n=>{const x=String(rname(n)).trim().split(/\s+/)[0];if(x)nm[n]=x});
   return{v:1,us:R.name||S.teams[o].name,them:S.teams[1-o].name,ours:o,inning:S.inning,top:S.top,outs:S.outs,runs:S.runs.map(a=>Array.from(a,x=>x||0)),final:!!S.final,
     innings:S.settings.innings,bat:S.bat[o],lineup:S.teams[o].lineup.slice(),names:nm,pas:S.pas.filter(r=>r.t===o).map(r=>[r.num,r.code,r.scored?1:0]),
     defInn:fi,def:D[fi]||null,example:!!S.example}}
@@ -944,8 +944,8 @@ function scoreView(){const on=!!S.settings.pubOn,auto=S.settings.autoPub!==false
   <p class="next" style="margin:0">Pošli ho rodičům do skupiny týmu. Odkaz je stálý, platí pro všechny zápasy tohoto týmu.</p></div>
   <div class="card form"><div class="label">Tablet do dugoutu</div><div class="linkbox">${esc(dugoutUrl(TEAMS.cur))}</div>
   <div class="row"><button class="ghost" data-act="copylink" data-v="${esc(dugoutUrl(TEAMS.cur))}">Kopírovat odkaz</button></div>
-  <p class="next" style="margin:0">Velké skóre, pořadí pálkařů se jmény a kdo je na řadě, obrana na hřišti. Funguje i na starých tabletech (Android 4.1 s Chrome nebo Firefoxem), bez přihlášení. Odesílá se samo, když je zapisovatel přihlášený online.</p>
-  <p class="next" style="margin:0">Pozor: tento odkaz ukazuje jména dětí. Kdo ho má, uvidí je, proto ho dávej jen na tablet, ne do skupin.</p></div>
+  <p class="next" style="margin:0">Velké skóre, pořadí pálkařů s křestními jmény a kdo je na řadě, obrana na hřišti. Funguje i na starých tabletech (Android 4.1 s Chrome nebo Firefoxem), bez přihlášení. Odesílá se samo, když je zapisovatel přihlášený online.</p>
+  <p class="next" style="margin:0">Pozor: tento odkaz ukazuje křestní jména dětí (bez příjmení). Kdo ho má, uvidí je, proto ho dávej jen na tablet, ne do skupin.</p></div>
   <div class="label">Takhle to uvidí rodiče</div>${board(liveData(false))}${infoHtml(infoData(TEAMS.cur))}`}
 function renderParent(){document.getElementById('tabs').innerHTML='';setSub(WEB.parentName?WEB.parentName+' · živé skóre':'živé skóre');
   document.getElementById('view').innerHTML=WEB.msg?`<div class="card msg">${esc(WEB.msg)}</div>`:(LIVE?board(LIVE)+'<p class="next" style="margin:0">Stránka se obnovuje sama, jakmile trenér zapíše další akci.</p>'+liveSheet(LIVE):'<div class="card">Skóre zatím nebylo zveřejněno. Stránka se obnoví sama, až zápas začne.</div>')+infoHtml(WEB.pinfo)}
