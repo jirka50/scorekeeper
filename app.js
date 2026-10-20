@@ -2,7 +2,7 @@
 var WEB={role:null,team:null,code:null,uid:null,online:false,setupDone:null,msg:'',busy:false,pins:null,parentTeam:null,parentName:''};
 var SYNC={st:'off',last:0,err:''};
 var FBX=null; /* {db,auth} */
-const APP_VERSION='1.1b',APP_DATE='2026-10-16';
+const APP_VERSION='1.2',APP_DATE='2026-10-20';
 const setSub=t=>{const el=document.getElementById('sub');if(el)el.innerHTML=(t?esc(t):'')+'<span class="hver">'+verTxt()+'</span>'};
 const verTxt=()=>'verze '+APP_VERSION;
 const KEY='tball-zapisnik-v2';
