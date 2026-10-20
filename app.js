@@ -666,7 +666,7 @@ function endConfirm(){const live=liveOn()&&S.settings.pubOn;
   return `<div class="card form panel"><div class="label">Ukončit zápas?</div><div class="fin-score">${resultTxt()}</div>
   <p class="next" style="margin:0">Zápis se uzamkne, zastaví se čas a zápas se uloží do historie.${live?' Rodičům se pošle konečné skóre.':''} Kdyby to bylo omylem, zápis jde znovu otevřít.</p>
   <div class="row"><button class="solid" data-act="endyes">Ano, ukončit zápas</button><button class="ghost" data-act="endno">Zpět k zápisu</button></div></div>`}
-function finalCard(){const o=ours(),a=gTot(S,o),b=gTot(S,1-o),res=a>b?'Vyhráli jsme':a<b?'Prohráli jsme':'Remíza';
+function finalCard(){const o=ours(),a=gTot(S,o),b=gTot(S,1-o),res=a>b?'Vyhráli jsme':a<b?'Dnes jsme nevyhráli':'Remíza';
   return `<div class="card form fin"><div class="label">🏁 Zápas skončil · ${res}</div><div class="fin-score">${resultTxt()}</div>
   ${achNow()}
   ${saveBox()}
@@ -683,7 +683,7 @@ async function resultImage(){const o=ours(),a=gTot(S,o),b=gTot(S,1-o),W=1080,c=d
   try{const lg=await loadImg('icon-192.png');x.drawImage(lg,50,40,110,110)}catch(e){}
   txt(R.name||S.teams[o].name,'700 # '+FD,64,190,105,840,'#fff','left');
   txt([gDate(S),kindTxt(S.meta),S.meta&&S.meta.field].filter(Boolean).join(' · ')||'Výsledek zápasu','700 # '+FB,32,190,155,840,G,'left');
-  txt((a>b?'Vyhráli jsme!':a<b?'Prohráli jsme':'Remíza').toUpperCase(),'700 # '+FD,76,W/2,300,960,Y);
+  txt((a>b?'Vyhráli jsme!':a<b?'Dnes jsme nevyhráli':'Remíza').toUpperCase(),'700 # '+FD,76,W/2,300,960,Y);
   txt(S.teams[o].name,'700 # '+FD,52,280,390,440,'#fff');txt(S.teams[1-o].name,'700 # '+FD,52,800,390,440,'#fff');
   txt(String(a),'700 # '+FD,260,280,610,440,Y);txt(String(b),'700 # '+FD,260,800,610,440,Y);txt(':','700 # '+FD,200,W/2,590,100,Y);
   /* tabulka směn */
