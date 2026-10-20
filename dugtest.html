@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Test spojení · dugout</title>
+<!-- Diagnostika pro staré tablety: zkusí jednotlivá spojení a vypíše výsledek. Jen ES5, funguje i otevřená ze souboru. -->
+<style>
+body{margin:0;padding:16px;background:#f4f6f2;color:#14202c;font:18px/1.35 Arial,Helvetica,sans-serif}
+h1{font-size:26px;margin:0 0 10px}
+.r{background:#fff;border:1px solid #cdd8cb;padding:10px;margin-bottom:8px}
+.r b{display:block}.ok{border-left:8px solid #2c6a43}.bad{border-left:8px solid #c0392b}.wait{border-left:8px solid #b98a00}
+small{color:#4a5a52;word-wrap:break-word}
+</style></head><body>
+<h1>Test spojení pro dugout</h1>
+<div id="out"></div>
+<script>
+var T=[
+ ['Tento prohlížeč',null],
+ ['Databáze přes HTTPS (data pro dugout)','https://eagles-scorekeeper-default-rtdb.europe-west1.firebasedatabase.app/public/t1/dugout.json?shallow=true'],
+ ['Databáze přes HTTP (bez šifrování)','http://eagles-scorekeeper-default-rtdb.europe-west1.firebasedatabase.app/public/t1/dugout.json?shallow=true'],
+ ['Stránky aplikace přes HTTPS','https://jirka50.github.io/scorekeeper/manifest.json'],
+ ['Stránky aplikace přes HTTP','http://jirka50.github.io/scorekeeper/manifest.json'],
+ ['Obecný test HTTPS (Google)','https://www.googleapis.com/discovery/v1/apis?name=x']];
+var out=document.getElementById('out');
+function row(i,cls,msg){var d=document.getElementById('r'+i);d.className='r '+cls;d.getElementsByTagName('small')[0].innerHTML=msg}
+for(var i=0;i<T.length;i++){var d=document.createElement('div');d.id='r'+i;d.className='r wait';d.innerHTML='<b>'+T[i][0]+'</b><small>zkouším…</small>';out.appendChild(d)}
+row(0,'ok',navigator.userAgent.replace(/</g,'&lt;')+'<br>stránka otevřená přes: '+location.protocol);
+function test(i){var x=new XMLHttpRequest(),t0=new Date().getTime(),done=false;
+  try{x.open('GET',T[i][1],true)}catch(e){row(i,'bad','nelze otevřít: '+e.message);return}
+  x.timeout=15000;
+  x.onreadystatechange=function(){if(x.readyState!==4||done)return;done=true;var ms=new Date().getTime()-t0;
+    if(x.status>=200&&x.status<400)row(i,'ok','funguje · HTTP '+x.status+' · '+ms+' ms');
+    else if(x.status===0)row(i,'bad','spojení selhalo (zablokováno, chyba certifikátu nebo HTTPS) · '+ms+' ms');
+    else row(i,'bad','server odpověděl HTTP '+x.status+' · '+ms+' ms')};
+  x.ontimeout=function(){if(done)return;done=true;row(i,'bad','vypršel čas (15 s)')};
+  try{x.send(null)}catch(e){done=true;row(i,'bad','chyba: '+e.message)}}
+for(var j=1;j<T.length;j++)test(j);
+</script></body></html>
