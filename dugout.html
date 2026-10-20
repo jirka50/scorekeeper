@@ -18,7 +18,7 @@ body{margin:0;background:#f4f6f2;color:#14202c;font:18px/1.3 Arial,Helvetica,san
 .dot{display:inline-block;width:24px;height:24px;border-radius:12px;border:3px solid #fff;margin-left:6px;vertical-align:-4px;box-sizing:border-box}
 .dot.on{background:#ff6b5a;border-color:#ff6b5a}
 .wrap{overflow:hidden;padding:8px 10px}
-.col{float:left;width:52%}.col.r{float:right;width:46%}
+.col{float:left;width:44%}.col.r{float:right;width:55%}
 #luw{overflow-y:auto;-webkit-overflow-scrolling:touch;border:1px solid #cdd8cb;background:#fff}
 #luw table.lu{border:0}
 h2{margin:0 0 6px;font-size:18px;text-transform:uppercase;color:#4a5a52;letter-spacing:1px}
@@ -29,7 +29,10 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 .lu tr.now td{background:#ffd54a;font-weight:bold}
 .lu tr.next td{background:#fff4c4}
 .tag{font-size:15px;background:#14202c;color:#fff;border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:2px}
-#fw{margin:0 auto;overflow:hidden;width:400px;height:300px}
+#fw{position:relative;margin:0 auto;overflow:hidden;width:400px;height:300px}
+.ftl{position:absolute;left:8px;bottom:5px;line-height:1.25;font-size:14px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#4a5a52;z-index:2}
+.fb{position:absolute;top:4px;z-index:3}.fb.l{left:4px}.fb.r{right:4px}.fb button{float:none!important;margin:0!important}
+.upd{position:absolute;right:8px;bottom:5px;font-size:12px;color:#6b7a73;z-index:2}
 .field{position:relative;width:398px;height:298px;-webkit-transform-origin:0 0;transform-origin:0 0;background:#fff;border:1px solid #cdd8cb}
 .field svg{position:absolute;left:0;top:0}
 .p{position:absolute;width:120px;margin-left:-60px;text-align:center;font-size:17px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -38,13 +41,13 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 .empty{background:#fff;border:1px solid #cdd8cb;padding:16px;color:#4a5a52}
 .box{max-width:420px;margin:40px auto;background:#fff;border:1px solid #cdd8cb;padding:20px}
 .box h1{margin:0 0 8px;font-size:26px}
-.foot{padding:4px 0 0;font-size:13px;color:#6b7a73;white-space:nowrap;overflow:hidden}
+.foot{padding:6px 0 0;font-size:16px;line-height:30px;color:#4a5a52;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #fs,#voice{float:right;font-size:15px;padding:5px 10px;margin-left:8px;background:#173a2a;color:#fff;border:0;border-radius:5px}
 .stale{background:#c0392b;color:#fff;text-align:center;padding:4px;font-size:16px}
 .prep{background:#ffd54a;border:3px solid #14202c;padding:2px 12px 4px;margin-bottom:8px;font-size:28px;line-height:1.1;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prep small{display:block;font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#4a5a52}
 #voice.on{background:#c97a00}
-@media (max-width:860px){.prep{font-size:22px;padding:4px 10px}.prep small{font-size:12px}.tm{font-size:28px}.tm.long{font-size:21px}.top td.sc{font-size:92px;width:270px}.top td.st{width:150px;font-size:20px}.st .big{font-size:23px}.lu td.s{width:96px}.tag{font-size:12px}.sum{font-size:14px}}
+@media (max-width:860px){.fb button{font-size:13px;padding:4px 7px}.prep{font-size:22px;padding:4px 10px}.prep small{font-size:12px}.tm{font-size:28px}.tm.long{font-size:21px}.top td.sc{font-size:92px;width:270px}.top td.st{width:150px;font-size:20px}.st .big{font-size:23px}.lu td.s{width:96px}.tag{font-size:12px}.sum{font-size:14px}}
 @media (max-width:700px){.col,.col.r{float:none;width:auto;margin-bottom:12px}.top td.sc{font-size:72px;width:170px}.top td.st{width:120px;font-size:17px}.st .big{font-size:19px}.tm{font-size:22px}.tm.long{font-size:17px}.lu td{font-size:20px}}
 </style>
 <style id="dyn"></style></head>
@@ -111,16 +114,19 @@ function view(){
   /* obrana: směna, kterou bráníme teď nebo jako další */
   var fi=G.defInn,D=G.def,bench=[],extra=[],at={};
   if(D)for(var n in D){if(D[n]==='10')extra.push(first(n));else if(POSXY[D[n]])at[D[n]]=n;else bench.push(first(n))}
-  h+='</div><div class="col r"><h2>Obrana · '+fi+'. směna'+(batting&&!fin?' (další)':'')+'</h2>';
-  if(!D)h+='<div class="empty">Obrana pro tuto směnu není nastavená.</div>';
-  else{h+='<div id="fw"><div class="field" id="fld"><svg width="400" height="300" viewBox="0 0 400 300"><path d="M200 300 L40 150 A226 226 0 0 1 360 150 Z" fill="#d9ead3"/>'+
+  var ttl='Obrana · '+fi+'. směna'+(batting&&!fin?' (další)':'');
+  h+='</div><div class="col r">';
+  if(!D)h+='<h2>'+ttl+'</h2><div class="empty">Obrana pro tuto směnu není nastavená.</div>'+foot('');
+  else{h+='<div id="fw"><div class="ftl">Obrana<br>'+fi+'. směna'+(batting&&!fin?' (další)':'')+'</div><div class="fb l">'+btnFs()+'</div><div class="fb r">'+btnVoice()+'</div>'+(lastOk?'<div class="upd">Aktualizováno '+hm(lastOk)+'</div>':'')+'<div class="field" id="fld"><svg width="400" height="300" viewBox="0 0 400 300"><path d="M200 300 L40 150 A226 226 0 0 1 360 150 Z" fill="#d9ead3"/>'+
       '<polygon points="200,290 290,205 200,120 110,205" fill="#e8cfa4" stroke="#b08a55" stroke-width="2"/>'+
       '<rect x="194" y="284" width="12" height="12" fill="#fff" stroke="#888"/><rect x="284" y="199" width="12" height="12" fill="#fff" stroke="#888"/>'+
       '<rect x="194" y="114" width="12" height="12" fill="#fff" stroke="#888"/><rect x="104" y="199" width="12" height="12" fill="#fff" stroke="#888"/></svg>';
     for(var p in POSXY)if(at[p])h+='<div class="p" style="left:'+POSXY[p][0]+'px;top:'+POSXY[p][1]+'px"><b>'+POSL[p]+'</b>'+esc(first(at[p]))+'</div>';
-    h+='</div></div><div class="sum" id="sum">'+(extra.length?'Další zadák: '+esc(extra.join(', '))+' · ':'')+'Lavička: '+esc(bench.length?bench.join(', '):'—')+'</div>'}
-  h+=foot()+'</div></div>';return h}
-function foot(){return '<div class="foot">'+(voiceCan()?'<button id="voice" type="button" class="'+(VOICE?'on':'')+'">'+(VOICE?'Hlášení: zap':'Hlásit nahlas')+'</button>':'')+(fsCan()&&!fsEl()?'<button id="fs" type="button">Celá obrazovka</button>':'')+(lastOk?'Aktualizováno '+hm(lastOk):'')+'</div>'}
+    h+='</div></div>'+foot((extra.length?'Další zadák: '+esc(extra.join(', '))+' · ':'')+'Lavička: '+esc(bench.length?bench.join(', '):'—'),true)}
+  h+='</div></div>';return h}
+function btnVoice(){return voiceCan()?'<button id="voice" type="button" class="'+(VOICE?'on':'')+'">'+(VOICE?'Hlášení: zap':'Hlásit nahlas')+'</button>':''}
+function btnFs(){return fsCan()&&!fsEl()?'<button id="fs" type="button">Celá obrazovka</button>':''}
+function foot(txt,nob){return '<div class="foot" id="sum">'+(nob?'':btnVoice()+btnFs())+(txt!=null?txt:lastOk?'Aktualizováno '+hm(lastOk):'')+'</div>'}
 var lastCur=null;
 /* kdo se má připravit: hráč za tím, kdo je na řadě (pálíme: pálkař+2, bráníme: první na řadě+1) */
 function prepNum(){if(!G||G.final||G.example)return null;var L=G.lineup||[];if(!L.length)return null;var batting=(G.top?0:1)===G.ours;
@@ -139,8 +145,8 @@ function render(){var w=document.getElementById('luw'),st=w?w.scrollTop:0;docume
     if(r&&(r.offsetTop<w.scrollTop||r.offsetTop+r.offsetHeight>w.scrollTop+w.clientHeight))w.scrollTop=Math.max(0,r.offsetTop-r.offsetHeight)}}
 /* pořadí: velikost řádků tak, aby se vešlo 11 pálkařů, zbytek se posouvá */
 function fitField(){var fw=document.getElementById('fw'),f=document.getElementById('fld');if(!fw)return;
-  var cw=fw.parentNode.clientWidth,top=fw.getBoundingClientRect().top+(window.pageYOffset||0),sm=document.getElementById('sum'),ft=fw.parentNode.lastChild,
-    below=(sm?sm.offsetHeight+6:0)+(ft&&ft!==sm?ft.offsetHeight:0)+18,sc=cw/400;
+  var cw=fw.parentNode.clientWidth,top=fw.getBoundingClientRect().top+(window.pageYOffset||0),sm=document.getElementById('sum'),
+    below=(sm?sm.offsetHeight:0)+12,sc=cw/400;
   if(window.innerWidth>700)sc=Math.min(sc,(window.innerHeight-top-below)/300);else sc=Math.min(sc,1.6);
   sc=Math.max(0.7,Math.floor(sc*100)/100);var lf=Math.max(17,Math.round(15/sc)),ps=f.getElementsByTagName('div');for(var i=0;i<ps.length;i++)ps[i].style.fontSize=lf+'px';fw.style.width=Math.floor(400*sc)+'px';fw.style.height=Math.floor(300*sc)+'px';
   f.style.webkitTransform=f.style.transform='scale('+sc+')'}
