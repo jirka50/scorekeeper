@@ -197,13 +197,16 @@ var VOICE=false,lastSaid=null;try{VOICE=localStorage.getItem('sk-dug-voice')==='
 function voiceCan(){return !!(window.speechSynthesis&&window.SpeechSynthesisUtterance)}
 function say(t){if(!voiceCan())return;try{var u=new SpeechSynthesisUtterance(t);u.lang='cs-CZ';u.rate=0.9;var vs=speechSynthesis.getVoices()||[];
   for(var i=0;i<vs.length;i++)if(/^cs/i.test(vs[i].lang)){u.voice=vs[i];break}speechSynthesis.speak(u)}catch(e){}}
-function spoken(n){var x=G.names&&G.names[n],nm=x?String(x).split(' ')[0]:'';return (nm||'hráč')+(!anon(n)&&!noNum(n)?', číslo '+n:'')}
+function spoken(n){var x=G.names&&G.names[n],nm=x?String(x).split(' ')[0]:'';return (!anon(n)&&!noNum(n)?'číslo '+n+' ':'')+(nm||'hráč')}
 function sayText(n){return 'Připraví se '+spoken(n)}
 /* hlášení: změna poloviny (jdeme pálit / do pole), pak kdo se připraví */
 var lastBat=null;
 function announce(){if(!G||G.final||G.example)return;var L=G.lineup||[],bat=(G.top?0:1)===G.ours,key=G.inning+(G.top?'t':'b');
   if(lastBat!==null&&key!==lastBat.k&&bat!==lastBat.b&&VOICE){
-    if(bat&&L.length)say('Jdeme pálit. Pálí '+spoken(L[(G.bat||0)%L.length]));else if(!bat)say('Jdeme do pole')}
+    if(bat&&L.length){var b0=G.bat||0;say('Jdeme pálit.');say('Na pálku jde '+spoken(L[b0%L.length])+'.');
+      if(L.length>1)say('Další na řadě je '+spoken(L[(b0+1)%L.length])+'.');
+      if(L.length>2){say('Připraví se '+spoken(L[(b0+2)%L.length])+'.')}lastBat={k:key,b:bat};lastSaid=prepNum();return}
+    else if(!bat)say('Jdeme do pole')}
   lastBat={k:key,b:bat};
   var n=prepNum();if(!bat){lastSaid=n;return}  /* v poli se nikdo nehlásí */
   if(n==null||n===lastSaid)return;var isFirst=lastSaid===null;lastSaid=n;if(VOICE&&!isFirst)say(sayText(n))}
