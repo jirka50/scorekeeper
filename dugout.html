@@ -15,13 +15,13 @@ button,input{font-weight:bold}
 .tm span{display:inline-block;font-size:40px;line-height:.95;white-space:nowrap}
 .top td.ls{width:1px;padding-right:12px;vertical-align:middle}
 table.lsc{border-collapse:collapse;table-layout:auto;width:auto}
-.lsc td,.lsc th{border:1px solid #2f5a44;padding:1px 4px;font-size:16px;color:#fff;text-align:center;min-width:16px}
-.lsc th{color:#b9d4c4;font-size:14px;border-top:0}.lsc td.nm{text-align:left;white-space:nowrap;overflow:hidden;color:#b9d4c4}
-.lsc td.nm.us{color:#fff}.lsc td.cur{background:#ffd54a;color:#14202c}.lsc td.tot{color:#ffd54a;font-size:19px}
-.top td.sc{font-size:116px;line-height:.88;text-align:center;white-space:nowrap;color:#ffd54a;padding:0 8px;white-space:nowrap;text-align:center;letter-spacing:-2px}
-.top td.st{width:160px;font-size:26px;line-height:1.35;text-align:right;border-left:2px solid #2f5a44;padding-left:10px;white-space:nowrap}
-.st span{display:block}.st .big{font-size:30px;color:#ffd54a;text-transform:uppercase}
-.dot{display:inline-block;width:24px;height:24px;border-radius:12px;border:3px solid #fff;margin-left:6px;vertical-align:-4px;box-sizing:border-box}
+.lsc td,.lsc th{border:1px solid #2f5a44;padding:1px 5px;font-size:18px;color:#fff;text-align:center;min-width:16px}
+.lsc th{color:#b9d4c4;font-size:16px;border-top:0}.lsc td.nm{text-align:left;white-space:nowrap;overflow:hidden;color:#b9d4c4}
+.lsc td.nm.us{color:#fff}.lsc td.cur{background:#ffd54a;color:#14202c}.lsc td.tot{color:#ffd54a;font-size:22px}
+.top td.sc{font-size:133px;line-height:.88;text-align:center;white-space:nowrap;color:#ffd54a;padding:0 8px;white-space:nowrap;text-align:center;letter-spacing:-2px}
+.top td.st{width:180px;font-size:30px;line-height:1.35;text-align:right;border-left:2px solid #2f5a44;padding-left:10px;white-space:nowrap}
+.st span{display:block}.st .big{font-size:35px;color:#ffd54a;text-transform:uppercase}
+.dot{display:inline-block;width:27px;height:27px;border-radius:14px;border:3px solid #fff;margin-left:6px;vertical-align:-4px;box-sizing:border-box}
 .dot.on{background:#ff6b5a;border-color:#ff6b5a}
 .wrap{overflow:hidden;padding:8px 10px}
 .col{float:left;width:44%}.col.r{float:right;width:55%}
@@ -57,8 +57,36 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 .prep .tv{float:right;font-size:36px;line-height:1.1;margin-left:10px}.prep.late{background:#ffe0dc;border-color:#c0392b;color:#a32a1d}.prep.off{background:#fff;border-color:#cdd8cb;color:#4a5a52}
 .prep small{display:inline;font-size:18px;line-height:40px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px;color:#4a5a52}
 #voice.on{background:#c97a00}
-@media (max-width:860px){.fb button{font-size:13px;padding:4px 7px}.prep{padding:2px 8px}.prep .tv{font-size:28px}.prep small{font-size:14px;line-height:31px}.top td.sc{font-size:92px}.lsc td,.lsc th{font-size:13px;padding:0 4px}.lsc td.tot{font-size:15px}.top td.st{width:150px;font-size:20px}.st .big{font-size:23px}.sum{font-size:14px}}
+@media (max-width:860px){.fb button{font-size:13px;padding:4px 7px}.prep{padding:2px 8px}.prep .tv{font-size:28px}.prep small{font-size:14px;line-height:31px}.top td.sc{font-size:106px}.lsc td,.lsc th{font-size:15px;padding:0 4px}.lsc td.tot{font-size:17px}.top td.st{width:160px;font-size:23px}.st .big{font-size:26px}.dot{width:22px;height:22px}.sum{font-size:14px}}
 @media (max-width:700px){.top td.ls{display:none}.top td.st{width:110px}.col,.col.r{float:none;width:auto;margin-bottom:12px}.top td.sc{font-size:64px}.top td.st{width:120px;font-size:17px}.st .big{font-size:19px}.lu tr{font-size:20px}}
+/* tmavé schéma (přepínač dole vpravo) */
+body.dark{background:#0f1517;color:#eef3ef}
+body.dark #luw{background:#172024;border-color:#2b3a3d}
+body.dark .lu td{border-bottom-color:#26343a;color:#eef3ef}
+body.dark .lu td.n{color:#8fa39a}
+body.dark .lu td.s{color:#b5c4bd}
+body.dark .lu tr.next td{background:#d9b21f;color:#14202c}
+body.dark .lu tr.next td.n,body.dark .lu tr.next td.s{color:#3a3410}
+body.dark .lu tr.prp td{background:#4d4418;color:#fff3c4}
+body.dark .lu tr.prp td.n,body.dark .lu tr.prp td.s{color:#e3d48f}
+body.dark .lu tr.prp .tag{background:#ffd54a;color:#14202c}
+body.dark .lu tr.next .tag{background:#14202c;color:#ffd54a}
+body.dark .lu tr.now td{background:#2f8a52}
+body.dark .prep{background:#172024;border-color:#d9b21f;color:#ffd54a}
+body.dark .prep small{color:#b5c4bd}
+body.dark .field{background:#172024;border-color:#2b3a3d}
+body.dark .field svg path{fill:#1f3b2b}
+body.dark .field svg polygon{fill:#6b5233;stroke:#a5814f}
+body.dark .field svg rect{fill:#eef3ef;stroke:#8fa39a}
+body.dark .p{color:#eef3ef}
+body.dark .ftl{color:#b5c4bd}
+body.dark .upd{color:#8fa39a}
+body.dark .foot{color:#b5c4bd}
+body.dark #fs,body.dark #voice{background:#2c6a43}
+body.dark h2{color:#b5c4bd}
+body.dark .empty{background:#172024;border-color:#2b3a3d;color:#b5c4bd}
+body.dark table.lu{background:#172024}
+#theme{float:right;font-size:15px;padding:4px 10px;margin-left:8px;background:#14202c;color:#fff;border:0;border-radius:5px}body.dark #theme{background:#eef3ef;color:#14202c}
 </style>
 <style id="dyn"></style><style id="dyn2"></style></head>
 <body><div id="app"><div class="box">Načítám…</div></div>
@@ -103,7 +131,7 @@ function first(n){var x=G.names&&G.names[n],nm=x?String(x).split(' ')[0]:'';retu
 function sum(a){var t=0;for(var i=0;i<(a||[]).length;i++)t+=a[i]||0;return t}
 function dots(n){var h='';for(var i=0;i<3;i++)h+='<i class="dot'+(i<n?' on':'')+'"></i>';return h}
 function stat(n){var pa=0,h=0,r=0;(G.pas||[]).forEach(function(x){if(x[0]===n){pa++;if(HITS[x[1]])h++;if(x[2])r++}});return pa?h+'/'+pa+(r?' · '+r+' R':''):''}
-function lsW(){var n=Math.max(G.innings||0,G.inning||1,1),c=window.innerWidth<=860?21:25;return (window.innerWidth<=860?58:70)+(n+1)*c+12}
+function lsW(){var n=Math.max(G.innings||0,G.inning||1,1),c=window.innerWidth<=860?24:29;return (window.innerWidth<=860?66:80)+(n+1)*c+12}
 function lineScore(){var o=G.ours,n=Math.max(G.innings||0,G.inning||1,1),R=G.runs||[[],[]],h='<table class="lsc"><tr><th></th>',i,t;
   for(i=1;i<=n;i++)h+='<th>'+i+'</th>';h+='<th>R</th></tr>';
   for(t=0;t<2;t++){h+='<tr><td class="nm'+(t===o?' us':'')+'">'+(t===0?'Hosté':'Domácí')+'</td>';
@@ -134,7 +162,7 @@ function view(){
   var o=G.ours,batting=(G.top?0:1)===o,fin=!!G.final,us=G.us||'Náš tým',them=G.them||'Soupeř';
   var h='';
   if(stale())h+='<div class="stale">Bez spojení od '+hm(lastOk)+'. Údaje nemusí být aktuální.</div>';
-  var sa=sum(G.runs&&G.runs[o]),sb=sum(G.runs&&G.runs[1-o]),fs=window.innerWidth<=700?64:window.innerWidth<=860?92:116,scw=Math.round((String(sa).length+String(sb).length)*0.56*fs+0.55*fs+16);
+  var sa=sum(G.runs&&G.runs[o]),sb=sum(G.runs&&G.runs[1-o]),fs=window.innerWidth<=700?64:window.innerWidth<=860?106:133,scw=Math.round((String(sa).length+String(sb).length)*0.56*fs+0.55*fs+16);
   h+='<div class="top"><table><tr><td class="ls" style="width:'+lsW()+'px">'+lineScore()+'</td><td class="tm l"><span>'+esc(us)+'</span></td><td class="sc" style="width:'+scw+'px">'+sa+' : '+sb+'</td><td class="tm r"><span>'+esc(them)+'</span></td><td class="st">'+(fin?'<span class="big">Konec</span><span>zápasu</span>':'<span>'+G.inning+'. směna '+(G.top?'▲':'▼')+'</span><span class="big">'+(batting?'pálíme':'bráníme')+'</span><span>Auty'+dots(G.outs||0)+'</span>')+'</td></tr></table></div>';
   /* pálkařské pořadí */
   var L=G.lineup||[],cur=G.bat||0;
@@ -159,7 +187,7 @@ function view(){
   h+='</div></div>';return h}
 function btnVoice(){return voiceCan()?'<button id="voice" type="button" class="'+(VOICE?'on':'')+'">'+(VOICE?'Hlášení: zap':'Hlásit nahlas')+'</button>':''}
 function btnFs(){return fsCan()&&!fsEl()?'<button id="fs" type="button">Celá obrazovka</button>':''}
-function foot(txt,nob){return '<div class="foot" id="sum">'+(nob?'':btnVoice()+btnFs())+(txt!=null?txt:lastOk?'Aktualizováno '+hm(lastOk):'')+'</div>'}
+function foot(txt,nob){return '<div class="foot" id="sum"><button id="theme" type="button">'+(DARK?'Světlé':'Tmavé')+'</button>'+(nob?'':btnVoice()+btnFs())+(txt!=null?txt:lastOk?'Aktualizováno '+hm(lastOk):'')+'</div>'}
 var lastCur=null;
 /* kdo se má připravit: hráč za tím, kdo je na řadě (pálíme: pálkař+2, bráníme: první na řadě+1) */
 function prepNum(){if(!G||G.final||G.example)return null;var L=G.lineup||[];if(!L.length)return null;var batting=(G.top?0:1)===G.ours;
@@ -193,7 +221,7 @@ function fitField(){var fw=document.getElementById('fw'),f=document.getElementBy
   f.style.webkitTransform=f.style.transform='scale('+sc+')'}
 /* názvy týmů: plná velikost; dlouhý název pomalu jezdí tam a zpět */
 function fitNames(){var ss=document.querySelectorAll('.tm span'),css='';
-  for(var i=0;i<ss.length;i++){var sp=ss[i],td=sp.parentNode,w=td.clientWidth-12,f=window.innerWidth<=700?20:window.innerWidth<=860?30:40;
+  for(var i=0;i<ss.length;i++){var sp=ss[i],td=sp.parentNode,w=td.clientWidth-12,f=window.innerWidth<=700?20:window.innerWidth<=860?35:46;
     sp.style.fontSize=f+'px';sp.className='';td.style.textAlign='';
     var d=sp.offsetWidth-w;if(d>0){var t=Math.round(4+d/35);sp.className='mq'+i;td.style.textAlign='left';
       var k='{0%,20%{-webkit-transform:translateX(0);transform:translateX(0)}80%,100%{-webkit-transform:translateX(-'+d+'px);transform:translateX(-'+d+'px)}}';
@@ -215,7 +243,11 @@ function fsGo(){var e=document.documentElement;
   if(fsEl()){(document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen).call(document);return}
   if(e.requestFullscreen)e.requestFullscreen();else if(e.webkitRequestFullscreen)e.webkitRequestFullscreen();else if(e.mozRequestFullScreen)e.mozRequestFullScreen()}
 function fsUpd(){setTimeout(fit,300);render()}
-document.onclick=function(e){var t=e.target||e.srcElement;if(t&&t.id==='fs')fsGo();if(t&&t.id==='voice')voiceToggle()};
+var DARK=false;try{DARK=localStorage.getItem('sk-dug-theme')==='dark'}catch(e){}
+function applyTheme(){document.body.className=DARK?'dark':''}
+function themeToggle(){DARK=!DARK;try{localStorage.setItem('sk-dug-theme',DARK?'dark':'light')}catch(e){}applyTheme();render()}
+applyTheme();
+document.onclick=function(e){var t=e.target||e.srcElement;if(t&&t.id==='theme')themeToggle();if(t&&t.id==='fs')fsGo();if(t&&t.id==='voice')voiceToggle()};
 ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange'].forEach(function(ev){document.addEventListener(ev,fsUpd,false)});
 
 TID=qs('tym');render();if(TID){tick();stream()}
