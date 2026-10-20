@@ -436,7 +436,8 @@ function summaryText(){const o=ours(),st={};S.pas.filter(r=>r.t===o).forEach(r=>
   const hl=list('h'),rl=list('r');if(hl)s+=`\nOdpaly: ${hl}`;if(rl)s+=`\nBody: ${rl}`;
   s+=recapExtra();const pi=Math.max(1,S.top?S.inning-1:S.inning);const hh=S.hits[o];s+=`\n${S.teams[o].name}: ${hh} ${hh===1?'odpal':hh>=2&&hh<=4?'odpaly':'odpalů'} za ${pi} ${pi===1?'směnu':pi<5?'směny':'směn'}. Díky všem za skvělý zápas!`;return s}
 function gameTools(){let h=`<div class="card form"><div class="label">Po zápase</div>${starsBlock()}${achNow()}
-  <div class="row"><button class="ghost" data-act="sum">Shrnutí pro rodiče</button><button class="ghost" data-act="hsave">Uložit do historie</button><button class="ghost" data-act="csvgame">Export zápisu (CSV)</button></div>`;
+  <div class="row"><button class="ghost" data-act="sum">Shrnutí pro rodiče</button><button class="ghost" data-act="hsave">Uložit do historie</button><button class="ghost" data-act="csvgame">Export zápisu (CSV)</button><button class="ghost" data-act="waimg" ${ui.waBusy?'disabled':''}>📷 Obrázek pro WhatsApp</button></div>`;
+  if(ui.waImg)h+=`<img src="${ui.waImg}" alt="Obrázek s výsledkem zápasu" class="waimg"><div class="row">${WA.share?'<button class="solid" data-act="washare">Sdílet</button>':''}<button class="${WA.share?'ghost':'solid'}" data-act="wasave">Stáhnout obrázek</button><button class="ghost" data-act="waclose">Zavřít</button></div>`;
   if(ui.sum)h+=`<textarea readonly id="sumtext" class="bktext">${esc(summaryText())}</textarea><div class="row"><button class="solid" data-act="sumcopy">Kopírovat text</button><button class="ghost" data-act="sumclose">Zavřít</button></div>`;
   return h+(ui.gMsg?`<div class="next">${esc(ui.gMsg)}</div>`:'')+'</div>'}
 
@@ -669,7 +670,39 @@ function finalCard(){const o=ours(),a=gTot(S,o),b=gTot(S,1-o),res=a>b?'Vyhráli 
   return `<div class="card form fin"><div class="label">🏁 Zápas skončil · ${res}</div><div class="fin-score">${resultTxt()}</div>
   ${achNow()}
   ${saveBox()}
-  <div class="row"><button class="solid" data-act="tab" data-v="sheet">Shrnutí a hvězdy</button><button class="ghost" data-act="endundo">Znovu otevřít zápis</button></div></div>`+nextCard()}
+  <div class="row"><button class="solid" data-act="tab" data-v="sheet">Shrnutí a hvězdy</button><button class="ghost" data-act="waimg">📷 Obrázek pro WhatsApp</button><button class="ghost" data-act="endundo">Znovu otevřít zápis</button></div></div>`+nextCard()}
+
+/* ----- obrázek s výsledkem pro WhatsApp (1080×1080 PNG) ----- */
+const WA={blob:null,share:false};
+async function resultImage(){const o=ours(),a=gTot(S,o),b=gTot(S,1-o),W=1080,c=document.createElement('canvas');c.width=c.height=W;const x=c.getContext('2d'),
+    FD='"Barlow Condensed","Arial Narrow",sans-serif',FB='"Atkinson Hyperlegible",Arial,sans-serif',Y='#ffd54a',G='#b9d4c4';
+  try{await document.fonts.load('700 40px "Barlow Condensed"')}catch(e){}
+  const fit=(t,font,size,max)=>{let f=size;do{x.font=font.replace('#',f+'px')}while(x.measureText(t).width>max&&(f-=2)>12);return f},
+    txt=(t,font,size,cx,y,max,col,al)=>{fit(t,font,size,max);x.fillStyle=col;x.textAlign=al||'center';x.fillText(t,cx,y)};
+  x.fillStyle='#173a2a';x.fillRect(0,0,W,W);x.fillStyle='#1f4a36';x.fillRect(0,0,W,190);
+  try{const lg=await loadImg('icon-192.png');x.drawImage(lg,50,40,110,110)}catch(e){}
+  txt(R.name||S.teams[o].name,'700 # '+FD,64,190,105,840,'#fff','left');
+  txt([gDate(S),kindTxt(S.meta),S.meta&&S.meta.field].filter(Boolean).join(' · ')||'Výsledek zápasu','700 # '+FB,32,190,155,840,G,'left');
+  txt((a>b?'Vyhráli jsme!':a<b?'Prohráli jsme':'Remíza').toUpperCase(),'700 # '+FD,76,W/2,300,960,Y);
+  txt(S.teams[o].name,'700 # '+FD,52,280,390,440,'#fff');txt(S.teams[1-o].name,'700 # '+FD,52,800,390,440,'#fff');
+  txt(String(a),'700 # '+FD,260,280,610,440,Y);txt(String(b),'700 # '+FD,260,800,610,440,Y);txt(':','700 # '+FD,200,W/2,590,100,Y);
+  /* tabulka směn */
+  const n=Math.max(S.settings.innings||0,...S.runs.map(r=>r.length),1),cw=Math.min(80,560/(n+1)),x0=W/2-((n+1)*cw+300)/2,top=690,rh=62;
+  x.strokeStyle='#2f5a44';x.lineWidth=2;
+  for(let i=0;i<=n;i++)txt(i<n?String(i+1):'R','700 # '+FB,26,x0+300+i*cw+cw/2,top,cw,G);
+  [o,1-o].forEach((t,k)=>{const y=top+20+k*rh;x.strokeRect(x0,y,300+(n+1)*cw,rh);txt(S.teams[t].name,'700 # '+FB,30,x0+14,y+42,280,'#fff','left');
+    for(let i=0;i<=n;i++){const v=i<n?(S.runs[t]||[])[i]:gTot(S,t);txt(v==null?'':String(v||0),'700 # '+FB,34,x0+300+i*cw+cw/2,y+44,cw,i<n?'#fff':Y)}});
+  /* hvězdy zápasu */
+  if(S.stars&&S.stars.length){const sn=n=>{const p=R.players.find(q=>q.num===n),nm=p?(String(p.nick||'').trim()||String(p.name||'').split(' ')[0]):'';return (noNum(n)||anon(n)?'':'#'+n+' ')+nm};
+    txt(S.stars.length>1?'HVĚZDY ZÁPASU':'HVĚZDA ZÁPASU','700 # '+FB,26,W/2,905,600,G);txt('⭐ '+S.stars.map(sn).join(' · ')+' ⭐','700 # '+FB,44,W/2,965,980,'#fff')}
+  txt('Baseball Scorekeeper','700 # '+FB,24,W/2,1045,600,G);
+  return c}
+async function waMake(){ui.waBusy=true;ui.gMsg='';render();try{const c=await resultImage();ui.waImg=c.toDataURL('image/png');
+    WA.blob=await new Promise(ok=>c.toBlob(ok,'image/png'));const f=new File([WA.blob],'vysledek.png',{type:'image/png'});WA.share=!!(navigator.canShare&&navigator.canShare({files:[f]}))}
+  catch(e){ui.gMsg='Obrázek se nepodařilo vytvořit.'}ui.waBusy=false;render()}
+Object.assign(ACT,{waimg:()=>{if(ui.tab!=='sheet'){ui.tab='sheet'}waMake()},waclose:()=>{ui.waImg=null;render()},
+  wasave:async()=>{if(WA.blob)await DL.save({filename:'vysledek-'+(S.meta&&S.meta.date||'zapasu')+'.png',data:WA.blob})},
+  washare:async()=>{if(!WA.blob)return;try{await navigator.share({files:[new File([WA.blob],'vysledek.png',{type:'image/png'})],text:S.teams[0].name+' '+gTot(S,0)+' : '+gTot(S,1)+' '+S.teams[1].name})}catch(e){}}});
 function saveBox(){  return `<div class="savebox"><div class="label">Uložit na Google Disk</div>
   <div class="row"><button class="ghost" data-act="pdf" ${ui.pdfBusy?'disabled':''}>📄 Uložit PDF zápis</button><button class="ghost" data-act="bkup">💾 Uložit zálohu</button></div>
   ${ui.pdfMsg?`<div class="next">PDF: ${esc(ui.pdfMsg)}</div>`:''}${ui.bkMsg?`<div class="next">Záloha: ${esc(ui.bkMsg)}</div>`:''}

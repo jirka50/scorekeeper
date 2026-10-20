@@ -52,7 +52,8 @@ table.lu{width:100%;border-collapse:collapse;background:#fff;border:1px solid #c
 #fs,#voice{float:right;font-size:15px;padding:5px 10px;margin-left:8px;background:#173a2a;color:#fff;border:0;border-radius:5px}
 .stale{background:#c0392b;color:#fff;text-align:center;padding:4px;font-size:16px}
 .prep{background:#fff7d6;border:3px solid #c9a227;padding:2px 12px;margin-bottom:8px;font-size:28px;line-height:1.1;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.prep .tv{float:right;font-size:36px;line-height:1.1;margin-left:10px}.prep.late{background:#ffe0dc;border-color:#c0392b;color:#a32a1d}.prep.off{background:#fff;border-color:#cdd8cb;color:#4a5a52}
+.prep .tv{float:right;font-size:36px;line-height:1.1;margin-left:10px}.prep.warn{background:#ffe2b8;border-color:#e67e22;color:#a14d00}.prep.warn small{color:#a14d00}body.dark .prep.warn{background:#4a3010;border-color:#e67e22;color:#ffb05a}body.dark .prep.late{background:#4a1a14;border-color:#e0574a;color:#ff8a7a}body.dark .prep.off{border-color:#2b3a3d;color:#b5c4bd}
+.prep.late{background:#ffe0dc;border-color:#c0392b;color:#a32a1d}.prep.off{background:#fff;border-color:#cdd8cb;color:#4a5a52}
 .prep small{display:inline;font-size:18px;line-height:40px;font-weight:bold;text-transform:uppercase;letter-spacing:.5px;color:#4a5a52}
 #voice.on{background:#c97a00}
 @media (max-width:860px){.fb button{font-size:13px;padding:4px 7px}.prep{padding:2px 8px}.prep .tv{font-size:28px}.prep small{font-size:14px;line-height:31px}.tsc{font-size:106px}.lsc td,.lsc th{font-size:15px;padding:0 4px}.lsc td.tot{font-size:17px}.top td.st{width:160px;font-size:23px}.st .big{font-size:26px}.dot{width:22px;height:22px}}
@@ -145,10 +146,16 @@ function timerInfo(){var c=G&&G.clock,L=(G&&G.tl||0)*60000;if(!c)return{cls:'off
   var now=(c.e||(Date.now()-(SKEW||0))),el=now-c.s;
   if(G.final||c.e)return{cls:'off',lb:'Zápas skončil',tv:'hrálo se '+mmss(el)};
   if(!L)return{cls:'',lb:'Hraje se',tv:mmss(el)};
-  if(el<L)return{cls:'',lb:'Do konce zápasu zbývá',tv:mmss(L-el)};
-  return{cls:'late',lb:'Čas vypršel, přetahuje se',tv:'+'+mmss(el-L)}}
+  if(el<L)return{cls:L-el<=300000?'warn':'',lb:L-el<=300000?'Pozor, do konce zbývá':'Do konce zápasu zbývá',tv:mmss(L-el),rem:L-el};
+  return{cls:'late',lb:'Čas vypršel, přetahuje se',tv:'+'+mmss(el-L),rem:L-el}}
 function timerBox(){var t=timerInfo();return '<div class="prep '+t.cls+'" id="tmr"><span class="tv">'+t.tv+'</span><small>'+t.lb+'</small></div>'}
-function timerTick(){var u=document.getElementById('upd');if(u&&lastOk)u.innerHTML='Aktualizováno '+hm(lastOk);var e=document.getElementById('tmr');if(!e||!G)return;var t=timerInfo();e.className='prep '+t.cls;e.innerHTML='<span class="tv">'+t.tv+'</span><small>'+t.lb+'</small>'}
+/* hlášení času: 5 minut před koncem a při vypršení limitu */
+var lastRem=null,lastClk=null;
+function timeSay(t){var key=G&&G.clock?G.clock.s:null;if(key!==lastClk){lastClk=key;lastRem=null}
+  if(t.rem==null||G.final){lastRem=null;return}
+  if(lastRem!=null&&VOICE){if(lastRem>300000&&t.rem<=300000&&t.rem>0)say('Pozor, do konce zápasu zbývá pět minut.');else if(lastRem>0&&t.rem<=0)say('Čas zápasu vypršel.')}
+  lastRem=t.rem}
+function timerTick(){var u=document.getElementById('upd');if(u&&lastOk)u.innerHTML='Aktualizováno '+hm(lastOk);var e=document.getElementById('tmr');if(!e||!G)return;var t=timerInfo();timeSay(t);e.className='prep '+t.cls;e.innerHTML='<span class="tv">'+t.tv+'</span><small>'+t.lb+'</small>'}
 setInterval(timerTick,1000);
 function hm(t){var d=new Date(t);return(d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes()}
 

@@ -385,3 +385,5 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 .seg button.out{color:var(--pencil)}.seg button.out.on{background:var(--pencil);border-color:var(--pencil);color:var(--surface)}
 .seg button:disabled{opacity:.3;cursor:default}
 .advrow{grid-template-columns:4.6em minmax(0,1fr)}.seg button{font-size:.85rem}
+
+.waimg{width:100%;max-width:420px;border-radius:10px;border:1px solid var(--line)}
