@@ -106,7 +106,9 @@ function url(){return DB+'/public/'+encodeURIComponent(TID)+'/dugout.json'}
 function stale(){return !!lastOk&&Date.now()-lastOk>(STREAM?75000:30000)}
 var shownStale=false;
 setInterval(function(){if(stale()!==shownStale)render()},5000);
-function apply(v){var ch=!loaded||(!v||!v.json)!==!G;lastOk=Date.now();if(v&&v.ts){var d=Date.now()-v.ts;if(Math.abs(d)<43200000&&(SKEW===null||d<SKEW))SKEW=d}loaded=true;if(!v||!v.json){G=null;lastTs=null}else if(lastTs==null||v.ts>lastTs){try{G=JSON.parse(v.json);lastTs=v.ts;ch=true}catch(e){}}if(ch||stale()!==shownStale)render()}
+function apply(v){var ch=!loaded||(!v||!v.json)!==!G,first=lastTs==null;lastOk=Date.now();loaded=true;if(!v||!v.json){G=null;lastTs=null}else if(first||v.ts>lastTs){try{G=JSON.parse(v.json);lastTs=v.ts;ch=true;
+    /* rozdíl hodin tablet × telefon: jen z čerstvé změny (ne z první, možná staré hodnoty) */
+    if(!first){var d=Date.now()-v.ts;if(Math.abs(d)<43200000&&(SKEW===null||d<SKEW))SKEW=d}}catch(e){}}if(ch||stale()!==shownStale)render()}
 /* záložní/kontrolní čtení: bez živého spojení každé 2 s, se živým spojením jednou za 30 s */
 function tick(){clearTimeout(timer);var x=new XMLHttpRequest();
   x.open('GET',url()+'?t='+Date.now(),true);x.timeout=15000;
@@ -141,7 +143,7 @@ function lineScore(){var o=G.ours,n=Math.max(5,G.inning||1),R=G.runs||[[],[]],h=
 /* čas zápasu: odhad rozdílu hodin tabletu a telefonu zapisovatele (nejmenší pozorovaný rozdíl) */
 var SKEW=null;
 function mmss(ms){var s=Math.max(0,Math.floor(ms/1000));return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60}
-function timerInfo(){var c=G&&G.clock,L=(G&&G.tl||0)*60000;if(!c)return{cls:'off',lb:L?'Časový limit '+G.tl+' min':'Čas zápasu',tv:'neběží'};
+function timerInfo(){var c=G&&G.clock,L=(G&&G.tl||0)*60000;if(!c)return{cls:'off',lb:'Čas zápasu zatím neběží'+(L?' · limit '+G.tl+' min':''),tv:'–:––'};
   var now=(c.e||(Date.now()-(SKEW||0))),el=now-c.s;
   if(G.final||c.e)return{cls:'off',lb:'Zápas skončil',tv:'hrálo se '+mmss(el)};
   if(!L)return{cls:'',lb:'Hraje se',tv:mmss(el)};
