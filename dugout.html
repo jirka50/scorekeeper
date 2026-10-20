@@ -178,8 +178,9 @@ function announce(){if(!G||G.final||G.example)return;var L=G.lineup||[],bat=(G.t
   if(lastBat!==null&&key!==lastBat.k&&bat!==lastBat.b&&VOICE){
     if(bat&&L.length)say('Jdeme pálit. Pálí '+spoken(L[(G.bat||0)%L.length]));else if(!bat)say('Jdeme do pole')}
   lastBat={k:key,b:bat};
-  var n=prepNum();if(n==null||n===lastSaid)return;var isFirst=lastSaid===null;lastSaid=n;if(VOICE&&!isFirst)say(sayText(n))}
-function voiceToggle(){VOICE=!VOICE;try{localStorage.setItem('sk-dug-voice',VOICE?'1':'0')}catch(e){}var n=prepNum();if(VOICE&&n!=null)say(sayText(n));render()}
+  var n=prepNum();if(!bat){lastSaid=n;return}  /* v poli se nikdo nehlásí */
+  if(n==null||n===lastSaid)return;var isFirst=lastSaid===null;lastSaid=n;if(VOICE&&!isFirst)say(sayText(n))}
+function voiceToggle(){VOICE=!VOICE;try{localStorage.setItem('sk-dug-voice',VOICE?'1':'0')}catch(e){}var n=prepNum();if(VOICE)say(G&&(G.top?0:1)!==G.ours?'Hlášení zapnuto':n!=null?sayText(n):'Hlášení zapnuto');render()}
 function render(){shownStale=stale();var w=document.getElementById('luw'),st=w?w.scrollTop:0;document.getElementById('app').innerHTML=view();fit();announce();
   w=document.getElementById('luw');if(!w)return;w.scrollTop=st;
   var cur=G&&!G.final?G.bat:null;if(cur!==lastCur){lastCur=cur;var r=w.getElementsByTagName('tr')[cur||0];
