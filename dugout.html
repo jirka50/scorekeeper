@@ -16,8 +16,8 @@ button,input{font-weight:bold}
 .top td.ls{width:1px;padding-right:12px;vertical-align:middle}
 table.lsc{border-collapse:collapse;table-layout:auto;width:auto}
 .lsc td,.lsc th{border:1px solid #2f5a44;padding:1px 4px;font-size:16px;color:#fff;text-align:center;min-width:16px}
-.lsc th{color:#b9d4c4;font-size:14px;border-top:0}.lsc td.nm{text-align:left;max-width:56px;white-space:nowrap;overflow:hidden;color:#b9d4c4}
-.lsc td.cur{background:#ffd54a;color:#14202c}.lsc td.tot{color:#ffd54a;font-size:19px}
+.lsc th{color:#b9d4c4;font-size:14px;border-top:0}.lsc td.nm{text-align:left;white-space:nowrap;overflow:hidden;color:#b9d4c4}
+.lsc td.nm.us{color:#fff}.lsc td.cur{background:#ffd54a;color:#14202c}.lsc td.tot{color:#ffd54a;font-size:19px}
 .top td.sc{font-size:96px;line-height:1;text-align:center;white-space:nowrap;color:#ffd54a;padding:0 8px;white-space:nowrap;text-align:center;letter-spacing:-2px}
 .top td.st{width:160px;font-size:26px;line-height:1.35;text-align:right;border-left:2px solid #2f5a44;padding-left:10px;white-space:nowrap}
 .st span{display:block}.st .big{font-size:30px;color:#ffd54a;text-transform:uppercase}
@@ -102,11 +102,10 @@ function first(n){var x=G.names&&G.names[n],nm=x?String(x).split(' ')[0]:'';retu
 function sum(a){var t=0;for(var i=0;i<(a||[]).length;i++)t+=a[i]||0;return t}
 function dots(n){var h='';for(var i=0;i<3;i++)h+='<i class="dot'+(i<n?' on':'')+'"></i>';return h}
 function stat(n){var pa=0,h=0,r=0;(G.pas||[]).forEach(function(x){if(x[0]===n){pa++;if(HITS[x[1]])h++;if(x[2])r++}});return pa?h+'/'+pa+(r?' · '+r+' R':''):''}
-function short(n){n=String(n||'').split(' ')[0];return n.length>6?n.slice(0,5)+'.':n}
-function lsW(){var n=Math.max(G.innings||0,G.inning||1,1),c=window.innerWidth<=860?21:25;return (window.innerWidth<=860?50:62)+(n+1)*c+12}
+function lsW(){var n=Math.max(G.innings||0,G.inning||1,1),c=window.innerWidth<=860?21:25;return (window.innerWidth<=860?58:70)+(n+1)*c+12}
 function lineScore(){var o=G.ours,n=Math.max(G.innings||0,G.inning||1,1),R=G.runs||[[],[]],h='<table class="lsc"><tr><th></th>',i,t;
   for(i=1;i<=n;i++)h+='<th>'+i+'</th>';h+='<th>R</th></tr>';
-  for(var k=0;k<2;k++){t=k===0?o:1-o;h+='<tr><td class="nm">'+esc(short(k===0?G.us:G.them))+'</td>';
+  for(t=0;t<2;t++){h+='<tr><td class="nm'+(t===o?' us':'')+'">'+(t===0?'Hosté':'Domácí')+'</td>';
     for(i=1;i<=n;i++){var played=i<G.inning||(i===G.inning&&(t===0||!G.top))||G.final,cur=!G.final&&i===G.inning&&(G.top?0:1)===t;
       h+='<td'+(cur?' class="cur"':'')+'>'+(played||cur?((R[t]||[])[i-1]||0):'')+'</td>'}
     h+='<td class="tot">'+sum(R[t])+'</td></tr>'}
