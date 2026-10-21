@@ -19,7 +19,7 @@ const keyFor=(base,tid)=>tid==='t1'?base:base+':'+tid;
 const tkey=base=>keyFor(base,TEAMS.cur);
 S=store.get(tkey(KEY),null);
 if(!S||!S.teams)S=fresh();
-const save=()=>{store.set(tkey(KEY),S);dugSoon()};
+const save=()=>{teeFix();store.set(tkey(KEY),S);dugSoon()};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const bt=()=>S.top?0:1;
 const RKEY='tball-tym-v1';
@@ -360,24 +360,28 @@ setInterval(()=>{const el=document.getElementById('clk');if(!el)return;const c=c
 /* ----- defense ----- */
 const POSN={...POS,10:'další zadák',B:'lavička'};
 const POS_ORDER=['1','2','3','4','5','6','7','8','9','10','B'];
+/* odpal jen z tee: catcher není, místo něj hraje další zadák */
+function noCatch(){return !!(S&&S.settings)&&pmode()==='tee'}
+function posOrder(){return noCatch()?POS_ORDER.filter(p=>p!=='2'):POS_ORDER}
+function teeFix(){try{if(!noCatch())return;['def','def2'].forEach(k=>Object.values(S[k]||{}).forEach(d=>{if(d)Object.keys(d).forEach(n=>{if(d[n]==='2')d[n]='10'})}))}catch(e){}}
 const posTxt=p=>p==='B'?'Lavička':p==='10'?'Další zadák':p+' · '+POSN[p];
 const posShort=p=>p==='B'?'L':p==='10'?'Z+':p;
 const hasDef2=()=>!!(S.vsTid&&TEAMS.list.some(t=>t.id===S.vsTid)),DEFK=()=>ui.defSide==='t'&&hasDef2()?'def2':'def',defTeam=()=>DEFK()==='def2'?1-ours():ours();
 const defL=()=>S.teams[defTeam()].lineup;
 const onSide=(side,fn)=>{const k=ui.defSide;ui.defSide=side;try{return fn()}finally{ui.defSide=k}};
 function defOf(i){const k=DEFK();if(!S[k])S[k]={};if(!S[k][i])S[k][i]={};return S[k][i]}
-function defFill(i){const d=defOf(i);defL().forEach((n,k)=>{d[n]=k<9?String(k+1):'10'})}
+function defFill(i){const d=defOf(i),F=['1','2','3','4','5','6','7','8','9'].filter(p=>p!=='2'||!noCatch());defL().forEach((n,k)=>{d[n]=F[k]||'10'})}
 function defRotate(i){const L=defL(),p=defOf(i-1),d=defOf(i);const pos=L.map(n=>p[n]||'B');L.forEach((n,k)=>{d[n]=pos[(k-1+L.length)%L.length]})}
 function defWarn(d){const cnt={};Object.values(d).forEach(p=>{if(p&&p!=='B'&&p!=='10')cnt[p]=(cnt[p]||0)+1});
-  const dup=Object.keys(cnt).filter(p=>cnt[p]>1);const miss=range(9).map(String).filter(p=>!cnt[p]);const w=[];
+  const dup=Object.keys(cnt).filter(p=>cnt[p]>1);const miss=range(9).map(String).filter(p=>!cnt[p]&&!(p==='2'&&noCatch()));const w=[];
   if(dup.length)w.push('Dvakrát obsazeno: '+dup.map(p=>POSN[p]).join(', ')+'.');
-  if(miss.length&&miss.length<9&&defL().length>=9)w.push('Neobsazeno: '+miss.map(p=>POSN[p]).join(', ')+'.');
+  if(miss.length&&miss.length<9&&defL().length>=(noCatch()?8:9))w.push('Neobsazeno: '+miss.map(p=>POSN[p]).join(', ')+'.');
   return w.length?`<div class="msg">${w.join(' ')}</div>`:''}
 function defView(){const L=defL(),n=innCount();let i=ui.defInn||Math.min(S.inning,n);if(i>n)i=n;ui.defInn=i;const d=defOf(i);
   let h=`<div class="card form"><div class="label">Obrana · ${esc(S.teams[defTeam()].name)}</div>${hasDef2()?`<div class="tabs" style="align-self:flex-start">${[['o',ours()],['t',1-ours()]].map(([k,t])=>`<button class="${DEFK()===(k==='t'?'def2':'def')?'on':''}" data-act="defside" data-v="${k}">${esc(S.teams[t].name)}</button>`).join('')}</div>`:''}
   <div class="tabs innt">${range(n).map(k=>`<button class="${k===i?'on':''}" data-act="definn" data-v="${k}">${k}. směna</button>`).join('')}</div>
   <div class="row"><button class="solid" data-act="deffair">Férově od ${i}. směny</button>${i>1?`<button class="ghost" data-act="defrot">Rotovat z ${i-1}. směny</button>`:''}<button class="ghost" data-act="deffill">Podle pořadí</button><button class="ghost" data-act="defclear">Vymazat</button></div>
-  <div class="defl">${L.map(num=>`<div class="defrow"><label for="dp-${esc(num)}"><b>${esc(lbl(defTeam(),num))}</b></label><select id="dp-${esc(num)}" class="sel" data-num="${esc(num)}"><option value="">–</option>${POS_ORDER.map(p=>`<option value="${p}" ${d[num]===p?'selected':''}>${posTxt(p)}</option>`).join('')}</select></div>`).join('')}</div>
+  <div class="defl">${L.map(num=>`<div class="defrow"><label for="dp-${esc(num)}"><b>${esc(lbl(defTeam(),num))}</b></label><select id="dp-${esc(num)}" class="sel" data-num="${esc(num)}"><option value="">–</option>${posOrder().map(p=>`<option value="${p}" ${d[num]===p?'selected':''}>${posTxt(p)}</option>`).join('')}</select></div>`).join('')}</div>
   ${defWarn(d)}<p class="next" style="margin:0">„Férově“ rozdělí pozice na tuto a všechny další směny: nikdo nehraje stejné místo dvakrát po sobě, každý se vystřídá ve vnitřním i vnějším poli a bere se ohled na celou sezónu. Rotace posune každého na pozici hráče před ním v pořadí.</p></div>`;
   return h+playTimeCard()}
 
@@ -1243,7 +1247,7 @@ CHG['pf-theme']=v=>{prefSet('theme',v);render()};CHG['pf-wake']=(v,el)=>{prefSet
 const FAIR_POS=['1','3','6','4','5','2','8','7','9'];
 const isInf=p=>+p>=1&&+p<=6;
 function seasonPos(skipId,G){const c={};(G||gamesChrono()).forEach(g=>{if(g.gameId===skipId||!g.def)return;Object.values(g.def).forEach(d=>Object.entries(d||{}).forEach(([n,p])=>{if(p){(c[n]=c[n]||{})[p]=(c[n][p]||0)+1}}))});return c}
-function fairDef(from){const L=defL(),n=innCount(),K=DEFK();if(!L.length)return;const sea=seasonPos(S.gameId,K==='def2'?loadHFor(S.vsTid):null),slots=FAIR_POS.slice(0,Math.min(L.length,9)).concat(Array(Math.max(0,L.length-9)).fill('10'));
+function fairDef(from){const L=defL(),n=innCount(),K=DEFK();if(!L.length)return;const sea=seasonPos(S.gameId,K==='def2'?loadHFor(S.vsTid):null),FP=noCatch()?FAIR_POS.filter(p=>p!=='2'):FAIR_POS,slots=FP.slice(0,Math.min(L.length,FP.length)).concat(Array(Math.max(0,L.length-FP.length)).fill('10'));
   for(let i=from;i<=n;i++){const gm={},grp={};for(let k=1;k<i;k++){const d=(S[K]||{})[k]||{};Object.entries(d).forEach(([m,p])=>{if(!p||p==='B')return;(gm[m]=gm[m]||{})[p]=(gm[m][p]||0)+1;const g=grp[m]=grp[m]||{i:0,o:0};isInf(p)?g.i++:g.o++})}
     const prev=(S[K]||{})[i-1]||{};
     const cost=(m,p)=>{const g=grp[m]||{i:0,o:0},s=sea[m]||{};let c=((gm[m]||{})[p]||0)*12+(s[p]||0)+(prev[m]===p?40:0);

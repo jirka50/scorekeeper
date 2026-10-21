@@ -182,7 +182,7 @@ function view(){
     h+='</table></div>'}
   /* obrana: směna, kterou bráníme teď nebo jako další */
   var fi=G.defInn,D=G.def,bench=[],extra=[],at={};
-  if(D)for(var n in D){if(D[n]==='10')extra.push(first(n));else if(POSXY[D[n]])at[D[n]]=n;else bench.push(first(n))}
+  if(D)for(var n in D){if(D[n]==='10')extra.push(n);else if(POSXY[D[n]])at[D[n]]=n;else bench.push(first(n))}
   var ttl='Obrana · '+fi+'. směna'+(batting&&!fin?' (další)':'');
   h+='</div><div class="col r">';
   if(!D)h+='<h2>'+ttl+'</h2><div class="empty">Obrana pro tuto směnu není nastavená.</div>'+foot('');
@@ -190,8 +190,13 @@ function view(){
       '<polygon points="200,290 290,205 200,120 110,205" fill="#e8cfa4" stroke="#b08a55" stroke-width="2"/>'+
       '<rect x="194" y="284" width="12" height="12" fill="#fff" stroke="#888"/><rect x="284" y="199" width="12" height="12" fill="#fff" stroke="#888"/>'+
       '<rect x="194" y="114" width="12" height="12" fill="#fff" stroke="#888"/><rect x="104" y="199" width="12" height="12" fill="#fff" stroke="#888"/></svg>';
-    for(var p in POSXY)if(at[p])h+='<div class="p" style="left:'+POSXY[p][0]+'px;top:'+POSXY[p][1]+'px"><b>'+POSL[p]+'</b>'+esc(first(at[p]))+'</div>';
-    h+='</div></div>'+foot((extra.length?'Další zadák: '+esc(extra.join(', '))+' · ':'')+'Lavička: '+esc(bench.length?bench.join(', '):'—'),true)}
+    for(var p in POSXY)if(at[p]&&+p<7)h+='<div class="p" style="left:'+POSXY[p][0]+'px;top:'+POSXY[p][1]+'px"><b>'+POSL[p]+'</b>'+esc(first(at[p]))+'</div>';
+    /* zadáci (i další zadáci) rovnoměrně po oblouku: levý … střední … pravý */
+    var mid=extra.map(function(n){return['10',n]}),of=[];if(at['8'])mid.splice(Math.floor(mid.length/2),0,['8',at['8']]);
+    if(at['7'])of.push(['7',at['7']]);of=of.concat(mid);if(at['9'])of.push(['9',at['9']]);
+    var k=of.length,st=k>=5;of.forEach(function(q,i){var x=k===1?200:66+i*268/(k-1),y=Math.round(6+34*Math.pow((x-200)/134,2))+(st&&i%2?40:0);
+      h+='<div class="p" style="left:'+Math.round(x)+'px;top:'+y+'px"><b>'+POSL[q[0]]+'</b>'+esc(first(q[1]))+'</div>'});
+    h+='</div></div>'+foot('Lavička: '+esc(bench.length?bench.join(', '):'—'),true)}
   h+='</div></div>';return h}
 function btnVoice(){return voiceCan()?'<button id="voice" type="button" class="'+(VOICE?'on':'')+'">'+(VOICE?'Hlášení: zap':'Hlásit nahlas')+'</button>':''}
 function btnFs(){return fsCan()&&!fsEl()?'<button id="fs" type="button">Celá obrazovka</button>':''}
