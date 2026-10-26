@@ -420,7 +420,7 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 .atoast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .atbtn{border:0;border-radius:8px;background:var(--paper);color:var(--ink);font:700 .95rem var(--body);padding:8px 14px;cursor:pointer;flex:none}
 /* kompaktní hlavička na telefonu po přihlášení */
-@media (max-width:700px){body.in header h1{font-size:1.05rem}body.in header h1 small{display:none}body.in header{gap:6px}}
+@media (max-width:700px){body.in header h1{font-size:1.25rem}body.in header h1 small{display:none}body.in header{gap:6px}}
 
 /* obrana klepáním na hřiště */
 .dfield{position:relative;width:100%;max-width:460px;margin:0 auto;aspect-ratio:400/336;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
