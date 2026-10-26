@@ -218,12 +218,13 @@ function ruleSet(st,k,v){const n=(x,lo,hi)=>num(x,lo,hi);
   if(k==='maxa'){st.maxAdvance=+v;return}
   if(k==='lim'){const x=n(v,0,30);if(x!=null)st.runLimit=x;return}
   if(k==='tlim'){const x=n(v,0,180);if(x!=null)st.timeLimit=x;return}}
-const lineupCard=()=>`<div class="card form"><div class="label">Sestava · pálkařské pořadí</div><div class="cols">${lineupEditor(0)}${lineupEditor(1)}</div></div>`;
-function setView(){
-  return `<div class="card form">
+const lineupCard=()=>`<div class="card form"><div class="label">Sestava · pálkařské pořadí</div>
   ${vsSelect()}<label for="ours">Náš tým (jména ze soupisky)<select id="ours" class="sel"><option value="0" ${ours()===0?'selected':''}>Hosté · ${esc(S.teams[0].name)}</option><option value="1" ${ours()===1?'selected':''}>Domácí · ${esc(S.teams[1].name)}</option></select></label>
   <button class="ghost" data-act="swap" ${started()?'disabled':''}>⇄ Prohodit domácí a hosty</button>
   ${started()?'<p class="next" style="margin:0">Prohodit jde jen před prvním odpalem.</p>':''}
+  <div class="cols">${lineupEditor(0)}${lineupEditor(1)}</div></div>`;
+function setView(){
+  return `<div class="card form">
   ${rulesHtml(S.settings,'')}
   <button class="solid" data-act="tab" data-v="game">Hotovo, k zápasu</button></div>
   <div class="card form"><div class="label">Nový zápas</div><p style="margin:0" class="next">Smaže všechny zapsané akce. Sestavy a nastavení zůstanou.</p>
