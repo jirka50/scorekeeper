@@ -1566,3 +1566,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ui.menu){ui.menu=fa
 render();
 /* Lineup a obrana: podzáložky a přepínač náš tým / soupeř */
 Object.assign(ACT,{dsub:v=>{ui.defSub=v;ui.confirm=false;render();window.scrollTo&&window.scrollTo(0,0)},luside:v=>{ui.luSide=v;ui.sub=null;ui.ren=null;render()}});
+/* Lineup a obrana: přejetí prstem doleva / doprava přepne Lineup · Obrana · Nastavení */
+(()=>{let x0=null,y0=0,t0=0;
+  document.addEventListener('touchstart',e=>{if(ui.tab!=='def'||e.touches.length!==1||e.target.closest('input,select,textarea,.sheet-wrap,.ls-wrap,.plist,.menu-list')){x0=null;return}x0=e.touches[0].clientX;y0=e.touches[0].clientY;t0=Date.now()},{passive:true});
+  document.addEventListener('touchend',e=>{if(x0==null||ui.tab!=='def')return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;
+    if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.8||Date.now()-t0>700)return;const ks=DSUB.map(x=>x[0]),i=ks.indexOf(ui.defSub||'lu'),j=i+(dx<0?1:-1);if(j<0||j>=ks.length)return;ACT.dsub(ks[j])},{passive:true})})();
