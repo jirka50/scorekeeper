@@ -449,3 +449,9 @@ details.fold>summary::-webkit-details-marker{display:none}
 details.fold>summary::after{margin-left:auto}
 details.fold>summary .label{margin:0}.fsum{font-size:.85rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dpos.sm{min-width:0;max-width:21%;padding:2px 3px;font-size:.72rem}.dpos.sm b{font-size:.68rem;padding:0 4px}
+
+/* pozice na hřišti: čtvercové dlaždice se zaoblenými rohy */
+.dpos{width:17%;min-width:0;max-width:none;aspect-ratio:1;justify-content:center;gap:2px;padding:3px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08);line-height:1.1}
+.dpos .dnum{font:700 .95rem var(--display)}.dpos .dn{font-size:.72rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dpos.empty .dn{color:var(--pencil);font-size:1rem}.dpos.on{border:2px solid var(--ink);background:#fff8d6}
+.dpos.sm{width:15%;max-width:none;padding:2px}.dpos.sm .dnum{font-size:.8rem}.dpos.sm .dn{font-size:.62rem}
