@@ -394,3 +394,9 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 .qnav button.on{background:var(--ink);color:var(--paper)}
 /* název týmu v hlavičce */
 .tchip{font:700 .85rem var(--body);color:var(--muted);max-width:46vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* trenér jen sleduje */
+.rodis{opacity:.35}
+.rocard{border:2px solid var(--field)}
+.lgrole{align-self:flex-start}
+.corow{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}.corole{display:flex;align-items:center;gap:6px}
