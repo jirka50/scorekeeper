@@ -189,7 +189,7 @@ function teamView(){const ps=sortedRoster();
   <label class="radio" for="rnonum"><input type="checkbox" id="rnonum" ${ui.rNoNum?'checked':''}> zatím bez čísla (číslo přidělíš později)</label>
   ${ui.rmsg?`<div class="msg">${esc(ui.rmsg)}</div>`:''}
   <div class="next">Zadáním stejného čísla změníš jméno. Soupiska zůstává uložená i po novém zápasu.</div></div>
-  ${ps.length?`<div class="card form"><div class="label">Sestava pro zápas</div><p class="next" style="margin:0">Hráče do pálkařského pořadí vybíráš v menu Obrana u týmu „${esc(S.teams[ours()].name)}“.</p><div class="row"><button class="solid" data-act="tab" data-v="def">Vybrat sestavu</button><button class="ghost" data-act="rall">Celá soupiska podle čísel</button><button class="ghost" data-act="prep">▶ Připravit zápas</button></div></div>`:''}`}
+  ${ps.length?`<div class="card form"><div class="label">Sestava pro zápas</div><p class="next" style="margin:0">Hráče do pálkařského pořadí vybíráš v menu Lineup a obrana u týmu „${esc(S.teams[ours()].name)}“.</p><div class="row"><button class="solid" data-act="tab" data-v="def">Vybrat sestavu</button><button class="ghost" data-act="rall">Celá soupiska podle čísel</button><button class="ghost" data-act="prep">▶ Připravit zápas</button></div></div>`:''}`}
 function addRoster(){const name=(document.getElementById('rname').value||'').trim();
   if(ui.rNoNum){if(!name){ui.rmsg='Hráče bez čísla zadej aspoň jménem.';return render()}if(R.players.some(p=>noNum(p.num)&&p.name.toLowerCase()===name.toLowerCase())){ui.rmsg=name+' už na soupisce je.';return render()}
     R.players.push({num:'~'+newId().slice(-6),name});saveR();ui.rmsg='';render();const f=document.getElementById('rname');if(f)f.focus();return}
@@ -1174,7 +1174,7 @@ async function wakeSync(){const nav=navigator.wakeLock;if(!nav||WLP)return;
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wakeSync()});
 
 /* ----- záložky: menu po oddílech ----- */
-const TABS={game:'Zápis',sheet:'Tabulka',def:'Obrana',score:'Rodiče a dugout',games:'Rozpis a výsledky',team:'Soupiska',stats:'Statistiky',opp:'Soupeři',set:'Pravidla zápasu',admin:'Účet a zálohy',prep:'Příprava zápasu',player:'Hráč'};
+const TABS={game:'Zápis',sheet:'Tabulka',def:'Lineup a obrana',score:'Rodiče a dugout',games:'Rozpis a výsledky',team:'Soupiska',stats:'Statistiky',opp:'Soupeři',set:'Pravidla zápasu',admin:'Účet a zálohy',prep:'Příprava zápasu',player:'Hráč'};
 const MENU=[['Zápas',['game','sheet','def','score']],['Sezóna',['games','team','stats','opp']],['Nastavení',['set','admin']]];
 /* ----- stav připojení v hlavičce a upozornění na zápis z jiného telefonu ----- */
 const T0=Date.now();
@@ -1245,9 +1245,9 @@ function prepView(){const w=ui.wiz;if(!w)return nextCard();const x=w.x,ps=sorted
   else if(st==='att'){h+=`<div class="ng-opp">${esc(me)} – ${esc(x.opp||'soupeř')}</div>`;
     h+=ps.length?`<div class="label">${esc(me)} · přítomno ${w.att.length} z ${ps.length}</div>${attList2(ps,w.att,'wa-')}
       <div class="row"><button class="ghost" data-act="wzall">Všichni</button><button class="ghost" data-act="wznone">Nikdo</button></div><p class="next" style="margin:0">V U7 hraje 5–9 dětí, víc jen po dohodě trenérů.</p>`
-      :`<p class="msg" style="margin:0">Soupiska je prázdná. Přidej hráče v menu Soupiska, nebo pokračuj a čísla zadáš ručně v menu Obrana.</p>`}
+      :`<p class="msg" style="margin:0">Soupiska je prázdná. Přidej hráče v menu Soupiska, nebo pokračuj a čísla zadáš ručně v menu Lineup a obrana.</p>`}
   else if(st==='order'){const O=wizOrder();h+=`<div class="label">Pálkařské pořadí · ${esc(me)}</div>`;
-    h+=O.length?ordList(O,n=>lbl(ours(),n),'')+`<div class="row"><button class="ghost" data-act="wzsort">Podle čísel</button><button class="ghost" data-act="wzrot">První na konec</button><button class="ghost" data-act="wzmix">Zamíchat</button></div>`:'<p class="next" style="margin:0">Bez soupisky. Pořadí zadáš v menu Obrana.</p>';
+    h+=O.length?ordList(O,n=>lbl(ours(),n),'')+`<div class="row"><button class="ghost" data-act="wzsort">Podle čísel</button><button class="ghost" data-act="wzrot">První na konec</button><button class="ghost" data-act="wzmix">Zamíchat</button></div>`:'<p class="next" style="margin:0">Bez soupisky. Pořadí zadáš v menu Lineup a obrana.</p>';
     h+=`<label class="radio" for="wz-def"><input type="checkbox" id="wz-def" ${w.def?'checked':''}> Férově rozdělit obranu na všechny směny${wzSteps(w).includes('them')?' (u obou týmů)':''}</label>`}
   else if(st==='them'){const T=wzThem(w),O=wizOrder2(),nameOf=n=>{const p=T.players.find(q=>q.num===n);return numTxt(n)+(p&&p.name?' '+p.name:'')};
     h+=`<div class="label">${esc(T.name)} · přítomno ${w.att2.length} z ${T.players.length}</div>${attList2(T.players,w.att2,'wb-')}
