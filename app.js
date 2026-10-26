@@ -245,8 +245,8 @@ function setView(){
   return `<details class="card form fold" data-fold="rules" ${foldOpen('rules',false)}><summary><span class="label">Pravidla zápasu</span><span class="fsum">${esc(pitchTxt(S.settings))} · ${S.settings.innings} směn${S.settings.timeLimit?' · '+S.settings.timeLimit+' min':''}</span></summary>
   ${rulesHtml(S.settings,'')}
   <button class="solid" data-act="tab" data-v="game">Hotovo, k zápasu</button></details>
-  <details class="card form fold" data-fold="new" ${foldOpen('new',false)}><summary><span class="label">Nový zápas</span></summary><p style="margin:0" class="next">Smaže všechny zapsané akce. Sestavy a nastavení zůstanou.</p>
-  ${ui.confirm?'<div class="row"><button class="solid" style="background:var(--pencil)" data-act="reset">Ano, smazat zápis</button><button class="ghost" data-act="noreset">Zpět</button></div>':'<button class="ghost danger" data-act="askreset">Začít nový zápas</button>'}</details>
+  <div class="card form"><div class="label">Nový zápas</div><p style="margin:0" class="next">Smaže všechny zapsané akce. Sestavy a nastavení zůstanou.</p>
+  ${ui.confirm?'<div class="row"><button class="solid" style="background:var(--pencil)" data-act="reset">Ano, smazat zápis</button><button class="ghost" data-act="noreset">Zpět</button></div>':'<button class="ghost danger" data-act="askreset">Začít nový zápas</button>'}</div>
   <p class="next" style="margin:0">${SYNC&&SYNC.st==='ok'?'Zápis se ukládá v telefonu a online pro tvůj tým.':'Zápis se ukládá v tomto prohlížeči na tomto zařízení.'} Připojení, zálohu a vzhled najdeš v menu Účet a zálohy.</p>`}
 
 function render(){applyTheme();if(document.body&&document.body.classList)document.body.classList.toggle('in',ROLE==='scorer');if(ROLE==='login'){renderLogin();return}if(ROLE!=='scorer'){renderParent();return}setSub('');
