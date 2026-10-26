@@ -189,7 +189,7 @@ function teamView(){const ps=sortedRoster();
   <label class="radio" for="rnonum"><input type="checkbox" id="rnonum" ${ui.rNoNum?'checked':''}> zatím bez čísla (číslo přidělíš později)</label>
   ${ui.rmsg?`<div class="msg">${esc(ui.rmsg)}</div>`:''}
   <div class="next">Zadáním stejného čísla změníš jméno. Soupiska zůstává uložená i po novém zápasu.</div></div>
-  ${ps.length?`<div class="card form"><div class="label">Sestava pro zápas</div><p class="next" style="margin:0">Hráče do pálkařského pořadí vybíráš v menu Sestava a pravidla u týmu „${esc(S.teams[ours()].name)}“.</p><div class="row"><button class="solid" data-act="tab" data-v="set">Vybrat sestavu</button><button class="ghost" data-act="rall">Celá soupiska podle čísel</button><button class="ghost" data-act="prep">▶ Připravit zápas</button></div></div>`:''}`}
+  ${ps.length?`<div class="card form"><div class="label">Sestava pro zápas</div><p class="next" style="margin:0">Hráče do pálkařského pořadí vybíráš v menu Obrana u týmu „${esc(S.teams[ours()].name)}“.</p><div class="row"><button class="solid" data-act="tab" data-v="def">Vybrat sestavu</button><button class="ghost" data-act="rall">Celá soupiska podle čísel</button><button class="ghost" data-act="prep">▶ Připravit zápas</button></div></div>`:''}`}
 function addRoster(){const name=(document.getElementById('rname').value||'').trim();
   if(ui.rNoNum){if(!name){ui.rmsg='Hráče bez čísla zadej aspoň jménem.';return render()}if(R.players.some(p=>noNum(p.num)&&p.name.toLowerCase()===name.toLowerCase())){ui.rmsg=name+' už na soupisce je.';return render()}
     R.players.push({num:'~'+newId().slice(-6),name});saveR();ui.rmsg='';render();const f=document.getElementById('rname');if(f)f.focus();return}
@@ -218,9 +218,9 @@ function ruleSet(st,k,v){const n=(x,lo,hi)=>num(x,lo,hi);
   if(k==='maxa'){st.maxAdvance=+v;return}
   if(k==='lim'){const x=n(v,0,30);if(x!=null)st.runLimit=x;return}
   if(k==='tlim'){const x=n(v,0,180);if(x!=null)st.timeLimit=x;return}}
+const lineupCard=()=>`<div class="card form"><div class="label">Sestava · pálkařské pořadí</div><div class="cols">${lineupEditor(0)}${lineupEditor(1)}</div></div>`;
 function setView(){
   return `<div class="card form">
-  <div class="cols">${lineupEditor(0)}${lineupEditor(1)}</div>
   ${vsSelect()}<label for="ours">Náš tým (jména ze soupisky)<select id="ours" class="sel"><option value="0" ${ours()===0?'selected':''}>Hosté · ${esc(S.teams[0].name)}</option><option value="1" ${ours()===1?'selected':''}>Domácí · ${esc(S.teams[1].name)}</option></select></label>
   <button class="ghost" data-act="swap" ${started()?'disabled':''}>⇄ Prohodit domácí a hosty</button>
   ${started()?'<p class="next" style="margin:0">Prohodit jde jen před prvním odpalem.</p>':''}
@@ -1174,7 +1174,7 @@ async function wakeSync(){const nav=navigator.wakeLock;if(!nav||WLP)return;
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wakeSync()});
 
 /* ----- záložky: menu po oddílech ----- */
-const TABS={game:'Zápis',sheet:'Tabulka',def:'Obrana',score:'Rodiče a dugout',games:'Rozpis a výsledky',team:'Soupiska',stats:'Statistiky',opp:'Soupeři',set:'Sestava a pravidla',admin:'Účet a zálohy',prep:'Příprava zápasu',player:'Hráč'};
+const TABS={game:'Zápis',sheet:'Tabulka',def:'Obrana',score:'Rodiče a dugout',games:'Rozpis a výsledky',team:'Soupiska',stats:'Statistiky',opp:'Soupeři',set:'Pravidla zápasu',admin:'Účet a zálohy',prep:'Příprava zápasu',player:'Hráč'};
 const MENU=[['Zápas',['game','sheet','def','score']],['Sezóna',['games','team','stats','opp']],['Nastavení',['set','admin']]];
 /* ----- stav připojení v hlavičce a upozornění na zápis z jiného telefonu ----- */
 const T0=Date.now();
@@ -1187,8 +1187,8 @@ function otherCard(){const o=typeof FS!=='undefined'&&FS.other;if(!o||o.gid!==S.
 ACT.otherok=()=>{if(FS.other)ui.otherOk=FS.other.ts;render()};
 function navHtml(){const cur=TABS[ui.tab]||TABS.game;
   return netBadge()+teamSwitch()+`<button class="sun-btn ${PREF.theme==='sun'?'on':''}" data-act="sun" aria-label="Režim na slunce" aria-pressed="${PREF.theme==='sun'}" title="Režim na slunce">☀</button><div class="menu"><button class="menu-btn" data-act="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}"><span class="burger" aria-hidden="true"></span>${cur}<span class="caret" aria-hidden="true">${ui.menu?'▴':'▾'}</span></button>${ui.menu?`<div class="menu-list" role="menu">${MENU.map(([h,ks])=>`<div class="menu-h">${h}</div>${ks.map(k=>`<button role="menuitem" class="${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}`).join('')}</div>`:''}</div>`}
-const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>defView(),score:()=>scoreView(),games:()=>scheduleCard()+historyCard(),team:()=>teamView(),
-  stats:()=>statsView(),opp:()=>oppCard(),set:()=>attendCard()+setView(),admin:()=>adminView(),prep:()=>prepView()};
+const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>attendCard()+lineupCard()+defView(),score:()=>scoreView(),games:()=>scheduleCard()+historyCard(),team:()=>teamView(),
+  stats:()=>statsView(),opp:()=>oppCard(),set:()=>setView(),admin:()=>adminView(),prep:()=>prepView()};
 if(PREF.tab&&KEEP_TABS.includes(PREF.tab))ui.tab=PREF.tab; /* po otevření pokračovat tam, kde se skončilo */
 const adminView=()=>accessCard()+(WEB.role==='admin'?teamsCard()+adminCard()+coachesCard():'')+syncCard()+appCard()+settingsExtra()+teamTransferCard()+onlineBackupCard()+resetCard()+`<p class="next ver">Baseball Scorekeeper · ${verTxt()} · ${esc(gDate({meta:{date:APP_DATE}}))}</p>`;
 /* ----- vymazání statistik: historie zápasů + rozehraný zápas (soupisky, rozpis, soupeři a pravidla zůstanou) ----- */
@@ -1245,9 +1245,9 @@ function prepView(){const w=ui.wiz;if(!w)return nextCard();const x=w.x,ps=sorted
   else if(st==='att'){h+=`<div class="ng-opp">${esc(me)} – ${esc(x.opp||'soupeř')}</div>`;
     h+=ps.length?`<div class="label">${esc(me)} · přítomno ${w.att.length} z ${ps.length}</div>${attList2(ps,w.att,'wa-')}
       <div class="row"><button class="ghost" data-act="wzall">Všichni</button><button class="ghost" data-act="wznone">Nikdo</button></div><p class="next" style="margin:0">V U7 hraje 5–9 dětí, víc jen po dohodě trenérů.</p>`
-      :`<p class="msg" style="margin:0">Soupiska je prázdná. Přidej hráče v menu Soupiska, nebo pokračuj a čísla zadáš ručně v menu Sestava a pravidla.</p>`}
+      :`<p class="msg" style="margin:0">Soupiska je prázdná. Přidej hráče v menu Soupiska, nebo pokračuj a čísla zadáš ručně v menu Obrana.</p>`}
   else if(st==='order'){const O=wizOrder();h+=`<div class="label">Pálkařské pořadí · ${esc(me)}</div>`;
-    h+=O.length?ordList(O,n=>lbl(ours(),n),'')+`<div class="row"><button class="ghost" data-act="wzsort">Podle čísel</button><button class="ghost" data-act="wzrot">První na konec</button><button class="ghost" data-act="wzmix">Zamíchat</button></div>`:'<p class="next" style="margin:0">Bez soupisky. Pořadí zadáš v menu Sestava a pravidla.</p>';
+    h+=O.length?ordList(O,n=>lbl(ours(),n),'')+`<div class="row"><button class="ghost" data-act="wzsort">Podle čísel</button><button class="ghost" data-act="wzrot">První na konec</button><button class="ghost" data-act="wzmix">Zamíchat</button></div>`:'<p class="next" style="margin:0">Bez soupisky. Pořadí zadáš v menu Obrana.</p>';
     h+=`<label class="radio" for="wz-def"><input type="checkbox" id="wz-def" ${w.def?'checked':''}> Férově rozdělit obranu na všechny směny${wzSteps(w).includes('them')?' (u obou týmů)':''}</label>`}
   else if(st==='them'){const T=wzThem(w),O=wizOrder2(),nameOf=n=>{const p=T.players.find(q=>q.num===n);return numTxt(n)+(p&&p.name?' '+p.name:'')};
     h+=`<div class="label">${esc(T.name)} · přítomno ${w.att2.length} z ${T.players.length}</div>${attList2(T.players,w.att2,'wb-')}
