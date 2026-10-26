@@ -232,7 +232,7 @@ function setView(){
   <p class="next" style="margin:0">${SYNC&&SYNC.st==='ok'?'Zápis se ukládá v telefonu a online pro tvůj tým.':'Zápis se ukládá v tomto prohlížeči na tomto zařízení.'} Připojení, zálohu a vzhled najdeš v menu Účet a zálohy.</p>`}
 
 function render(){applyTheme();if(ROLE==='login'){renderLogin();return}if(ROLE!=='scorer'){renderParent();return}setSub('');
-  document.getElementById('tabs').innerHTML=navHtml();document.getElementById('view').innerHTML=quickNav()+(VIEWS[ui.tab]||VIEWS.game)();if(RO())roMark();menuFit();wakeSync()}
+  document.getElementById('tabs').innerHTML=navHtml();document.getElementById('view').innerHTML=(VIEWS[ui.tab]||VIEWS.game)();if(RO())roMark();menuFit();wakeSync()}
 /* trenér „jen sleduje“: vidí vše, mění jen obranu, pořadí na pálce a střídání (+ prohlížení, exporty, odhlášení) */
 const RO_ACT=new Set(('tab menu sheet lsheet definn defside defrot deffill defclear deffair padd rall radd prem pup psub psubno psubpick psubgo anon pren renno rengo '+
   'attlineup attdef sum sumclose sumcopy csvgame csvseason pdf spdf plpdf dippdf waimg waclose wasave washare stteam stall tsel logout copylink syncnow otherok sun pl plback cancel').split(' '));
@@ -243,8 +243,7 @@ const roCard=()=>`<div class="card rocard"><b>👀 Sleduješ zápas</b><p class=
 /* menu vždy celé na obrazovce */
 function menuFit(){if(!ui.menu||!document.querySelector)return;const m=document.querySelector('.menu-list');if(!m)return;m.style.left='0px';const r=m.getBoundingClientRect(),W=document.documentElement.clientWidth;let d=0;if(r.right>W-8)d=W-8-r.right;if(r.left+d<8)d=8-r.left;m.style.left=d+'px'}
 /* rychlé přepínání během zápasu: Hra · Obrana · Zápis */
-const QUICK=['game','def','sheet'],KEEP_TABS=['game','sheet','def','score','games','team','stats','opp','set','admin'];
-const quickNav=()=>QUICK.includes(ui.tab)?`<div class="qnav" role="tablist">${QUICK.map(k=>`<button role="tab" class="${ui.tab===k?'on':''}" aria-selected="${ui.tab===k}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}</div>`:'';
+const KEEP_TABS=['game','sheet','def','score','games','team','stats','opp','set','admin'];
 
 function addPlayer(t){const inp=document.getElementById('add'+t);const v=jersey(inp.value);
   if(!v){ui.msg[t]='Zadej číslo dresu (0–999).';render();return}
