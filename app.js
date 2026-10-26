@@ -235,16 +235,18 @@ function preCheck(){const o=ours(),L=S.teams[o].lineup;if(!L.length)return'';con
     filled=new Set(L.map(n=>D[n]).filter(p=>p&&p!=='B'&&p!=='10'&&!(p==='2'&&noCatch()))).size,nn=L.filter(n=>anon(n)||noNum(n)).length,inn=Math.max(1,S.inning);
   const c=(ok,txt,act)=>`<${act?'button':'span'} class="pck ${ok?'ok':'warn'}"${act?` data-act="dsub" data-v="${act}"`:''}>${ok?'✓':'⚠'} ${txt}</${act?'button':'span'}>`;
   return `<div class="pcheck">${c(L.length>=5,L.length+' v pořadí')}${c(filled>=need,'obrana '+inn+'. směny '+filled+'/'+need,'def')}${nn?c(false,nn+' bez čísla dresu'):''}</div>`}
-const teamSetup=()=>`<div class="card form"><div class="label">Týmy</div>
+const teamSetup=()=>`<details class="card form fold" data-fold="teams" ${foldOpen('teams',false)}><summary><span class="label">Týmy</span><span class="fsum">náš tým: ${ours()?'domácí':'hosté'}</span></summary>
   ${vsSelect()}<label for="ours">Náš tým (jména ze soupisky)<select id="ours" class="sel">${[0,1].map(t=>{const r=t?'Domácí':'Hosté',n=S.teams[t].name;return `<option value="${t}" ${ours()===t?'selected':''}>${r}${n&&n.trim().toLowerCase()!==r.toLowerCase()?' · '+esc(n):''}</option>`}).join('')}</select></label>
   <button class="ghost" data-act="swap" ${started()?'disabled':''}>⇄ Prohodit domácí a hosty</button>
-  ${started()?'<p class="next" style="margin:0">Prohodit jde jen před prvním odpalem.</p>':''}</div>`;
+  ${started()?'<p class="next" style="margin:0">Prohodit jde jen před prvním odpalem.</p>':''}</details>`;
+/* sbalitelné sekce v Nastavení (stav si telefon pamatuje) */
+const foldOpen=(k,def)=>{const f=PREF.fold||{};return (k in f?f[k]:def)?'open':''};
 function setView(){
-  return `<div class="card form">
+  return `<details class="card form fold" data-fold="rules" ${foldOpen('rules',false)}><summary><span class="label">Pravidla zápasu</span><span class="fsum">${esc(pitchTxt(S.settings))} · ${S.settings.innings} směn${S.settings.timeLimit?' · '+S.settings.timeLimit+' min':''}</span></summary>
   ${rulesHtml(S.settings,'')}
-  <button class="solid" data-act="tab" data-v="game">Hotovo, k zápasu</button></div>
-  <div class="card form"><div class="label">Nový zápas</div><p style="margin:0" class="next">Smaže všechny zapsané akce. Sestavy a nastavení zůstanou.</p>
-  ${ui.confirm?'<div class="row"><button class="solid" style="background:var(--pencil)" data-act="reset">Ano, smazat zápis</button><button class="ghost" data-act="noreset">Zpět</button></div>':'<button class="ghost danger" data-act="askreset">Začít nový zápas</button>'}</div>
+  <button class="solid" data-act="tab" data-v="game">Hotovo, k zápasu</button></details>
+  <details class="card form fold" data-fold="new" ${foldOpen('new',false)}><summary><span class="label">Nový zápas</span></summary><p style="margin:0" class="next">Smaže všechny zapsané akce. Sestavy a nastavení zůstanou.</p>
+  ${ui.confirm?'<div class="row"><button class="solid" style="background:var(--pencil)" data-act="reset">Ano, smazat zápis</button><button class="ghost" data-act="noreset">Zpět</button></div>':'<button class="ghost danger" data-act="askreset">Začít nový zápas</button>'}</details>
   <p class="next" style="margin:0">${SYNC&&SYNC.st==='ok'?'Zápis se ukládá v telefonu a online pro tvůj tým.':'Zápis se ukládá v tomto prohlížeči na tomto zařízení.'} Připojení, zálohu a vzhled najdeš v menu Účet a zálohy.</p>`}
 
 function render(){applyTheme();if(document.body&&document.body.classList)document.body.classList.toggle('in',ROLE==='scorer');if(ROLE==='login'){renderLogin();return}if(ROLE!=='scorer'){renderParent();return}setSub('');
@@ -657,10 +659,10 @@ function recapExtra(){let s='';const fo=flyouts(S),fk=Object.keys(fo.by);if(fk.l
 /* ----- docházka ----- */
 const attList=()=>Array.isArray(S.att)?S.att:sortedRoster().map(p=>p.num);
 function attendCard(){const ps=sortedRoster();if(!ps.length)return'';const a=attList();
-  return `<div class="card form"><div class="label">Kdo dnes hraje · ${a.filter(n=>ps.some(p=>p.num===n)).length} z ${ps.length}</div>
+  return `<details class="card form fold" data-fold="att" ${foldOpen('att',true)}><summary><span class="label">Kdo dnes hraje</span><span class="fsum">${a.filter(n=>ps.some(p=>p.num===n)).length} z ${ps.length}</span></summary>
   <div class="attl">${ps.map(p=>`<label class="radio att" for="att-${esc(p.num)}"><input type="checkbox" id="att-${esc(p.num)}" ${a.includes(p.num)?'checked':''}> <b>${esc(numTxt(p.num))}</b> ${esc(dn(p))}</label>`).join('')}</div>
   <div class="row"><button class="solid" data-act="attlineup">Sestavit pořadí z přítomných</button><button class="ghost" data-act="attdef">…a vyplnit obranu</button></div>
-  <p class="next" style="margin:0">V U7 hraje 5–9 dětí, víc jen po dohodě trenérů.</p>${ui.attMsg?`<div class="next">${esc(ui.attMsg)}</div>`:''}</div>`}
+  <p class="next" style="margin:0">V U7 hraje 5–9 dětí, víc jen po dohodě trenérů.</p>${ui.attMsg?`<div class="next">${esc(ui.attMsg)}</div>`:''}</details>`}
 function attLineup(withDef){if(S.pas.some(r=>r.t===ours())){ui.attMsg='Pořadí z přítomných jde sestavit jen před prvním odpalem našeho týmu. Během zápasu použij střídání (⇄ v Nastavení).';return render()}const a=attList(),L=sortedRoster().map(p=>p.num).filter(n=>a.includes(n));if(!L.length){ui.attMsg='Nikdo není zaškrtnutý.';return render()}
   const o=ours();snap();S.teams[o].lineup=L;S.bat[o]=0;S.subs=(S.subs||[]).filter(x=>x.t!==o);if(withDef)defFill(1);S.example=false;
   ui.attMsg='Pořadí: '+L.map(n=>'#'+n).join(', ')+(withDef?'. Obrana 1. směny je vyplněná.':'.');commit()}
@@ -1617,3 +1619,4 @@ function lineMove(t,from,to){if(from===to)return;snap();if(from<to)for(let i=fro
   const end=()=>{if(!D)return;const d=D;D=null;d.rows.forEach(r=>{r.style.transform=''});d.row.classList.remove('dragging');if(d.on&&d.to!==d.from)lineMove(d.t,d.from,d.to)};
   document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end)})();
 Object.assign(ACT,{dpos:v=>{ui.dpos=v&&ui.dpos!==v?v:null;render()},dput:v=>defPut(v)});
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.fold)prefSet('fold',{...(PREF.fold||{}),[d.dataset.fold]:d.open})},true);

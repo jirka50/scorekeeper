@@ -437,3 +437,10 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 /* kontrola před zápasem */
 .pcheck{display:flex;flex-wrap:wrap;gap:6px}.pck{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font:700 .85rem var(--body);background:var(--paper);color:var(--ink)}
 .pck.ok{border-color:var(--field);color:var(--field)}.pck.warn{border-color:#d08a00;color:#a35f00;background:#fff4dc}button.pck{cursor:pointer}
+
+/* sbalitelné karty */
+details.fold>summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;min-height:32px}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:'▾';margin-left:auto;color:var(--muted);transition:transform .15s}
+details.fold:not([open])>summary::after{transform:rotate(-90deg)}
+details.fold>summary .label{margin:0}.fsum{font-size:.85rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
