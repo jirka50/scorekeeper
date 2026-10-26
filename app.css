@@ -420,4 +420,4 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 .atoast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .atbtn{border:0;border-radius:8px;background:var(--paper);color:var(--ink);font:700 .95rem var(--body);padding:8px 14px;cursor:pointer;flex:none}
 /* kompaktní hlavička na telefonu po přihlášení */
-@media (max-width:700px){body.in header h1{display:none}body.in header{justify-content:flex-end}}
+@media (max-width:700px){body.in header h1{font-size:1.05rem}body.in header h1 small{display:none}body.in header{gap:6px}}
