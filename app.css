@@ -472,3 +472,5 @@ header #tabs.tabs{flex:1 1 auto;justify-content:flex-end}
 .dpos .dnum,.dpos.sm .dnum{font-size:29cqw;line-height:1;flex:0 0 auto}
 .dpos .dn,.dpos.sm .dn{font-size:20cqw;line-height:1.15;flex:0 0 auto}
 .dpos.empty .dn{font-size:28cqw}
+/* Název aplikace stejně velký jako v tréninkové aplikaci (25 px na všech šířkách) */
+header h1,body.in header h1{font-size:25px;line-height:1.1}
