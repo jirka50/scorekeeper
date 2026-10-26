@@ -466,3 +466,9 @@ header #tabs.tabs{flex:1 1 auto;justify-content:flex-end}
 .menu-list button.on,.menu-list button.on:hover{background:var(--field);color:var(--paper)}
 .menu-list button:hover{background:var(--field-soft)}
 @media (max-width:420px){.menu-btn{padding:0 11px}.menu-btn .cur{display:none}}
+/* Obrana: popisek pozice jako čtverec, všechno v dlaždici roste s její velikostí (cqw = % vnitřní šířky dlaždice) */
+.dpos,.dpos.sm{container-type:inline-size;padding:3px;gap:1px;aspect-ratio:1;overflow:hidden}
+.dpos b,.dpos.sm b{display:flex;align-items:center;justify-content:center;width:36cqw;height:36cqw;padding:0;border-radius:8cqw;font:700 19cqw/1 var(--display);letter-spacing:0;flex:0 0 auto}
+.dpos .dnum,.dpos.sm .dnum{font-size:29cqw;line-height:1;flex:0 0 auto}
+.dpos .dn,.dpos.sm .dn{font-size:20cqw;line-height:1.15;flex:0 0 auto}
+.dpos.empty .dn{font-size:28cqw}
