@@ -421,10 +421,16 @@ function defField(d,L){const at={},ex=[],bn=[];L.forEach(n=>{const p=d[n];if(p&&
   const pos=Object.keys(DFL).filter(p=>p!=='2'||!noCatch());
   const PICK=ui.dpos?dPick(d,L,at):'';
   let h=`<div class="dfield"><svg viewBox="0 0 400 336" preserveAspectRatio="none" aria-hidden="true"><path d="M200 300 L40 150 A226 226 0 0 1 360 150 Z" class="dfan"/><polygon points="200,290 290,205 200,120 110,205" class="din"/></svg>
-    ${pos.map(p=>`<button class="dpos ${ui.dpos===p?'on':''} ${at[p]?'':'empty'}" style="left:${DFXY[p][0]}%;top:${DFXY[p][1]}%" data-act="dpos" data-v="${p}"><b>${DFL[p]}</b><span>${at[p]?esc(defNm(at[p])):'–'}</span></button>`).join('')}</div>
+    ${pos.filter(p=>+p<7).map(p=>`<button class="dpos ${ui.dpos===p?'on':''} ${at[p]?'':'empty'}" style="left:${DFXY[p][0]}%;top:${DFXY[p][1]}%" data-act="dpos" data-v="${p}"><b>${DFL[p]}</b><span>${at[p]?esc(defNm(at[p])):'–'}</span></button>`).join('')}
+    ${ofTiles(at,ex)}</div>
     ${PICK}<div class="dmore"><button class="dchip ${ui.dpos==='10'?'on':''}" data-act="dpos" data-v="10"><b>Další zadák</b> ${ex.length?esc(ex.map(defNm).join(', ')):'–'}</button><button class="dchip ${ui.dpos==='B'?'on':''}" data-act="dpos" data-v="B"><b>Lavička / bez pozice</b> ${bn.length?esc(bn.map(defNm).join(', ')):'–'}</button></div>`;
   if(!ui.dpos)h+='<p class="next" style="margin:0">Klepni na pozici na hřišti a pak vyber dítě. Kdo na ní byl, dostane místo vybraného dítěte.</p>';
   return h}
+/* zadní pole: LF, CF, RF a další zadáci rovnoměrně po oblouku (CF uprostřed) */
+function ofTiles(at,ex){const mid=ex.map(n=>['10',n]);mid.splice(Math.floor(mid.length/2),0,['8',at['8']]);const of=[['7',at['7']],...mid,['9',at['9']]],k=of.length,st=k>=5;
+  const x0=st?40:66,w=st?320:268;
+  return of.map(([p,n],i)=>{const x=x0+i*w/(k-1),y=6+34*Math.pow((x-200)/(w/2),2);
+    return `<button class="dpos ${st?'sm':''} ${ui.dpos===p&&p!=='10'?'on':''} ${n?'':'empty'}" style="left:${(x/4).toFixed(1)}%;top:${(y/3.36).toFixed(1)}%" data-act="dpos" data-v="${p}"><b>${p==='10'?'OF':DFL[p]}</b><span>${n?esc(defNm(n)):'–'}</span></button>`}).join('')}
 function dPick(d,L,at){return `<div class="dpick"><div class="label">Kdo bude ${ui.dpos==='B'?'na lavičce':ui.dpos==='10'?'další zadák':'na pozici '+DFL[ui.dpos]}?</div><div class="plist">${L.map(n=>`<button class="pchip pick ${d[n]===ui.dpos?'cur':''}" data-act="dput" data-v="${esc(n)}"><b>${esc(defNm(n))}</b>${d[n]?' <small>'+esc(d[n]==='B'?'lavička':d[n]==='10'?'další zadák':DFL[d[n]]||'')+'</small>':''}</button>`).join('')}${DFL[ui.dpos]&&at[ui.dpos]?`<button class="pchip pick" data-act="dput" data-v="">nikdo</button>`:''}<button class="ghost" data-act="dpos" data-v="">Zavřít</button></div></div>`}
 function defPut(num){const p=ui.dpos,d=defOf(ui.defInn);if(!p)return;snap();
   if(!num){Object.keys(d).forEach(k=>{if(d[k]===p)delete d[k]})}

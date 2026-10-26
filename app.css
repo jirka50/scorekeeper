@@ -448,3 +448,4 @@ details.fold>summary{list-style:none;display:flex;align-items:center;gap:10px;cu
 details.fold>summary::-webkit-details-marker{display:none}
 details.fold>summary::after{margin-left:auto}
 details.fold>summary .label{margin:0}.fsum{font-size:.85rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dpos.sm{min-width:0;max-width:21%;padding:2px 3px;font-size:.72rem}.dpos.sm b{font-size:.68rem;padding:0 4px}
