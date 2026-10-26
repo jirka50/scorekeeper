@@ -432,15 +432,19 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 .dmore{display:flex;flex-wrap:wrap;gap:6px}.dchip{flex:1 1 160px;text-align:left;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:8px 10px;font:500 .9rem var(--body);color:var(--ink);cursor:pointer}
 .dchip.on{border-color:var(--ink);background:var(--field-soft)}.dchip b{display:block;font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .dpick{border:2px solid var(--ink);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:6px}.pchip.cur{border-color:var(--field);background:var(--field-soft)}
-.dlist summary{cursor:pointer;font-weight:700;color:var(--muted);padding:4px 0}
+.dlist summary{cursor:pointer;font-weight:700;color:var(--muted);padding:4px 0;list-style:none;display:flex;align-items:center;gap:10px}
+.dlist summary::-webkit-details-marker{display:none}
+.dlist summary::after,details.fold>summary::after{content:'▾';display:inline-grid;place-items:center;flex:0 0 auto;width:36px;height:36px;border-radius:50%;background:var(--surface);border:2px solid var(--field);color:var(--field);font:700 20px/1 var(--body);box-sizing:border-box}
+.dlist summary::after{width:30px;height:30px;font-size:16px}
+.dlist[open] summary::after,details.fold[open]>summary::after{content:'▴'}
+.dlist summary:hover::after,details.fold>summary:hover::after{background:var(--field);color:var(--surface)}
 
 /* kontrola před zápasem */
 .pcheck{display:flex;flex-wrap:wrap;gap:6px}.pck{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font:700 .85rem var(--body);background:var(--paper);color:var(--ink)}
 .pck.ok{border-color:var(--field);color:var(--field)}.pck.warn{border-color:#d08a00;color:#a35f00;background:#fff4dc}button.pck{cursor:pointer}
 
 /* sbalitelné karty */
-details.fold>summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;min-height:32px}
+details.fold>summary{list-style:none;display:flex;align-items:center;gap:10px;cursor:pointer;min-height:40px}
 details.fold>summary::-webkit-details-marker{display:none}
-details.fold>summary::after{content:'▾';margin-left:auto;color:var(--muted);transition:transform .15s}
-details.fold:not([open])>summary::after{transform:rotate(-90deg)}
+details.fold>summary::after{margin-left:auto}
 details.fold>summary .label{margin:0}.fsum{font-size:.85rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
