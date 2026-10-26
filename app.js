@@ -189,7 +189,7 @@ function teamView(){const ps=sortedRoster();
   <label class="radio" for="rnonum"><input type="checkbox" id="rnonum" ${ui.rNoNum?'checked':''}> zatím bez čísla (číslo přidělíš později)</label>
   ${ui.rmsg?`<div class="msg">${esc(ui.rmsg)}</div>`:''}
   <div class="next">Zadáním stejného čísla změníš jméno. Soupiska zůstává uložená i po novém zápasu.</div></div>
-  ${ps.length?`<div class="card form"><div class="label">Sestava pro zápas</div><p class="next" style="margin:0">Hráče do pálkařského pořadí vybíráš v menu Lineup a obrana u týmu „${esc(S.teams[ours()].name)}“.</p><div class="row"><button class="solid" data-act="tab" data-v="def">Vybrat sestavu</button><button class="ghost" data-act="rall">Celá soupiska podle čísel</button><button class="ghost" data-act="prep">▶ Připravit zápas</button></div></div>`:''}`}
+  ${ps.length?`<div class="card form"><div class="label">Sestava pro zápas</div><p class="next" style="margin:0">Hráče do pálkařského pořadí vybíráš v menu Lineup a obrana u týmu „${esc(S.teams[ours()].name)}“.</p><div class="row"><button class="solid" data-act="tab" data-v="lineup">Vybrat sestavu</button><button class="ghost" data-act="rall">Celá soupiska podle čísel</button><button class="ghost" data-act="prep">▶ Připravit zápas</button></div></div>`:''}`}
 function addRoster(){const name=(document.getElementById('rname').value||'').trim();
   if(ui.rNoNum){if(!name){ui.rmsg='Hráče bez čísla zadej aspoň jménem.';return render()}if(R.players.some(p=>noNum(p.num)&&p.name.toLowerCase()===name.toLowerCase())){ui.rmsg=name+' už na soupisce je.';return render()}
     R.players.push({num:'~'+newId().slice(-6),name});saveR();ui.rmsg='';render();const f=document.getElementById('rname');if(f)f.focus();return}
@@ -218,11 +218,13 @@ function ruleSet(st,k,v){const n=(x,lo,hi)=>num(x,lo,hi);
   if(k==='maxa'){st.maxAdvance=+v;return}
   if(k==='lim'){const x=n(v,0,30);if(x!=null)st.runLimit=x;return}
   if(k==='tlim'){const x=n(v,0,180);if(x!=null)st.timeLimit=x;return}}
-const lineupCard=()=>`<div class="card form"><div class="label">Sestava · pálkařské pořadí</div>
+const luT=()=>ui.luSide==='t'?1-ours():ours();
+const lineupCard=()=>`<div class="card form"><div class="tabs" style="align-self:flex-start">${[['o','Náš tým'],['t','Soupeř']].map(([k,l])=>`<button class="${(ui.luSide||'o')===k?'on':''}" data-act="luside" data-v="${k}">${l}</button>`).join('')}</div>
+  ${lineupEditor(luT())}</div>`;
+const teamSetup=()=>`<div class="card form"><div class="label">Týmy</div>
   ${vsSelect()}<label for="ours">Náš tým (jména ze soupisky)<select id="ours" class="sel"><option value="0" ${ours()===0?'selected':''}>Hosté · ${esc(S.teams[0].name)}</option><option value="1" ${ours()===1?'selected':''}>Domácí · ${esc(S.teams[1].name)}</option></select></label>
   <button class="ghost" data-act="swap" ${started()?'disabled':''}>⇄ Prohodit domácí a hosty</button>
-  ${started()?'<p class="next" style="margin:0">Prohodit jde jen před prvním odpalem.</p>':''}
-  <div class="cols">${lineupEditor(0)}${lineupEditor(1)}</div></div>`;
+  ${started()?'<p class="next" style="margin:0">Prohodit jde jen před prvním odpalem.</p>':''}</div>`;
 function setView(){
   return `<div class="card form">
   ${rulesHtml(S.settings,'')}
@@ -234,7 +236,7 @@ function setView(){
 function render(){applyTheme();if(ROLE==='login'){renderLogin();return}if(ROLE!=='scorer'){renderParent();return}setSub('');
   document.getElementById('tabs').innerHTML=navHtml();document.getElementById('view').innerHTML=(VIEWS[ui.tab]||VIEWS.game)();if(RO())roMark();menuFit();wakeSync()}
 /* trenér „jen sleduje“: vidí vše, mění jen obranu, pořadí na pálce a střídání (+ prohlížení, exporty, odhlášení) */
-const RO_ACT=new Set(('tab menu sheet lsheet definn defside defrot deffill defclear deffair padd rall radd prem pup psub psubno psubpick psubgo anon pren renno rengo '+
+const RO_ACT=new Set(('tab menu dsub luside sheet lsheet definn defside defrot deffill defclear deffair padd rall radd prem pup psub psubno psubpick psubgo anon pren renno rengo '+
   'attlineup attdef sum sumclose sumcopy csvgame csvseason pdf spdf plpdf dippdf waimg waclose wasave washare stteam stall tsel logout copylink syncnow otherok sun pl plback cancel').split(' '));
 const RO_ID=new Set(['ft','fc','teamsel','pf-theme','pf-wake','add0','add1','subnum','rennum','sumtext']),roOk=id=>RO_ID.has(id)||id.startsWith('dp-')||id.startsWith('att-');
 function roMark(){if(!document.querySelectorAll)return;document.querySelectorAll('#view [data-act]').forEach(b=>{if(!RO_ACT.has(b.dataset.act)){b.disabled=true;b.classList.add('rodis')}});
@@ -242,7 +244,9 @@ function roMark(){if(!document.querySelectorAll)return;document.querySelectorAll
 const roCard=()=>`<div class="card rocard"><b>👀 Sleduješ zápas</b><p class="next" style="margin:4px 0 0">Zápis vede zapisovatel a obrazovka se ti obnovuje sama. Můžeš upravit obranu, pořadí na pálce a střídání. Zapisovat ti může povolit správce.</p></div>`;
 /* menu vždy celé na obrazovce */
 function menuFit(){if(!ui.menu||!document.querySelector)return;const m=document.querySelector('.menu-list');if(!m)return;m.style.left='0px';const r=m.getBoundingClientRect(),W=document.documentElement.clientWidth;let d=0;if(r.right>W-8)d=W-8-r.right;if(r.left+d<8)d=8-r.left;m.style.left=d+'px'}
-/* rychlé přepínání během zápasu: Hra · Obrana · Zápis */
+/* Lineup a obrana: přepínání Lineup · Obrana · Nastavení */
+const DSUB=[['lu','Lineup'],['def','Obrana'],['set','Nastavení']];
+const defSubNav=()=>`<div class="qnav" role="tablist">${DSUB.map(([k,l])=>`<button role="tab" class="${(ui.defSub||'lu')===k?'on':''}" aria-selected="${(ui.defSub||'lu')===k}" data-act="dsub" data-v="${k}">${l}</button>`).join('')}</div>`;
 const KEEP_TABS=['game','sheet','def','score','games','team','stats','opp','set','admin'];
 
 function addPlayer(t){const inp=document.getElementById('add'+t);const v=jersey(inp.value);
@@ -472,7 +476,7 @@ const num=(x,lo,hi)=>{const n=parseInt(x,10);return n>=lo?Math.min(n,hi):null};
 async function copyAct(id,key,ok){const r=await copyFrom(id,ok);ui[key]=r;render();if(r!==ok)selectText(id)}
 function selectText(id){const t=document.getElementById(id);if(t){t.focus();t.select()}}
 const ACT={
-  tab:v=>{ui.menu=false;ui.tab=v;ui.confirm=false;ui.msg=['',''];if(v==='admin'&&typeof CO!=='undefined'){CO.staff=null;CO.msg=''}if(KEEP_TABS.includes(v))prefSet('tab',v);render();window.scrollTo&&window.scrollTo(0,0)},
+  tab:v=>{ui.menu=false;if(v==='set'){v='def';ui.defSub='set'}if(v==='lineup'){v='def';ui.defSub='lu';ui.luSide='o'}ui.tab=v;ui.confirm=false;ui.msg=['',''];if(v==='admin'&&typeof CO!=='undefined'){CO.staff=null;CO.msg=''}if(KEEP_TABS.includes(v))prefSet('tab',v);render();window.scrollTo&&window.scrollTo(0,0)},
   menu:()=>{ui.menu=!ui.menu;render()},
   sheet:v=>{ui.sheet=+v;render()},
   /* scoring */
@@ -1175,7 +1179,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 
 /* ----- záložky: menu po oddílech ----- */
 const TABS={game:'Zápis',sheet:'Tabulka',def:'Lineup a obrana',score:'Rodiče a dugout',games:'Rozpis a výsledky',team:'Soupiska',stats:'Statistiky',opp:'Soupeři',set:'Pravidla zápasu',admin:'Účet a zálohy',prep:'Příprava zápasu',player:'Hráč'};
-const MENU=[['Zápas',['game','sheet','def','score']],['Sezóna',['games','team','stats','opp']],['Nastavení',['set','admin']]];
+const MENU=[['Zápas',['game','sheet','def','score']],['Sezóna',['games','team','stats','opp']],['Nastavení',['admin']]];
 /* ----- stav připojení v hlavičce a upozornění na zápis z jiného telefonu ----- */
 const T0=Date.now();
 const netState=()=>typeof FBX==='undefined'||!FBX||!WEB.role?'':!WEB.online&&Date.now()-T0>4000?'off':SYNC.st==='error'?'err':'';
@@ -1187,8 +1191,8 @@ function otherCard(){const o=typeof FS!=='undefined'&&FS.other;if(!o||o.gid!==S.
 ACT.otherok=()=>{if(FS.other)ui.otherOk=FS.other.ts;render()};
 function navHtml(){const cur=TABS[ui.tab]||TABS.game;
   return netBadge()+teamSwitch()+`<button class="sun-btn ${PREF.theme==='sun'?'on':''}" data-act="sun" aria-label="Režim na slunce" aria-pressed="${PREF.theme==='sun'}" title="Režim na slunce">☀</button><div class="menu"><button class="menu-btn" data-act="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}"><span class="burger" aria-hidden="true"></span>${cur}<span class="caret" aria-hidden="true">${ui.menu?'▴':'▾'}</span></button>${ui.menu?`<div class="menu-list" role="menu">${MENU.map(([h,ks])=>`<div class="menu-h">${h}</div>${ks.map(k=>`<button role="menuitem" class="${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}`).join('')}</div>`:''}</div>`}
-const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>attendCard()+lineupCard()+defView(),score:()=>scoreView(),games:()=>scheduleCard()+historyCard(),team:()=>teamView(),
-  stats:()=>statsView(),opp:()=>oppCard(),set:()=>setView(),admin:()=>adminView(),prep:()=>prepView()};
+const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>defSubNav()+(ui.defSub==='def'?defView():ui.defSub==='set'?teamSetup()+setView():(ui.luSide==='t'?'':attendCard())+lineupCard()),score:()=>scoreView(),games:()=>scheduleCard()+historyCard(),team:()=>teamView(),
+  stats:()=>statsView(),opp:()=>oppCard(),set:()=>{ui.tab='def';ui.defSub='set';return VIEWS.def()},admin:()=>adminView(),prep:()=>prepView()};
 if(PREF.tab&&KEEP_TABS.includes(PREF.tab))ui.tab=PREF.tab; /* po otevření pokračovat tam, kde se skončilo */
 const adminView=()=>accessCard()+(WEB.role==='admin'?teamsCard()+adminCard()+coachesCard():'')+syncCard()+appCard()+settingsExtra()+teamTransferCard()+onlineBackupCard()+resetCard()+`<p class="next ver">Baseball Scorekeeper · ${verTxt()} · ${esc(gDate({meta:{date:APP_DATE}}))}</p>`;
 /* ----- vymazání statistik: historie zápasů + rozehraný zápas (soupisky, rozpis, soupeři a pravidla zůstanou) ----- */
@@ -1560,3 +1564,5 @@ const ENTER={subnum:e=>doSub(e.target.value),rennum:e=>doRen(e.target.value),add
   'lg-code':()=>doLogin(),'lg-new2':()=>doSetup(),'op-new':()=>ACT.opadd(),'op-num':()=>focusEl('op-pname'),'op-pname':()=>ACT.oppadd(),rassnum:()=>ACT.rassgo(),'pl-num':()=>ACT.plnum()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ui.menu){ui.menu=false;return render()}if(e.key!=='Enter')return;if(RO()&&!roOk(e.target.id||''))return;const f=ENTER[e.target.id];if(f){e.preventDefault();f(e)}});
 render();
+/* Lineup a obrana: podzáložky a přepínač náš tým / soupeř */
+Object.assign(ACT,{dsub:v=>{ui.defSub=v;ui.confirm=false;render();window.scrollTo&&window.scrollTo(0,0)},luside:v=>{ui.luSide=v;ui.sub=null;ui.ren=null;render()}});

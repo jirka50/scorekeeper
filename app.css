@@ -397,3 +397,8 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 .rocard{border:2px solid var(--field)}
 .lgrole{align-self:flex-start}
 .corow{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}.corole{display:flex;align-items:center;gap:6px}
+
+/* přepínač Lineup · Obrana · Nastavení */
+.qnav{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+.qnav button{flex:1 1 0;min-height:44px;border:0;border-radius:9px;background:none;color:var(--ink);font:700 1rem var(--body);cursor:pointer}
+.qnav button.on{background:var(--ink);color:var(--paper)}
