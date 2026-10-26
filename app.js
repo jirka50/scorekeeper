@@ -243,7 +243,7 @@ const roCard=()=>`<div class="card rocard"><b>👀 Sleduješ zápas</b><p class=
 function menuFit(){if(!ui.menu||!document.querySelector)return;const m=document.querySelector('.menu-list');if(!m)return;m.style.left='0px';const r=m.getBoundingClientRect(),W=document.documentElement.clientWidth;let d=0;if(r.right>W-8)d=W-8-r.right;if(r.left+d<8)d=8-r.left;m.style.left=d+'px'}
 /* rychlé přepínání během zápasu: Hra · Obrana · Zápis */
 const QUICK=['game','def','sheet'],KEEP_TABS=['game','sheet','def','score','games','team','stats','opp','set','admin'];
-const quickNav=()=>QUICK.includes(ui.tab)?`<div class="qnav" role="tablist">${QUICK.map(k=>`<button role="tab" class="${ui.tab===k?'on':''}" aria-selected="${ui.tab===k}" data-act="tab" data-v="${k}">${k==='sheet'?'Zápis':TABS[k]}</button>`).join('')}</div>`:'';
+const quickNav=()=>QUICK.includes(ui.tab)?`<div class="qnav" role="tablist">${QUICK.map(k=>`<button role="tab" class="${ui.tab===k?'on':''}" aria-selected="${ui.tab===k}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}</div>`:'';
 
 function addPlayer(t){const inp=document.getElementById('add'+t);const v=jersey(inp.value);
   if(!v){ui.msg[t]='Zadej číslo dresu (0–999).';render();return}
@@ -1174,7 +1174,7 @@ async function wakeSync(){const nav=navigator.wakeLock;if(!nav||WLP)return;
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wakeSync()});
 
 /* ----- záložky: menu po oddílech ----- */
-const TABS={game:'Hra',sheet:'Zápis (tabulka)',def:'Obrana',score:'Rodiče a dugout',games:'Rozpis a výsledky',team:'Soupiska',stats:'Statistiky',opp:'Soupeři',set:'Sestava a pravidla',admin:'Účet a zálohy',prep:'Příprava zápasu',player:'Hráč'};
+const TABS={game:'Zápis',sheet:'Tabulka',def:'Obrana',score:'Rodiče a dugout',games:'Rozpis a výsledky',team:'Soupiska',stats:'Statistiky',opp:'Soupeři',set:'Sestava a pravidla',admin:'Účet a zálohy',prep:'Příprava zápasu',player:'Hráč'};
 const MENU=[['Zápas',['game','sheet','def','score']],['Sezóna',['games','team','stats','opp']],['Nastavení',['set','admin']]];
 /* ----- stav připojení v hlavičce a upozornění na zápis z jiného telefonu ----- */
 const T0=Date.now();
