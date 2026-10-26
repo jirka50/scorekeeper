@@ -459,3 +459,10 @@ details.fold>summary .label{margin:0}.fsum{font-size:.85rem;color:var(--muted);o
 .sun-btn.look-dark{background:var(--ink);color:var(--paper)}.sun-btn.look-sun{background:var(--warn-soft);border-color:var(--warn)}
 .moon-btn{min-width:42px;min-height:42px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-size:1.05rem;cursor:pointer}
 .moon-btn.on{background:var(--ink);color:var(--paper)}
+/* Menu jako v tréninkové aplikaci: kompaktní seznam zarovnaný vpravo, na telefonu jen ikona */
+header #tabs.tabs{flex:1 1 auto;justify-content:flex-end}
+.menu-list{left:auto;right:0;min-width:210px}
+.menu-list button{font:600 1.05rem var(--body);padding:11px 12px;min-height:0}
+.menu-list button.on,.menu-list button.on:hover{background:var(--field);color:var(--paper)}
+.menu-list button:hover{background:var(--field-soft)}
+@media (max-width:420px){.menu-btn{padding:0 11px}.menu-btn .cur{display:none}}
