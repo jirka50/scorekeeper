@@ -88,7 +88,14 @@ function act(code,arg){if(S.final)return;snap();S.example=false;S.lastLbl=actLab
     case 'endhalf':switchHalf();break;
     case 'swing':S.swings=(S.swings||0)+1;if(swTot()>0&&S.swings>=swTot())doPA('K');break;
     default:doPA(code,arg)}
-  ui.panel=null;ui.seq=[];commit();if(HALF_ENDED||PA_ENDED){HALF_ENDED=false;PA_ENDED=false;autoPub()}else if(PUB_T)autoPub()}
+  const half=HALF_ENDED;ui.panel=null;ui.seq=[];commit();buzz(half?[40,70,40]:code==='swing'?15:35);actToast(half?'Konec poloviny směny':S.lastLbl?'Zapsáno: '+S.lastLbl:'');
+  if(HALF_ENDED||PA_ENDED){HALF_ENDED=false;PA_ENDED=false;autoPub()}else if(PUB_T)autoPub()}
+/* odezva po zápisu: krátká vibrace a lišta „Zapsáno … · Vrátit“ */
+function buzz(p){try{if(PREF.buzz!==false&&navigator.vibrate)navigator.vibrate(p)}catch(e){}}
+let TOAST_T=null;
+function actToast(txt){if(!txt||!document.body||!document.createElement)return;let el=document.getElementById('atoast');
+  if(!el){el=document.createElement('div');el.id='atoast';el.className='atoast';el.setAttribute('role','status');document.body.appendChild(el)}
+  if(!el.classList)return;el.innerHTML=`<span>✓ ${esc(txt)}</span><button data-act="undo" class="atbtn">Vrátit</button>`;el.classList.add('on');clearTimeout(TOAST_T);TOAST_T=setTimeout(()=>el.classList.remove('on'),4000)}
 
 function swapTeams(){if(started())return;snap();S.teams.reverse();S.bat.reverse();(S.subs||[]).forEach(x=>{x.t=1-x.t});S.ours=1-ours();ui.msg=['',''];commit()}
 
@@ -235,12 +242,12 @@ function setView(){
   ${ui.confirm?'<div class="row"><button class="solid" style="background:var(--pencil)" data-act="reset">Ano, smazat zápis</button><button class="ghost" data-act="noreset">Zpět</button></div>':'<button class="ghost danger" data-act="askreset">Začít nový zápas</button>'}</div>
   <p class="next" style="margin:0">${SYNC&&SYNC.st==='ok'?'Zápis se ukládá v telefonu a online pro tvůj tým.':'Zápis se ukládá v tomto prohlížeči na tomto zařízení.'} Připojení, zálohu a vzhled najdeš v menu Účet a zálohy.</p>`}
 
-function render(){applyTheme();if(ROLE==='login'){renderLogin();return}if(ROLE!=='scorer'){renderParent();return}setSub('');
+function render(){applyTheme();if(document.body&&document.body.classList)document.body.classList.toggle('in',ROLE==='scorer');if(ROLE==='login'){renderLogin();return}if(ROLE!=='scorer'){renderParent();return}setSub('');
   document.getElementById('tabs').innerHTML=navHtml();document.getElementById('view').innerHTML=(VIEWS[ui.tab]||VIEWS.game)();if(RO())roMark();menuFit();wakeSync()}
 /* trenér „jen sleduje“: vidí vše, mění jen obranu, pořadí na pálce a střídání (+ prohlížení, exporty, odhlášení) */
 const RO_ACT=new Set(('tab menu dsub luside pdn sheet lsheet definn defside defrot deffill defclear deffair padd rall radd prem pup psub psubno psubpick psubgo anon pren renno rengo '+
   'attlineup attdef sum sumclose sumcopy csvgame csvseason pdf spdf plpdf dippdf waimg waclose wasave washare stteam stall tsel logout copylink syncnow otherok sun pl plback cancel').split(' '));
-const RO_ID=new Set(['ft','fc','teamsel','pf-theme','pf-wake','add0','add1','subnum','rennum','sumtext']),roOk=id=>RO_ID.has(id)||id.startsWith('dp-')||id.startsWith('att-');
+const RO_ID=new Set(['ft','fc','teamsel','pf-theme','pf-wake','pf-buzz','add0','add1','subnum','rennum','sumtext']),roOk=id=>RO_ID.has(id)||id.startsWith('dp-')||id.startsWith('att-');
 function roMark(){if(!document.querySelectorAll)return;document.querySelectorAll('#view [data-act]').forEach(b=>{if(!RO_ACT.has(b.dataset.act)){b.disabled=true;b.classList.add('rodis')}});
   document.querySelectorAll('#view input,#view select,#view textarea').forEach(x=>{if(!roOk(x.id||''))x.disabled=true})}
 const roCard=()=>`<div class="card rocard"><b>👀 Sleduješ zápas</b><p class="next" style="margin:4px 0 0">Zápis vede zapisovatel a obrazovka se ti obnovuje sama. Můžeš upravit obranu, pořadí na pálce a střídání. Zapisovat ti může povolit správce.</p></div>`;
@@ -483,7 +490,7 @@ const ACT={
   sheet:v=>{ui.sheet=+v;render()},
   /* scoring */
   hit:v=>{if(+v>=1&&+v<=maxB()){if(S.bases.some(b=>b!=null)&&S.settings.advPanel!==false)advOpen(+v);else act('hit',+v)}},adv:v=>{if(S.bases[+v]!=null)act('adv',+v)},rout:v=>{if(S.bases[+v]!=null)act('rout',+v)},
-  swing:()=>act('swing'),FC:()=>act('FC'),endhalf:()=>act('endhalf'),undo:()=>undo(),swap:()=>swapTeams(),
+  swing:()=>act('swing'),FC:()=>act('FC'),endhalf:()=>act('endhalf'),undo:()=>{const el=document.getElementById&&document.getElementById('atoast');if(el&&el.classList)el.classList.remove('on');undo()},swap:()=>swapTeams(),
   openout:()=>{ui.panel='out';ui.seq=[];render()},openerr:()=>{ui.panel='err';render()},cancel:()=>{ui.panel=null;ui.seq=[];render()},
   chip:v=>{if(ui.panel==='err')act('E',+v);else{ui.seq.push(+v);render()}},
   ground:()=>ui.seq.length&&act('out',{code:ui.seq.join('-')}),fly:()=>ui.seq.length&&act('out',{code:'F'+ui.seq[ui.seq.length-1]}),sac:()=>ui.seq.length&&act('out',{code:'SAC '+ui.seq.join('-'),sac:true}),
@@ -1171,6 +1178,7 @@ function applyTheme(){const r=document.documentElement;if(!r||!r.dataset)return;
 function appCard(){return `<div class="card form"><div class="label">Aplikace v tomto telefonu</div>
   <label for="pf-theme">Vzhled<select id="pf-theme" class="sel">${[['','podle telefonu'],['light','světlý'],['dark','tmavý'],['sun','na slunce (vysoký kontrast)']].map(([v,l])=>`<option value="${v}" ${(PREF.theme||'')===v?'selected':''}>${l}</option>`).join('')}</select></label>
   <label class="radio" for="pf-wake"><input type="checkbox" id="pf-wake" ${PREF.wake!==false?'checked':''}> Během zápasu nenechat obrazovku zhasnout</label>
+  <label class="radio" for="pf-buzz"><input type="checkbox" id="pf-buzz" ${PREF.buzz!==false?'checked':''}> Krátce zavibrovat po každém zápisu</label>
   <p class="next" style="margin:0">Tlačítko ☀ nahoře rychle zapne a vypne režim na slunce.${navigator.wakeLock?'':' Tento prohlížeč neumí držet obrazovku rozsvícenou.'}</p></div>`}
 let WL=null,WLP=false;
 async function wakeSync(){const nav=navigator.wakeLock;if(!nav||WLP)return;
@@ -1295,7 +1303,7 @@ Object.assign(ACT,{prep:v=>wizInit(v),wzcancel:()=>{ui.wiz=null;ui.tab='game';re
   wzrot2:()=>{const O=wizOrder2();if(O.length>1)O.push(O.shift());render()},wzmix2:()=>wzMix(wizOrder2()),
   schstart:v=>wizInit(v),
   sun:()=>{if(PREF.theme==='sun')prefSet('theme',PREF.prevTheme||'');else{prefSet('prevTheme',PREF.theme||'');prefSet('theme','sun')}render()}});
-CHG['pf-theme']=v=>{prefSet('theme',v);render()};CHG['pf-wake']=(v,el)=>{prefSet('wake',el.checked);wakeSync()};
+CHG['pf-theme']=v=>{prefSet('theme',v);render()};CHG['pf-wake']=(v,el)=>{prefSet('wake',el.checked);wakeSync()};CHG['pf-buzz']=(v,el)=>{prefSet('buzz',el.checked);if(el.checked)buzz(35)};
 
 /* ----- férová obrana: každý se vystřídá ve vnitřním i vnějším poli, bez opakování pozice ----- */
 const FAIR_POS=['1','3','6','4','5','2','8','7','9'];

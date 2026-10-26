@@ -412,3 +412,12 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 .orow .ord{font-size:.8rem;color:var(--muted)}
 .orow .onm{font-family:var(--display);font-size:1.25rem;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .orow .obtns{display:flex;gap:2px}.orow .pbtn{min-width:36px;min-height:36px}.orow .pbtn:disabled{opacity:.25}
+
+/* lišta po zápisu */
+.atoast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);z-index:50;display:flex;align-items:center;gap:12px;max-width:calc(100vw - 32px);
+  background:var(--ink);color:var(--paper);border-radius:12px;padding:10px 10px 10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.25);font:600 .95rem var(--body);transition:transform .2s;pointer-events:none}
+.atoast.on{transform:translate(-50%,0);pointer-events:auto}
+.atoast span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.atbtn{border:0;border-radius:8px;background:var(--paper);color:var(--ink);font:700 .95rem var(--body);padding:8px 14px;cursor:pointer;flex:none}
+/* kompaktní hlavička na telefonu po přihlášení */
+@media (max-width:700px){body.in header h1{display:none}body.in header{justify-content:flex-end}}
