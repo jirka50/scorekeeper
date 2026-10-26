@@ -252,7 +252,7 @@ function setView(){
 function render(){applyTheme();if(document.body&&document.body.classList)document.body.classList.toggle('in',ROLE==='scorer');if(ROLE==='login'){renderLogin();return}if(ROLE!=='scorer'){renderParent();return}setSub('');
   document.getElementById('tabs').innerHTML=navHtml();document.getElementById('view').innerHTML=(VIEWS[ui.tab]||VIEWS.game)();if(RO())roMark();menuFit();wakeSync()}
 /* trenér „jen sleduje“: vidí vše, mění jen obranu, pořadí na pálce a střídání (+ prohlížení, exporty, odhlášení) */
-const RO_ACT=new Set(('tab menu dsub luside pdn dpos dput sheet lsheet definn defside defrot deffill defclear deffair padd rall radd prem pup psub psubno psubpick psubgo anon pren renno rengo '+
+const RO_ACT=new Set(('tab menu moon dsub luside pdn dpos dput sheet lsheet definn defside defrot deffill defclear deffair padd rall radd prem pup psub psubno psubpick psubgo anon pren renno rengo '+
   'attlineup attdef sum sumclose sumcopy csvgame csvseason pdf spdf plpdf dippdf waimg waclose wasave washare stteam stall tsel logout copylink syncnow otherok sun pl plback cancel').split(' '));
 const RO_ID=new Set(['ft','fc','teamsel','pf-theme','pf-wake','pf-buzz','add0','add1','subnum','rennum','sumtext']),roOk=id=>RO_ID.has(id)||id.startsWith('dp-')||id.startsWith('att-');
 function roMark(){if(!document.querySelectorAll)return;document.querySelectorAll('#view [data-act]').forEach(b=>{if(!RO_ACT.has(b.dataset.act)){b.disabled=true;b.classList.add('rodis')}});
@@ -1206,12 +1206,13 @@ CHG.rnonum=(v,el)=>{ui.rNoNum=el.checked;render();const f=document.getElementByI
 const PKEY='sk-prefs';
 const PREF=(()=>{try{return JSON.parse(localStorage.getItem(PKEY)||'{}')||{}}catch(e){return{}}})();
 const prefSet=(k,v)=>{PREF[k]=v;try{localStorage.setItem(PKEY,JSON.stringify(PREF))}catch(e){}};
+const isDark=()=>PREF.theme==='dark'||(!PREF.theme&&!!(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches));
 function applyTheme(){const r=document.documentElement;if(!r||!r.dataset)return;const t=PREF.theme||'';if(t)r.dataset.theme=t;else delete r.dataset.theme}
 function appCard(){return `<div class="card form"><div class="label">Aplikace v tomto telefonu</div>
   <label for="pf-theme">Vzhled<select id="pf-theme" class="sel">${[['','podle telefonu'],['light','světlý'],['dark','tmavý'],['sun','na slunce (vysoký kontrast)']].map(([v,l])=>`<option value="${v}" ${(PREF.theme||'')===v?'selected':''}>${l}</option>`).join('')}</select></label>
   <label class="radio" for="pf-wake"><input type="checkbox" id="pf-wake" ${PREF.wake!==false?'checked':''}> Během zápasu nenechat obrazovku zhasnout</label>
   <label class="radio" for="pf-buzz"><input type="checkbox" id="pf-buzz" ${PREF.buzz!==false?'checked':''}> Krátce zavibrovat po každém zápisu</label>
-  <p class="next" style="margin:0">Tlačítko ☀ nahoře rychle zapne a vypne režim na slunce.${navigator.wakeLock?'':' Tento prohlížeč neumí držet obrazovku rozsvícenou.'}</p></div>`}
+  <p class="next" style="margin:0">Tlačítka 🌙 a ☀ nahoře rychle přepnou tmavý režim a režim na slunce.${navigator.wakeLock?'':' Tento prohlížeč neumí držet obrazovku rozsvícenou.'}</p></div>`}
 let WL=null,WLP=false;
 async function wakeSync(){const nav=navigator.wakeLock;if(!nav||WLP)return;
   const want=ROLE==='scorer'&&PREF.wake!==false&&started()&&!S.final&&document.visibilityState!=='hidden';
@@ -1232,7 +1233,7 @@ function otherCard(){const o=typeof FS!=='undefined'&&FS.other;if(!o||o.gid!==S.
   return `<div class="card other"><b>Tento zápas právě zapisuje i jiný telefon</b> <span class="next">(${m?'před '+m+' min':'teď'})</span><p class="next" style="margin:4px 0 0">Zapisujte jen na jednom telefonu, jinak se zápisy navzájem přepíšou. Na tomto telefonu je teď poslední verze z druhého telefonu.</p><button class="ghost" data-act="otherok" style="align-self:flex-start;margin-top:6px">Rozumím</button></div>`}
 ACT.otherok=()=>{if(FS.other)ui.otherOk=FS.other.ts;render()};
 function navHtml(){const cur=TABS[ui.tab]||TABS.game;
-  return netBadge()+teamSwitch()+`<button class="sun-btn ${PREF.theme==='sun'?'on':''}" data-act="sun" aria-label="Režim na slunce" aria-pressed="${PREF.theme==='sun'}" title="Režim na slunce">☀</button><div class="menu"><button class="menu-btn" data-act="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}"><span class="burger" aria-hidden="true"></span>${cur}<span class="caret" aria-hidden="true">${ui.menu?'▴':'▾'}</span></button>${ui.menu?`<div class="menu-list" role="menu">${MENU.map(([h,ks])=>`<div class="menu-h">${h}</div>${ks.map(k=>`<button role="menuitem" class="${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}`).join('')}</div>`:''}</div>`}
+  return netBadge()+teamSwitch()+`<button class="moon-btn ${isDark()?'on':''}" data-act="moon" aria-label="Tmavý režim" aria-pressed="${isDark()}" title="Tmavý režim">🌙</button><button class="sun-btn ${PREF.theme==='sun'?'on':''}" data-act="sun" aria-label="Režim na slunce" aria-pressed="${PREF.theme==='sun'}" title="Režim na slunce">☀</button><div class="menu"><button class="menu-btn" data-act="menu" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}"><span class="burger" aria-hidden="true"></span>${cur}<span class="caret" aria-hidden="true">${ui.menu?'▴':'▾'}</span></button>${ui.menu?`<div class="menu-list" role="menu">${MENU.map(([h,ks])=>`<div class="menu-h">${h}</div>${ks.map(k=>`<button role="menuitem" class="${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}`).join('')}</div>`:''}</div>`}
 const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>defSubNav()+(ui.defSub==='def'?defView():ui.defSub==='set'?teamSetup()+attendCard()+setView():lineupCard()),score:()=>scoreView(),games:()=>scheduleCard()+historyCard(),team:()=>teamView(),
   stats:()=>statsView(),opp:()=>oppCard(),set:()=>{ui.tab='def';ui.defSub='set';return VIEWS.def()},admin:()=>adminView(),prep:()=>prepView()};
 if(PREF.tab&&KEEP_TABS.includes(PREF.tab))ui.tab=PREF.tab; /* po otevření pokračovat tam, kde se skončilo */
@@ -1334,6 +1335,7 @@ Object.assign(ACT,{prep:v=>wizInit(v),wzcancel:()=>{ui.wiz=null;ui.tab='game';re
   wzup2:v=>wzMove(wizOrder2(),+v,-1),wzdn2:v=>wzMove(wizOrder2(),+v,1),wzsort2:()=>{ui.wiz.order2=null;render()},
   wzrot2:()=>{const O=wizOrder2();if(O.length>1)O.push(O.shift());render()},wzmix2:()=>wzMix(wizOrder2()),
   schstart:v=>wizInit(v),
+  moon:()=>{prefSet('theme',isDark()?'light':'dark');render()},
   sun:()=>{if(PREF.theme==='sun')prefSet('theme',PREF.prevTheme||'');else{prefSet('prevTheme',PREF.theme||'');prefSet('theme','sun')}render()}});
 CHG['pf-theme']=v=>{prefSet('theme',v);render()};CHG['pf-wake']=(v,el)=>{prefSet('wake',el.checked);wakeSync()};CHG['pf-buzz']=(v,el)=>{prefSet('buzz',el.checked);if(el.checked)buzz(35)};
 
