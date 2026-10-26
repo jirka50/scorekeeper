@@ -456,5 +456,6 @@ details.fold>summary .label{margin:0}.fsum{font-size:.85rem;color:var(--muted);o
 .dpos.empty .dn{color:var(--pencil);font-size:1rem}.dpos.on{border:2px solid var(--ink);background:var(--pick)}
 .dpos.sm{width:15%;max-width:none;padding:2px}.dpos.sm .dnum{font-size:.8rem}.dpos.sm .dn{font-size:.62rem}
 
+.sun-btn.look-dark{background:var(--ink);color:var(--paper)}.sun-btn.look-sun{background:var(--warn-soft);border-color:var(--warn)}
 .moon-btn{min-width:42px;min-height:42px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);font-size:1.05rem;cursor:pointer}
 .moon-btn.on{background:var(--ink);color:var(--paper)}
