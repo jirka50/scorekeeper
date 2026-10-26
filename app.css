@@ -402,3 +402,13 @@ h1 small .hver{display:block;margin-top:2px;font-size:.68rem;opacity:.85}
 .qnav{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
 .qnav button{flex:1 1 0;min-height:44px;border:0;border-radius:9px;background:none;color:var(--ink);font:700 1rem var(--body);cursor:pointer}
 .qnav button.on{background:var(--ink);color:var(--paper)}
+
+/* pálkařské pořadí: řádky se šipkami a přetažením */
+.olist{display:flex;flex-direction:column;gap:6px}
+.orow{display:grid;grid-template-columns:22px 26px minmax(0,1fr) auto;align-items:center;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:4px 4px 4px 6px;font-variant-numeric:tabular-nums;transition:transform .12s}
+.orow.dragging{transition:none;z-index:5;position:relative;box-shadow:0 8px 20px rgba(0,0,0,.2);background:var(--surface)}
+.orow.subbing{border-color:var(--ink);background:var(--field-soft)}
+.orow .grip{color:var(--muted);font-size:1.1rem;cursor:grab;touch-action:none;text-align:center}
+.orow .ord{font-size:.8rem;color:var(--muted)}
+.orow .onm{font-family:var(--display);font-size:1.25rem;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.orow .obtns{display:flex;gap:2px}.orow .pbtn{min-width:36px;min-height:36px}.orow .pbtn:disabled{opacity:.25}

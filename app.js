@@ -176,7 +176,9 @@ function lineupEditor(t){const L=S.teams[t].lineup;
   return `<div class="form"><div class="label">${t?'Domácí · pálí ve spodní polovině ▼':'Hosté · pálí v horní polovině ▲'}${t===ours()?' · náš tým':''}</div>
    <label for="n${t}">Název týmu<input type="text" id="n${t}" value="${esc(S.teams[t].name)}"></label>
    <div class="label">Pálkařské pořadí · ${L.length} hráčů</div>
-   <div class="plist">${L.map((v,i)=>`<span class="pchip ${ui.sub&&ui.sub.t===t&&ui.sub.i===i?'subbing':''}"><span class="ord">${i+1}.</span><b>${esc(lbl(t,v))}</b>${anon(v)?`<button class="pbtn" aria-label="Doplnit číslo" title="Doplnit číslo dresu" data-act="pren" data-t="${t}" data-v="${i}">✎</button>`:''}<button class="pbtn" aria-label="Vystřídat" title="Vystřídat na tomto místě" data-act="psub" data-t="${t}" data-v="${i}">⇄</button>${i>0?`<button class="pbtn" aria-label="Posunout dopředu" data-act="pup" data-t="${t}" data-v="${i}">‹</button>`:''}<button class="pbtn x" aria-label="Odebrat" data-act="prem" data-t="${t}" data-v="${i}">×</button></span>`).join('')}</div>
+   <div class="olist" data-t="${t}">${L.map((v,i)=>`<div class="orow ${ui.sub&&ui.sub.t===t&&ui.sub.i===i?'subbing':''}" data-i="${i}"><span class="grip" aria-hidden="true">⠿</span><span class="ord">${i+1}.</span><b class="onm">${esc(lbl(t,v))}</b><span class="obtns">${anon(v)?`<button class="pbtn" aria-label="Doplnit číslo" title="Doplnit číslo dresu" data-act="pren" data-t="${t}" data-v="${i}">✎</button>`:''}<button class="pbtn" aria-label="Posunout nahoru" title="Nahoru" data-act="pup" data-t="${t}" data-v="${i}" ${i>0?'':'disabled'}>▲</button><button class="pbtn" aria-label="Posunout dolů" title="Dolů" data-act="pdn" data-t="${t}" data-v="${i}" ${i<L.length-1?'':'disabled'}>▼</button><button class="pbtn" aria-label="Vystřídat" title="Vystřídat na tomto místě" data-act="psub" data-t="${t}" data-v="${i}">⇄</button><button class="pbtn x" aria-label="Odebrat" data-act="prem" data-t="${t}" data-v="${i}">×</button></span></div>`).join('')}</div>
+   <p class="next" style="margin:0">Pořadí změníš šipkami, nebo podrž jméno a přetáhni ho nahoru či dolů.</p>
+
    <div class="addrow"><input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" id="add${t}" placeholder="Číslo dresu" aria-label="Číslo hráče"><button class="solid" data-act="padd" data-t="${t}">Přidat</button></div>
    ${ui.ren&&ui.ren.t===t?renPanel(t):ui.sub&&ui.sub.t===t?subPanel(t):pick}${t!==ours()?oppPick(t)+anonRow(t):''}
    ${ui.msg[t]?`<div class="msg">${esc(ui.msg[t])}</div>`:''}</div>`}
@@ -236,7 +238,7 @@ function setView(){
 function render(){applyTheme();if(ROLE==='login'){renderLogin();return}if(ROLE!=='scorer'){renderParent();return}setSub('');
   document.getElementById('tabs').innerHTML=navHtml();document.getElementById('view').innerHTML=(VIEWS[ui.tab]||VIEWS.game)();if(RO())roMark();menuFit();wakeSync()}
 /* trenér „jen sleduje“: vidí vše, mění jen obranu, pořadí na pálce a střídání (+ prohlížení, exporty, odhlášení) */
-const RO_ACT=new Set(('tab menu dsub luside sheet lsheet definn defside defrot deffill defclear deffair padd rall radd prem pup psub psubno psubpick psubgo anon pren renno rengo '+
+const RO_ACT=new Set(('tab menu dsub luside pdn sheet lsheet definn defside defrot deffill defclear deffair padd rall radd prem pup psub psubno psubpick psubgo anon pren renno rengo '+
   'attlineup attdef sum sumclose sumcopy csvgame csvseason pdf spdf plpdf dippdf waimg waclose wasave washare stteam stall tsel logout copylink syncnow otherok sun pl plback cancel').split(' '));
 const RO_ID=new Set(['ft','fc','teamsel','pf-theme','pf-wake','add0','add1','subnum','rennum','sumtext']),roOk=id=>RO_ID.has(id)||id.startsWith('dp-')||id.startsWith('att-');
 function roMark(){if(!document.querySelectorAll)return;document.querySelectorAll('#view [data-act]').forEach(b=>{if(!RO_ACT.has(b.dataset.act)){b.disabled=true;b.classList.add('rodis')}});
@@ -494,7 +496,7 @@ const ACT={
     snap();const i=+v;L.splice(i,1);S.subs=(S.subs||[]).filter(x=>!(x.t===t&&x.slot===i)).map(x=>x.t===t&&x.slot>i?{...x,slot:x.slot-1}:x);if(S.bat[t]>i)S.bat[t]--;S.bat[t]%=L.length;S.example=false;ui.msg=['',''];commit()},
   psub:(v,t)=>{ui.sub={t,i:+v};ui.subMsg='';render();const f=document.getElementById('subnum');if(f)f.focus()},
   psubno:()=>{ui.sub=null;render()},psubpick:v=>doSub(v),psubgo:()=>{const f=document.getElementById('subnum');doSub(f?f.value:'')},
-  pup:(v,t)=>{const L=S.teams[t].lineup,i=+v;snap();[L[i-1],L[i]]=[L[i],L[i-1]];(S.subs||[]).forEach(x=>{if(x.t===t){if(x.slot===i)x.slot=i-1;else if(x.slot===i-1)x.slot=i}});S.example=false;commit()},
+  pup:(v,t)=>{const i=+v;if(i<1)return;snap();lineSwap(t,i);S.example=false;commit()},pdn:(v,t)=>{const i=+v+1;if(i>=S.teams[t].lineup.length)return;snap();lineSwap(t,i);S.example=false;commit()},
   /* new game */
   askreset:()=>{ui.confirm=true;render()},noreset:()=>{ui.confirm=false;render()},
   reset:()=>{archiveGame();const k={settings:S.settings,teams:S.teams,ours:S.ours};S=fresh();Object.assign(S,k);S.example=false;hist=[];ui.confirm=false;ui.tab='game';commit()},
@@ -1568,6 +1570,20 @@ render();
 Object.assign(ACT,{dsub:v=>{ui.defSub=v;ui.confirm=false;render();window.scrollTo&&window.scrollTo(0,0)},luside:v=>{ui.luSide=v;ui.sub=null;ui.ren=null;render()}});
 /* Lineup a obrana: přejetí prstem doleva / doprava přepne Lineup · Obrana · Nastavení */
 (()=>{let x0=null,y0=0,t0=0;
-  document.addEventListener('touchstart',e=>{if(ui.tab!=='def'||e.touches.length!==1||e.target.closest('input,select,textarea,.sheet-wrap,.ls-wrap,.plist,.menu-list')){x0=null;return}x0=e.touches[0].clientX;y0=e.touches[0].clientY;t0=Date.now()},{passive:true});
+  document.addEventListener('touchstart',e=>{if(ui.tab!=='def'||e.touches.length!==1||e.target.closest('input,select,textarea,.sheet-wrap,.ls-wrap,.plist,.olist,.menu-list')){x0=null;return}x0=e.touches[0].clientX;y0=e.touches[0].clientY;t0=Date.now()},{passive:true});
   document.addEventListener('touchend',e=>{if(x0==null||ui.tab!=='def')return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;
     if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.8||Date.now()-t0>700)return;const ks=DSUB.map(x=>x[0]),i=ks.indexOf(ui.defSub||'lu'),j=i+(dx<0?1:-1);if(j<0||j>=ks.length)return;ACT.dsub(ks[j])},{passive:true})})();
+/* pálkařské pořadí: prohození sousedů (i-1, i) včetně střídání na místě; přesun = postupné prohazování */
+function lineSwap(t,i){const L=S.teams[t].lineup;[L[i-1],L[i]]=[L[i],L[i-1]];(S.subs||[]).forEach(x=>{if(x.t===t){if(x.slot===i)x.slot=i-1;else if(x.slot===i-1)x.slot=i}})}
+function lineMove(t,from,to){if(from===to)return;snap();if(from<to)for(let i=from+1;i<=to;i++)lineSwap(t,i);else for(let i=from;i>to;i--)lineSwap(t,i);S.example=false;commit()}
+/* přetažení jména v pořadí (prst i myš) */
+(()=>{let D=null;
+  document.addEventListener('pointerdown',e=>{const h=e.target.closest&&e.target.closest('.orow .onm,.orow .grip');if(!h)return;const row=h.closest('.orow'),list=row.parentNode;
+    if(RO()&&!RO_ACT.has('pup'))return;const rows=[...list.children];D={row,list,t:+list.dataset.t,from:+row.dataset.i,y0:e.clientY,on:false,rows,mids:rows.map(r=>{const b=r.getBoundingClientRect();return b.top+b.height/2}),h:row.getBoundingClientRect().height+6,to:+row.dataset.i};
+    try{h.setPointerCapture(e.pointerId)}catch(err){}});
+  document.addEventListener('pointermove',e=>{if(!D)return;const dy=e.clientY-D.y0;if(!D.on){if(Math.abs(dy)<8)return;D.on=true;D.row.classList.add('dragging')}
+    e.preventDefault();D.row.style.transform='translateY('+dy+'px)';const y=D.mids[D.from]+dy;let to=D.from;
+    D.mids.forEach((m,k)=>{if(k<D.from&&y<m)to=Math.min(to,k);if(k>D.from&&y>m)to=Math.max(to,k)});D.to=to;
+    D.rows.forEach((r,k)=>{if(r===D.row)return;r.style.transform=k>D.from&&k<=to?'translateY(-'+D.h+'px)':k<D.from&&k>=to?'translateY('+D.h+'px)':''})},{passive:false});
+  const end=()=>{if(!D)return;const d=D;D=null;d.rows.forEach(r=>{r.style.transform=''});d.row.classList.remove('dragging');if(d.on&&d.to!==d.from)lineMove(d.t,d.from,d.to)};
+  document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end)})();
