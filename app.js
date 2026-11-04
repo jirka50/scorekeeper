@@ -249,10 +249,10 @@ function setView(){
   ${ui.confirm?'<div class="row"><button class="solid" style="background:var(--pencil)" data-act="reset">Ano, smazat zápis</button><button class="ghost" data-act="noreset">Zpět</button></div>':'<button class="ghost danger" data-act="askreset">Začít nový zápas</button>'}</div>
   <p class="next" style="margin:0">${SYNC&&SYNC.st==='ok'?'Zápis se ukládá v telefonu a online pro tvůj tým.':'Zápis se ukládá v tomto prohlížeči na tomto zařízení.'} Připojení, zálohu a vzhled najdeš v menu Účet a zálohy.</p>`}
 
-function render(){applyTheme();if(document.body&&document.body.classList)document.body.classList.toggle('in',ROLE==='scorer');if(ROLE==='login'){renderLogin();return}if(ROLE!=='scorer'){renderParent();return}setSub('');
+function render(){applyTheme();if(document.body&&document.body.classList)document.body.classList.toggle('in',ROLE==='scorer');if(ROLE==='login'){if(HELPQ){HELPQ=false;ui.guestHelp=true}renderLogin();return}if(ROLE==='scorer'&&HELPQ){HELPQ=false;ui.tab='help'}if(ROLE!=='scorer'){renderParent();return}setSub('');
   document.getElementById('tabs').innerHTML=navHtml();document.getElementById('view').innerHTML=(VIEWS[ui.tab]||VIEWS.game)();if(RO())roMark();menuFit();wakeSync()}
 /* trenér „jen sleduje“: vidí vše, mění jen obranu, pořadí na pálce a střídání (+ prohlížení, exporty, odhlášení) */
-const RO_ACT=new Set(('tab menu look moon dsub luside pdn dpos dput sheet lsheet definn defside defrot deffill defclear deffair padd rall radd prem pup psub psubno psubpick psubgo anon pren renno rengo '+
+const RO_ACT=new Set(('tab menu look ghelp moon dsub luside pdn dpos dput sheet lsheet definn defside defrot deffill defclear deffair padd rall radd prem pup psub psubno psubpick psubgo anon pren renno rengo '+
   'attlineup attdef sum sumclose sumcopy csvgame csvseason pdf spdf plpdf dippdf waimg waclose wasave washare stteam stall tsel logout copylink syncnow otherok sun pl plback cancel').split(' '));
 const RO_ID=new Set(['ft','fc','teamsel','pf-theme','pf-wake','pf-buzz','add0','add1','subnum','rennum','sumtext']),roOk=id=>RO_ID.has(id)||id.startsWith('dp-')||id.startsWith('att-');
 function roMark(){if(!document.querySelectorAll)return;document.querySelectorAll('#view [data-act]').forEach(b=>{if(!RO_ACT.has(b.dataset.act)){b.disabled=true;b.classList.add('rodis')}});
@@ -924,6 +924,7 @@ function listenRole(){if(!FBX||!WEB.coach||FS.skOn)return;FS.skOn=true;const ref
 
 /* ---------- přihlášení ---------- */
 function renderLogin(){document.getElementById('tabs').innerHTML='';setSub('přihlášení');
+  if(ui.guestHelp){setSub('návod');document.getElementById('view').innerHTML=`<div class="card"><div class="row"><button class="ghost" data-act="ghelp" data-v="0">← Přihlášení</button></div></div>`+helpView();return}
   const setup=WEB.setupDone===false;
   document.getElementById('view').innerHTML=`<div class="card form login">
   ${setup?'':`<div class="tabs lgrole">${[['s','Zapisovatel'],['c','Trenér']].map(([k,l])=>`<button class="${(ui.lgRole||'s')===k?'on':''}" data-act="lgrole" data-v="${k}">${l}</button>`).join('')}</div>`}
@@ -936,7 +937,7 @@ function renderLogin(){document.getElementById('tabs').innerHTML='';setSub('při
   <label for="lg-code">Kód<input type="text" id="lg-code" autocomplete="off" autocapitalize="characters" placeholder="např. K4PX-7QMR"></label>
   <button class="solid" data-act="lgin" ${WEB.busy?'disabled':''}>Přihlásit</button>`}
   ${WEB.msg?`<div class="msg">${esc(WEB.msg)}</div>`:''}
-  </div><p class="next" style="margin:0">Jsi rodič? Skóre sleduješ na odkazu, který ti pošle trenér.</p>`}
+  </div><p class="next" style="margin:0">Jsi rodič? Skóre sleduješ na odkazu, který ti pošle trenér.</p><div class="card"><div class="sumline"><span class="next" style="margin:0">Nevíš si rady? Návod se dá přečíst i bez přihlášení.</span><button class="ghost" data-act="ghelp" data-v="1">📖 Návod</button></div></div>`}
 async function doLogin(){const f=document.getElementById('lg-code'),code=normCode(f&&f.value);if(code.length<9){WEB.msg='Zadej celý kód.';return render()}
   WEB.busy=true;WEB.msg='';render();
   try{const p=await claim(code);WEB.busy=false;WEB.msg='';startSession(code,p)}
@@ -1116,7 +1117,7 @@ function addTeam(){const f=document.getElementById('tnew'),name=(f&&f.value||'')
   const keep=S.settings;loadTeam(id);S.settings={...keep};R.name=name;S.teams[ours()].name=name;
   saveR();save();saveTeams();subscribeTeams();newPin(id);ui.tMsg='Tým „'+name+'“ je vytvořený a vybraný. Kód pro jeho zapisovatele najdeš níže, hráče přidáš v menu Soupiska.';ui.tab='admin';render()}
 async function copyText(t){try{await navigator.clipboard.writeText(t);ui.linkMsg='Zkopírováno.'}catch(e){ui.linkMsg='Zkopíruj ručně: '+t}render()}
-Object.assign(ACT,{lgrole:v=>{ui.lgRole=v;WEB.msg='';render()},lgin:()=>doLogin(),lgsetup:()=>doSetup(),logout:()=>logout(''),pinnew:v=>newPin(v),copylink:v=>copyText(v),
+Object.assign(ACT,{lgrole:v=>{ui.lgRole=v;WEB.msg='';render()},ghelp:v=>{ui.guestHelp=v==='1';render();window.scrollTo(0,0)},lgin:()=>doLogin(),lgsetup:()=>doSetup(),logout:()=>logout(''),pinnew:v=>newPin(v),copylink:v=>copyText(v),
   syncnow:()=>{if(!WEB.role)return;['state','team','schedule','games','info'].forEach(k=>TEAMS.list.forEach(t=>{if(canWrite(t.id))FS.dirty.add(k+'|'+t.id)}));if(WEB.role==='admin')FS.dirty.add('teams');FS.dirty.add('opp');flush();render()}});
 
 /* =========== soupisky soupeřů (uložené u každého týmu, synchronizují se) =========== */
@@ -1224,8 +1225,8 @@ async function wakeSync(){const nav=navigator.wakeLock;if(!nav||WLP)return;
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wakeSync()});
 
 /* ----- záložky: menu po oddílech ----- */
-const TABS={game:'Zápis',sheet:'Tabulka',def:'Lineup a obrana',score:'Rodiče a dugout',games:'Rozpis a výsledky',team:'Soupiska',stats:'Statistiky',opp:'Soupeři',set:'Pravidla zápasu',admin:'Účet a zálohy',prep:'Příprava zápasu',player:'Hráč'};
-const MENU=[['Zápas',['game','sheet','def','score']],['Sezóna',['games','team','stats','opp']],['Nastavení',['admin']]];
+const TABS={game:'Zápis',sheet:'Tabulka',def:'Lineup a obrana',score:'Rodiče a dugout',games:'Rozpis a výsledky',team:'Soupiska',stats:'Statistiky',opp:'Soupeři',set:'Pravidla zápasu',admin:'Účet a zálohy',help:'Návod',prep:'Příprava zápasu',player:'Hráč'};
+const MENU=[['Zápas',['game','sheet','def','score']],['Sezóna',['games','team','stats','opp']],['Nastavení',['admin','help']]];
 /* ----- stav připojení v hlavičce a upozornění na zápis z jiného telefonu ----- */
 const T0=Date.now();
 const netState=()=>typeof FBX==='undefined'||!FBX||!WEB.role?'':!WEB.online&&Date.now()-T0>4000?'off':SYNC.st==='error'?'err':'';
@@ -1238,8 +1239,85 @@ ACT.otherok=()=>{if(FS.other)ui.otherOk=FS.other.ts;render()};
 function navHtml(){const cur=TABS[ui.tab]||TABS.game;
   return netBadge()+teamSwitch()+`${lookBtn()}<div class="menu"><button class="menu-btn" data-act="menu" aria-label="Menu – ${cur}" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}"><span class="burger" aria-hidden="true"></span><span class="cur">${cur}</span><span class="caret" aria-hidden="true">${ui.menu?'▴':'▾'}</span></button>${ui.menu?`<div class="menu-list" role="menu">${MENU.map(([h,ks])=>`<div class="menu-h">${h}</div>${ks.map(k=>`<button role="menuitem" class="${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}`).join('')}</div>`:''}</div>`}
 const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>defSubNav()+(ui.defSub==='def'?defView():ui.defSub==='set'?teamSetup()+attendCard()+setView():lineupCard()),score:()=>scoreView(),games:()=>scheduleCard()+historyCard(),team:()=>teamView(),
-  stats:()=>statsView(),opp:()=>oppCard(),set:()=>{ui.tab='def';ui.defSub='set';return VIEWS.def()},admin:()=>adminView(),prep:()=>prepView()};
+  stats:()=>statsView(),opp:()=>oppCard(),set:()=>{ui.tab='def';ui.defSub='set';return VIEWS.def()},admin:()=>adminView(),help:()=>helpView(),prep:()=>prepView()};
 if(PREF.tab&&KEEP_TABS.includes(PREF.tab))ui.tab=PREF.tab; /* po otevření pokračovat tam, kde se skončilo */
+/* ---------- Návod (Menu → Nastavení → Návod), stejně jako v tréninkové aplikaci ---------- */
+const HELP=[
+ ['start','Začínáme',`<p>Scorekeeper slouží k zápisu t-ballových zápasů dětí do 7 let. Soupisky dětí jsou stejné jako v tréninkové aplikaci, stačí je vést jednou.</p>
+<ol><li><b>Přihlášení:</b> <b>Zapisovatel</b> zadá kód týmu, který mu dal správce. <b>Trenér</b> zadá svůj osobní kód, stejný jako do tréninkové aplikace. Správce se přihlašuje kódem správce.</li>
+<li><b>Instalace do telefonu:</b> v Safari Sdílet → Přidat na plochu, v Chrome ⋮ → Přidat na plochu / Nainstalovat. Zápis pak běží i na hřišti bez signálu a odešle se po připojení.</li>
+<li><b>Menu</b> je vpravo nahoře (☰). Tým přepínáš vedle menu, když jich máš víc.</li>
+<li><b>Tlačítko vzhledu</b> v hlavičce přepíná dokola světlý → tmavý 🌙 → kontrastní ☀ (na slunce).</li>
+<li><b>Šipky ▾ / ▴</b> u karet je sbalují a rozbalují. Telefon si pamatuje, co máš sbalené.</li></ol>
+<p class="small muted">Zápas zapisuj vždy jen na jednom zařízení. Ostatní (trenéři, rodiče, tablet v dugoutu) ho sledují.</p>`],
+ ['prep','Příprava zápasu',`<ul>
+<li><b>Rozpis a výsledky → Přidat do rozpisu:</b> datum, čas, soupeř, hřiště, doma / venku a typ zápasu. U zápasu pak klepni na <b>Začít</b>.</li>
+<li>Bez rozpisu stačí v Zápisu <b>▶ Připravit zápas</b>. Průvodce projde, kdo přišel, pálkařské pořadí a obranu.</li>
+<li><b>Lineup a obrana → Nastavení:</b>
+<ul><li><b>Týmy:</b> který tým je náš a kdo je doma. Domácí a hosty jde prohodit jen před prvním odpalem.</li>
+<li><b>Kdo dnes hraje:</b> odškrtni přítomné děti a dej <b>Sestavit pořadí z přítomných</b>, případně <b>…a vyplnit obranu</b>.</li>
+<li><b>Pravidla zápasu:</b> nadhoz (tee, coachball), nejvýš švihů na pálkaře, počet směn, nejvýš met po odpalu, limit bodů na polovinu směny, časový limit a jestli se po odpalu ptát, kam doběhli běžci.</li></ul></li>
+<li>Nahoře v <b>Lineupu</b> je kontrola před zápasem: ✓ je hotovo, ⚠ ještě něco chybí. Klepnutím na ⚠ se dostaneš tam, kde to opravíš.</li></ul>`],
+ ['lineup','Lineup a obrana',`<p>Tři karty <b>Lineup · Obrana · Nastavení</b>. Mezi nimi přepínáš nahoře nebo posunutím prstu vlevo / vpravo.</p>
+<h3>Lineup</h3><ul>
+<li>Přepínač <b>Náš tým / Soupeř</b> nahoře.</li>
+<li>Pořadí měníš šipkami <b>▲ ▼</b>, nebo podrž jméno a přetáhni ho nahoru či dolů.</li>
+<li><b>⇄</b> vystřídá hráče na tomto místě v pořadí, <b>×</b> ho z pořadí odebere. Dole přidáš dítě ze soupisky.</li>
+<li>U soupeře stačí čísla dresů. Uloženou soupisku soupeře vybereš jedním klepnutím (menu Soupeři).</li></ul>
+<h3>Obrana</h3><ul>
+<li>Nahoře vyber směnu. Klepni na pozici na hřišti a pod hřištěm vyber dítě. Kdo na pozici byl, dostane místo vybraného dítěte.</li>
+<li><b>Férově od 1. směny</b> rozdělí pozice na tuto a další směny: nikdo nehraje stejné místo dvakrát po sobě, každý se vystřídá ve vnitřním i vnějším poli a bere se ohled na celou sezónu. <b>Podle pořadí</b> posune každého na pozici hráče před ním. <b>Vymazat</b> obranu směny vyprázdní.</li>
+<li>Při víc než 9 dětech jde další dítě jako <b>další zadák</b> do zadního pole. V režimu tee se catcher nehraje a místo něj je další zadák.</li>
+<li><b>Upravit seznamem</b> nabídne pozice jako seznam u každého dítěte.</li>
+<li><b>Herní čas</b> dole ukazuje, kolikrát kdo pálil a kolik směn hrál ve vnitřním a vnějším poli nebo na lavičce. Červeně je, kdo je pozadu.</li></ul>`],
+ ['game','Zápis zápasu',`<ul>
+<li>Nahoře je tabule: směna (▲ horní, ▼ dolní polovina), švihy, auty, body a stopky <b>⏱</b>.</li>
+<li><b>Švih</b> = pálkař netrefil míček nebo ho odpálil do autu (faul). Po nejvyšším počtu švihů je aut.</li>
+<li><b>Výsledek odpalu:</b> <b>1B 2B 3B</b> = na kterou metu pálkař doběhl, <b>HR</b> = oběhl všechny mety.</li>
+<li><b>Aut ›</b> = míček chycen ve vzduchu nebo hozen na metu (vybereš, kdo vyautoval). <b>Chyba ›</b> = polař chyboval a pálkař je na metě (vybereš pozici). <b>FC</b> = polař vyautoval jiného běžce.</li>
+<li>U běžců na metách posuneš běžce o metu dál, nebo ho dáš do autu. Když je zapnuté „ptát se, kam doběhli běžci“, aplikace se po odpalu sama zeptá.</li>
+<li>Po každém zápisu se ukáže <b>Zapsáno · Vrátit</b>. Tlačítko <b>↶ Vrátit</b> vrací poslední akci.</li>
+<li>Polovina směny končí po 3 autech nebo po limitu bodů. Jinak ji ukončíš tlačítkem <b>Ukončit polovinu směny</b>.</li>
+<li><b>🏁 Konec zápasu</b> zápas uzavře a uloží do historie. <b>Průběh</b> dole ukazuje, co se stalo.</li></ul>`],
+ ['sheet','Tabulka a po zápase',`<ul>
+<li><b>Tabulka</b> je zápis jako na papíře. Ťukni na libovolný záznam a můžeš ho opravit. Význam značek je v legendě.</li>
+<li>Pod tabulkou vyplníš datum, hřiště a typ zápasu a jestli se má zápas započítat do statistik.</li>
+<li><b>Uložit zápis jako PDF</b> pro tisk nebo archiv.</li>
+<li><b>Po zápase:</b> vyber <b>Hvězdu zápasu</b> (nejvýš 3 děti), <b>Shrnutí pro rodiče</b> (text do skupiny), <b>📷 Obrázek pro WhatsApp</b> s výsledkem, <b>Uložit do historie</b> a export do CSV.</li></ul>`],
+ ['score','Rodiče a dugout',`<ul>
+<li><b>Živé skóre pro rodiče:</b> po prvním odeslání se skóre posílá samo po každém pálkaři. <b>Odeslat skóre teď</b> ho pošle hned. Bez internetu zápis běží dál a skóre se odešle po připojení.</li>
+<li><b>Odkaz pro rodiče</b> je stálý pro všechny zápasy týmu. Pošli ho jednou do skupiny. Rodiče vidí skóre, pořadí na pálce, rozpis a výsledky, jen s čísly dresů, bez jmen dětí.</li>
+<li><b>Tablet do dugoutu:</b> velké skóre, kdo pálí, kdo je na řadě a kdo se připraví, obrana na hřišti a zbývající čas. Funguje i na starých tabletech a bez přihlášení. Umí hlásit pálkaře nahlas, tmavý vzhled a celou obrazovku.</li>
+<li>Odkaz na dugout ukazuje křestní jména dětí. Dávej ho jen na tablet, ne do skupin.</li>
+<li><b>Takhle to uvidí rodiče</b> je náhled jejich stránky.</li></ul>`],
+ ['season','Sezóna',`<ul>
+<li><b>Rozpis a výsledky:</b> naplánované zápasy a historie odehraných. Rozpis a výsledky vidí i rodiče.</li>
+<li><b>Soupiska:</b> čísla a jména dětí (stejná jako v tréninkové aplikaci). Dítě jde přidat i bez čísla a číslo přidělit později. Klepnutím na dítě otevřeš jeho údaje a statistiky.</li>
+<li><b>Statistiky:</b> sezóna v číslech, statistiky hráčů, úspěchy, ocenění pro každé dítě a pozice v obraně. Filtr podle typu zápasu, <b>📄 Souhrn sezóny jako PDF</b>.</li>
+<li><b>Soupeři:</b> soupisky soupeřů, se kterými hrajete častěji. Jsou společné pro všechny tvoje týmy.</li></ul>`],
+ ['coach','Trenéři',`<ul>
+<li>Trenér se přihlašuje osobním kódem, stejným jako do tréninkové aplikace. Vidí zápasy týmů, které mu nastavil správce.</li>
+<li><b>Jen sleduje:</b> vidí zápas živě a smí upravit obranu, pořadí na pálce a střídání. Zápis akcí nemá.</li>
+<li><b>Zapisuje:</b> stejná práva jako zapisovatel.</li>
+<li>Roli nastavuje správce v Účet a zálohy → Trenéři.</li></ul>`],
+ ['set','Účet a zálohy',`<ul>
+<li><b>Přístup:</b> kdo je přihlášený a odhlášení.</li>
+<li><b>Aplikace v tomto telefonu:</b> vzhled, nenechat obrazovku během zápasu zhasnout, krátká vibrace po každém zápisu.</li>
+<li><b>Záloha</b> do souboru a obnovení. <b>Přenos týmu na jiné zařízení</b> přenese soupisku, název a pravidla.</li>
+<li><b>Zálohy online:</b> každý týden se uloží sama, drží se posledních 8. Když se něco smaže omylem, jde se k ní vrátit.</li>
+<li><b>Vymazat statistiky</b> smaže historii zápasů na všech telefonech a nejde vrátit. Nejdřív si ulož zálohu.</li></ul>`],
+ ['admin','Pro správce',`<ul>
+<li><b>Moje týmy:</b> přidání týmu. Každý tým má vlastní soupisku, pravidla, rozpis, historii a statistiky.</li>
+<li><b>Kódy a odkazy týmů:</b> <b>Vytvořit kód</b> pro zapisovatele, odkaz pro rodiče a odkaz pro zapisovatele. <b>Vyměnit kód</b> starý kód zneplatní.</li>
+<li><b>Trenéři:</b> u každého trenéra týmy, které vidí, a role Jen sleduje / Zapisuje. Trenéry přidáváš v tréninkové aplikaci.</li>
+<li>Jako správce vidíš a ukládáš všechny týmy.</li></ul>`]];
+/* návod bez přihlášení: tlačítko na přihlašovací stránce nebo odkaz s ?navod */
+let HELPQ=(()=>{try{return new URLSearchParams(location.search).has('navod')}catch(e){return false}})();
+const helpUrl=()=>location.origin+location.pathname+'?navod';
+function helpView(){const inn=ROLE==='scorer';
+  return `<div class="card"><div class="label">Návod</div><p class="next" style="margin:0">Jak zápisník používat. Klepnutím na kapitolu ji rozbalíš.</p>${inn?`<div class="row"><button class="ghost" data-act="copylink" data-v="${esc(helpUrl())}">Kopírovat odkaz na návod</button></div><p class="next" style="margin:0">Odkaz otevře návod i bez přihlášení, můžeš ho poslat novým zapisovatelům a trenérům.</p>`:''}</div>`+
+  HELP.filter(([k])=>k!=='admin'||WEB.role==='admin').map(([k,t,h])=>`<details class="card fold help" data-fold="h-${k}" ${foldOpen('h-'+k,k==='start')}><summary><span class="htitle">${t}</span></summary><div class="help-b">${h}</div></details>`).join('')+
+  (inn?`<div class="card"><div class="row"><button class="solid" data-act="tab" data-v="game">Do zápisu</button><button class="ghost" data-act="tab" data-v="def">Lineup a obrana</button></div></div>`:`<div class="card"><div class="row"><button class="solid" data-act="ghelp" data-v="0">Přihlásit se</button></div></div>`)}
 const adminView=()=>accessCard()+(WEB.role==='admin'?teamsCard()+adminCard()+coachesCard():'')+syncCard()+appCard()+settingsExtra()+teamTransferCard()+onlineBackupCard()+resetCard()+`<p class="next ver">Baseball Scorekeeper · ${verTxt()} · ${esc(gDate({meta:{date:APP_DATE}}))}</p>`;
 /* ----- vymazání statistik: historie zápasů + rozehraný zápas (soupisky, rozpis, soupeři a pravidla zůstanou) ----- */
 const resetTids=()=>ui.rsAll&&WEB.role==='admin'?TEAMS.list.map(t=>t.id).filter(canWrite):[TEAMS.cur];

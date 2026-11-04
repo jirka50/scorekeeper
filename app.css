@@ -475,3 +475,8 @@ header #tabs.tabs{flex:1 1 auto;justify-content:flex-end}
 .dpos.empty .dn{font-size:28cqw}
 /* Název aplikace stejně velký jako v tréninkové aplikaci (25 px na všech šířkách) */
 header h1,body.in header h1{font-size:25px;line-height:1.1}
+/* Návod */
+.sumline{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+details.help>summary .htitle{font:700 1.2rem/1.2 var(--display);letter-spacing:.01em}
+.help-b{margin-top:6px;line-height:1.45}.help-b p{margin:6px 0}.help-b ul,.help-b ol{padding-left:20px;margin:6px 0}.help-b li{margin:6px 0}.help-b h3{margin:14px 0 4px;font:700 1.02rem var(--display)}
+.help-b .small{font-size:.85rem}.help-b .muted{color:var(--muted)}
