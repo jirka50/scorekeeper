@@ -480,3 +480,9 @@ header h1,body.in header h1{font-size:25px;line-height:1.1}
 details.help>summary .htitle{font:700 1.2rem/1.2 var(--display);letter-spacing:.01em}
 .help-b{margin-top:6px;line-height:1.45}.help-b p{margin:6px 0}.help-b ul,.help-b ol{padding-left:20px;margin:6px 0}.help-b li{margin:6px 0}.help-b h3{margin:14px 0 4px;font:700 1.02rem var(--display)}
 .help-b .small{font-size:.85rem}.help-b .muted{color:var(--muted)}
+.hshots{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:10px 0 4px}
+.hshot{margin:0;flex:0 1 260px;max-width:260px;text-align:center}
+.hshot.wide{flex-basis:100%;max-width:560px}
+.hshot img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.hshot figcaption{font-size:.8rem;color:var(--muted);margin-top:4px}
+@media (max-width:420px){.hshot{flex-basis:calc(50% - 6px)}.hshots:has(.hshot:only-child) .hshot{flex-basis:70%;max-width:70%}.hshot.wide{flex-basis:100%;max-width:100%}}

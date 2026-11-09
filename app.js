@@ -1242,13 +1242,14 @@ const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>defSubNav()+(ui.d
   stats:()=>statsView(),opp:()=>oppCard(),set:()=>{ui.tab='def';ui.defSub='set';return VIEWS.def()},admin:()=>adminView(),help:()=>helpView(),prep:()=>prepView()};
 if(PREF.tab&&KEEP_TABS.includes(PREF.tab))ui.tab=PREF.tab; /* po otevření pokračovat tam, kde se skončilo */
 /* ---------- Návod (Menu → Nastavení → Návod), stejně jako v tréninkové aplikaci ---------- */
+const shot=(f,cap,w,h,wide)=>`<figure class="hshot${wide?' wide':''}"><a href="help/${f}.webp" target="_blank" rel="noopener" title="Otevřít větší"><img src="help/${f}.webp" alt="${cap}" loading="lazy" width="${w}" height="${h}"></a><figcaption>${cap}</figcaption></figure>`;
 const HELP=[
  ['start','Začínáme',`<p>Scorekeeper slouží k zápisu t-ballových zápasů dětí do 7 let. Soupisky dětí jsou stejné jako v tréninkové aplikaci, stačí je vést jednou.</p>
 <ol><li><b>Přihlášení:</b> <b>Zapisovatel</b> zadá kód týmu, který mu dal správce. <b>Trenér</b> zadá svůj osobní kód, stejný jako do tréninkové aplikace. Správce se přihlašuje kódem správce.</li>
 <li><b>Instalace do telefonu:</b> v Safari Sdílet → Přidat na plochu, v Chrome ⋮ → Přidat na plochu / Nainstalovat. Zápis pak běží i na hřišti bez signálu a odešle se po připojení.</li>
 <li><b>Menu</b> je vpravo nahoře (☰). Tým přepínáš vedle menu, když jich máš víc.</li>
 <li><b>Tlačítko vzhledu</b> v hlavičce přepíná dokola světlý → tmavý 🌙 → kontrastní ☀ (na slunce).</li>
-<li><b>Šipky ▾ / ▴</b> u karet je sbalují a rozbalují. Telefon si pamatuje, co máš sbalené.</li></ol>
+<li><b>Šipky ▾ / ▴</b> u karet je sbalují a rozbalují. Telefon si pamatuje, co máš sbalené.</li></ol><div class="hshots">${shot('prihlaseni','Přihlášení',720,1145)}${shot('menu','Menu vpravo nahoře',720,1182)}</div>
 <p class="small muted">Zápas zapisuj vždy jen na jednom zařízení. Ostatní (trenéři, rodiče, tablet v dugoutu) ho sledují.</p>`],
  ['prep','Příprava zápasu',`<ul>
 <li><b>Rozpis a výsledky → Přidat do rozpisu:</b> datum, čas, soupeř, hřiště, doma / venku a typ zápasu. U zápasu pak klepni na <b>Začít</b>.</li>
@@ -1257,19 +1258,19 @@ const HELP=[
 <ul><li><b>Týmy:</b> který tým je náš a kdo je doma. Domácí a hosty jde prohodit jen před prvním odpalem.</li>
 <li><b>Kdo dnes hraje:</b> odškrtni přítomné děti a dej <b>Sestavit pořadí z přítomných</b>, případně <b>…a vyplnit obranu</b>.</li>
 <li><b>Pravidla zápasu:</b> nadhoz (tee, coachball), nejvýš švihů na pálkaře, počet směn, nejvýš met po odpalu, limit bodů na polovinu směny, časový limit a jestli se po odpalu ptát, kam doběhli běžci.</li></ul></li>
-<li>Nahoře v <b>Lineupu</b> je kontrola před zápasem: ✓ je hotovo, ⚠ ještě něco chybí. Klepnutím na ⚠ se dostaneš tam, kde to opravíš.</li></ul>`],
+<li>Nahoře v <b>Lineupu</b> je kontrola před zápasem: ✓ je hotovo, ⚠ ještě něco chybí. Klepnutím na ⚠ se dostaneš tam, kde to opravíš.</li></ul><div class="hshots">${shot('kdohraje','Kdo dnes hraje',720,646)}${shot('pravidla','Pravidla zápasu',720,917)}</div>`],
  ['lineup','Lineup a obrana',`<p>Tři karty <b>Lineup · Obrana · Nastavení</b>. Mezi nimi přepínáš nahoře nebo posunutím prstu vlevo / vpravo.</p>
 <h3>Lineup</h3><ul>
 <li>Přepínač <b>Náš tým / Soupeř</b> nahoře.</li>
 <li>Pořadí měníš šipkami <b>▲ ▼</b>, nebo podrž jméno a přetáhni ho nahoru či dolů.</li>
 <li><b>⇄</b> vystřídá hráče na tomto místě v pořadí, <b>×</b> ho z pořadí odebere. Dole přidáš dítě ze soupisky.</li>
-<li>U soupeře stačí čísla dresů. Uloženou soupisku soupeře vybereš jedním klepnutím (menu Soupeři).</li></ul>
+<li>U soupeře stačí čísla dresů. Uloženou soupisku soupeře vybereš jedním klepnutím (menu Soupeři).</li></ul><div class="hshots">${shot('lineup','Lineup: pálkařské pořadí',720,1403)}</div>
 <h3>Obrana</h3><ul>
 <li>Nahoře vyber směnu. Klepni na pozici na hřišti a pod hřištěm vyber dítě. Kdo na pozici byl, dostane místo vybraného dítěte.</li>
 <li><b>Férově od 1. směny</b> rozdělí pozice na tuto a další směny: nikdo nehraje stejné místo dvakrát po sobě, každý se vystřídá ve vnitřním i vnějším poli a bere se ohled na celou sezónu. <b>Podle pořadí</b> posune každého na pozici hráče před ním. <b>Vymazat</b> obranu směny vyprázdní.</li>
 <li>Při víc než 9 dětech jde další dítě jako <b>další zadák</b> do zadního pole. V režimu tee se catcher nehraje a místo něj je další zadák.</li>
 <li><b>Upravit seznamem</b> nabídne pozice jako seznam u každého dítěte.</li>
-<li><b>Herní čas</b> dole ukazuje, kolikrát kdo pálil a kolik směn hrál ve vnitřním a vnějším poli nebo na lavičce. Červeně je, kdo je pozadu.</li></ul>`],
+<li><b>Herní čas</b> dole ukazuje, kolikrát kdo pálil a kolik směn hrál ve vnitřním a vnějším poli nebo na lavičce. Červeně je, kdo je pozadu.</li></ul><div class="hshots">${shot('obrana','Obrana: klepni na pozici a vyber dítě',720,1751)}</div>`],
  ['game','Zápis zápasu',`<ul>
 <li>Nahoře je tabule: směna (▲ horní, ▼ dolní polovina), švihy, auty, body a stopky <b>⏱</b>.</li>
 <li><b>Švih</b> = pálkař netrefil míček nebo ho odpálil do autu (faul). Po nejvyšším počtu švihů je aut.</li>
@@ -1278,23 +1279,23 @@ const HELP=[
 <li>U běžců na metách posuneš běžce o metu dál, nebo ho dáš do autu. Když je zapnuté „ptát se, kam doběhli běžci“, aplikace se po odpalu sama zeptá.</li>
 <li>Po každém zápisu se ukáže <b>Zapsáno · Vrátit</b>. Tlačítko <b>↶ Vrátit</b> vrací poslední akci.</li>
 <li>Polovina směny končí po 3 autech nebo po limitu bodů. Jinak ji ukončíš tlačítkem <b>Ukončit polovinu směny</b>.</li>
-<li><b>🏁 Konec zápasu</b> zápas uzavře a uloží do historie. <b>Průběh</b> dole ukazuje, co se stalo.</li></ul>`],
+<li><b>🏁 Konec zápasu</b> zápas uzavře a uloží do historie. <b>Průběh</b> dole ukazuje, co se stalo.</li></ul><div class="hshots">${shot('zapis','Zápis během zápasu',720,1662)}${shot('aut','Aut: ťukej pozice v pořadí, kdo se podílel',720,662)}</div>`],
  ['sheet','Tabulka a po zápase',`<ul>
 <li><b>Tabulka</b> je zápis jako na papíře. Ťukni na libovolný záznam a můžeš ho opravit. Význam značek je v legendě.</li>
 <li>Pod tabulkou vyplníš datum, hřiště a typ zápasu a jestli se má zápas započítat do statistik.</li>
 <li><b>Uložit zápis jako PDF</b> pro tisk nebo archiv.</li>
-<li><b>Po zápase:</b> vyber <b>Hvězdu zápasu</b> (nejvýš 3 děti), <b>Shrnutí pro rodiče</b> (text do skupiny), <b>📷 Obrázek pro WhatsApp</b> s výsledkem, <b>Uložit do historie</b> a export do CSV.</li></ul>`],
+<li><b>Po zápase:</b> vyber <b>Hvězdu zápasu</b> (nejvýš 3 děti), <b>Shrnutí pro rodiče</b> (text do skupiny), <b>📷 Obrázek pro WhatsApp</b> s výsledkem, <b>Uložit do historie</b> a export do CSV.</li></ul><div class="hshots">${shot('tabulka','Tabulka zápisu',720,697)}${shot('pozapase','Po zápase',720,903)}</div>`],
  ['score','Rodiče a dugout',`<ul>
 <li><b>Živé skóre pro rodiče:</b> po prvním odeslání se skóre posílá samo po každém pálkaři. <b>Odeslat skóre teď</b> ho pošle hned. Bez internetu zápis běží dál a skóre se odešle po připojení.</li>
 <li><b>Odkaz pro rodiče</b> je stálý pro všechny zápasy týmu. Pošli ho jednou do skupiny. Rodiče vidí skóre, pořadí na pálce, rozpis a výsledky, jen s čísly dresů, bez jmen dětí.</li>
 <li><b>Tablet do dugoutu:</b> velké skóre, kdo pálí, kdo je na řadě a kdo se připraví, obrana na hřišti a zbývající čas. Funguje i na starých tabletech a bez přihlášení. Umí hlásit pálkaře nahlas, tmavý vzhled a celou obrazovku.</li>
 <li>Odkaz na dugout ukazuje křestní jména dětí. Dávej ho jen na tablet, ne do skupin.</li>
-<li><b>Takhle to uvidí rodiče</b> je náhled jejich stránky.</li></ul>`],
+<li><b>Takhle to uvidí rodiče</b> je náhled jejich stránky.</li></ul><div class="hshots">${shot('rodice','Co vidí rodiče na svém odkazu',716,896)}</div><div class="hshots">${shot('dugout','Tablet v dugoutu',960,600,1)}</div>`],
  ['season','Sezóna',`<ul>
 <li><b>Rozpis a výsledky:</b> naplánované zápasy a historie odehraných. Rozpis a výsledky vidí i rodiče.</li>
 <li><b>Soupiska:</b> čísla a jména dětí (stejná jako v tréninkové aplikaci). Dítě jde přidat i bez čísla a číslo přidělit později. Klepnutím na dítě otevřeš jeho údaje a statistiky.</li>
 <li><b>Statistiky:</b> sezóna v číslech, statistiky hráčů, úspěchy, ocenění pro každé dítě a pozice v obraně. Filtr podle typu zápasu, <b>📄 Souhrn sezóny jako PDF</b>.</li>
-<li><b>Soupeři:</b> soupisky soupeřů, se kterými hrajete častěji. Jsou společné pro všechny tvoje týmy.</li></ul>`],
+<li><b>Soupeři:</b> soupisky soupeřů, se kterými hrajete častěji. Jsou společné pro všechny tvoje týmy.</li></ul><div class="hshots">${shot('soupiska','Soupiska',720,1288)}</div>`],
  ['coach','Trenéři',`<ul>
 <li>Trenér se přihlašuje osobním kódem, stejným jako do tréninkové aplikace. Vidí zápasy týmů, které mu nastavil správce.</li>
 <li><b>Jen sleduje:</b> vidí zápas živě a smí upravit obranu, pořadí na pálce a střídání. Zápis akcí nemá.</li>
@@ -1305,7 +1306,7 @@ const HELP=[
 <li><b>Aplikace v tomto telefonu:</b> vzhled, nenechat obrazovku během zápasu zhasnout, krátká vibrace po každém zápisu.</li>
 <li><b>Záloha</b> do souboru a obnovení. <b>Přenos týmu na jiné zařízení</b> přenese soupisku, název a pravidla.</li>
 <li><b>Zálohy online:</b> každý týden se uloží sama, drží se posledních 8. Když se něco smaže omylem, jde se k ní vrátit.</li>
-<li><b>Vymazat statistiky</b> smaže historii zápasů na všech telefonech a nejde vrátit. Nejdřív si ulož zálohu.</li></ul>`],
+<li><b>Vymazat statistiky</b> smaže historii zápasů na všech telefonech a nejde vrátit. Nejdřív si ulož zálohu.</li></ul><div class="hshots">${shot('aplikace','Aplikace v tomto telefonu',720,481)}</div>`],
  ['admin','Pro správce',`<ul>
 <li><b>Moje týmy:</b> přidání týmu. Každý tým má vlastní soupisku, pravidla, rozpis, historii a statistiky.</li>
 <li><b>Kódy a odkazy týmů:</b> <b>Vytvořit kód</b> pro zapisovatele, odkaz pro rodiče a odkaz pro zapisovatele. <b>Vyměnit kód</b> starý kód zneplatní.</li>
