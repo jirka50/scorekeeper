@@ -580,6 +580,7 @@ document.addEventListener('change',e=>{const el=e.target,id=el.id||'';if(RO()&&!
   if(id.startsWith('cot-')){const rest=id.slice(4),i=rest.indexOf('-'),cid=rest.slice(0,i),tid=rest.slice(i+1),r=CO.roles[cid]||{w:false,teams:{}},tm={...(r.teams||{})};if(el.checked)tm[tid]=true;else delete tm[tid];return coSave(cid,{w:!!r.w,teams:tm})}
   if(id.startsWith('wb-')){const w=ui.wiz,n=id.slice(3);if(w&&w.att2){w.att2=el.checked?[...new Set([...w.att2,n])]:w.att2.filter(x=>x!==n)}return render()}
   if(id.startsWith('wa-')){const w=ui.wiz,n=id.slice(3);if(w)w.att=el.checked?[...new Set([...w.att,n])]:w.att.filter(x=>x!==n);return render()}
+  if(id.startsWith('tr-')){const tf=tfDef();tf[id.slice(3)]=el.value;if(id==='tr-n')render();return}
   if(id.startsWith('att-')){const n=id.slice(4),a=attList();S.att=el.checked?[...new Set([...a,n])]:a.filter(x=>x!==n);save();return render()}
   const f=CHG[id];if(f){f(el.value,el);save()}});
 
@@ -685,7 +686,7 @@ const loadSch=()=>{const x=store.get(tkey(SKEY),[]);return Array.isArray(x)?x:[]
 const saveSch=x=>store.set(tkey(SKEY),x);
 function scheduleCard(){const list=loadSch().filter(x=>!x.played).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
   return `<div class="card form"><div class="label">Rozpis zápasů</div>
-  ${list.length?`<div class="hist">${list.map(x=>`<div class="hrow"><span class="res rR">${x.home?'D':'H'}</span><div class="hmain"><b>${esc(R.name||S.teams[ours()].name)} – ${esc(x.opp)}</b><span class="next">${esc(gDate({meta:{date:x.date}}))}${x.time?' · '+esc(x.time):''}${x.field?' · '+esc(x.field):''} · ${x.home?'doma':'venku'}${kindTxt(x)?'<br>'+esc(kindTxt(x)):''}</span></div><div class="hbtns"><button class="mini-btn" data-act="schstart" data-v="${esc(x.id)}">▶ Začít</button><button class="mini-btn out" data-act="schdel" data-v="${esc(x.id)}" aria-label="Smazat z rozpisu">×</button></div></div>`).join('')}</div>`:'<p class="next" style="margin:0">Zatím žádné naplánované zápasy.</p>'}
+  ${list.length?`<div class="hist">${list.map(x=>`<div class="hrow"><span class="res rR">${x.home?'D':'H'}</span><div class="hmain"><b>${esc(R.name||S.teams[ours()].name)} – ${esc(x.opp)}</b><span class="next">${esc(gDate({meta:{date:x.date}}))}${x.time?' · '+esc(x.time):''}${x.field?' · '+esc(x.field):''} · ${x.home?'doma':'venku'}${kindTxt(x)?'<br>'+esc(kindTxt(x)):''}${x.tname?' · 🏆 '+esc(x.tname):''}</span></div><div class="hbtns"><button class="mini-btn" data-act="schstart" data-v="${esc(x.id)}">▶ Začít</button><button class="mini-btn out" data-act="schdel" data-v="${esc(x.id)}" aria-label="Smazat z rozpisu">×</button></div></div>`).join('')}</div>`:'<p class="next" style="margin:0">Zatím žádné naplánované zápasy.</p>'}
   <div class="cols2"><label for="sch-d">Datum<input type="date" id="sch-d" value="${todayISO()}"></label><label for="sch-t">Čas<input type="time" id="sch-t"></label>
   <label for="sch-o">Soupeř<input type="text" id="sch-o" placeholder="název týmu"></label>${oppSchedSelect()}${TEAMS.list.length>1?`<label for="sch-v">…nebo můj tým<select id="sch-v" class="sel"><option value="">ne, cizí tým</option>${TEAMS.list.filter(t=>t.id!==TEAMS.cur).map(t=>`<option value="${esc(t.id)}">${esc(teamName(t))}</option>`).join('')}</select></label>`:''}<label for="sch-f">Hřiště<input type="text" id="sch-f" placeholder="kde se hraje"></label>
   <label for="sch-h">Hrajeme<select id="sch-h" class="sel"><option value="1">doma (pálíme druzí)</option><option value="0">venku (pálíme první)</option></select></label>
@@ -695,6 +696,59 @@ function scheduleCard(){const list=loadSch().filter(x=>!x.played).sort((a,b)=>(a
 function schAdd(){const g=id=>(document.getElementById(id)||{}).value||'';const vs=TEAMS.list.find(t=>t.id===g('sch-v')&&t.id!==TEAMS.cur),so=!vs&&oppById(g('sch-p'));const opp=vs?teamName(vs):so?so.name:g('sch-o').trim();if(!opp){ui.schMsg='Doplň soupeře.';return render()}
   const x={id:newId(),date:g('sch-d')||todayISO(),time:g('sch-t'),opp,field:g('sch-f').trim(),home:g('sch-h')!=='0',type:g('sch-y')||GTYPES[0],comp:g('sch-c')||COMPS[0]};if(vs)x.vsTid=vs.id;else if(so){x.oppId=so.id;const oc=oppComps(so);if(oc.length===1&&!oc.includes(x.comp))x.comp=oc[0]}const l=loadSch();l.push(x);saveSch(l);if(vs)twinSchedule(x);ui.schMsg='Přidáno: '+opp+(vs?'. Zápas je i v rozpisu týmu '+opp+'.':'.');render()}
 
+/* ---------- Turnaj: každý s každým. Celý rozpis turnaje je v rozpisu jako záznam kind:'tourn' (played:true, aby ho ostatní části přeskočily), naše zápasy jsou běžné řádky rozpisu s tourId ---------- */
+const hm2m=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(t||'');return m?+m[1]*60+ +m[2]:540};
+const m2hm=m=>String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+/* rozlosování kruhovou metodou, pak rozdělení do časů a hřišť: v jednom čase nikdo dvakrát, přednost mají týmy, které minule nehrály */
+function rrPlan(n,pitches){const ids=range(n).map(i=>i-1);if(n%2)ids.push(-1);const m=ids.length,pairs=[];let arr=ids.slice();
+  for(let r=0;r<m-1;r++){for(let i=0;i<m/2;i++){const a=arr[i],b=arr[m-1-i];if(a>=0&&b>=0)pairs.push([a,b])}arr=[arr[0],arr[m-1],...arr.slice(1,m-1)]}
+  const left=pairs.slice(),slots=[];let prev=new Set();
+  while(left.length){const busy=new Set(),pick=[];
+    const order=left.map((g,i)=>({g,i,k:(prev.has(g[0])?1:0)+(prev.has(g[1])?1:0)})).sort((x,y)=>x.k-y.k||x.i-y.i);
+    for(const o of order){if(pick.length>=pitches)break;if(busy.has(o.g[0])||busy.has(o.g[1]))continue;pick.push(o.g);busy.add(o.g[0]);busy.add(o.g[1])}
+    pick.forEach(g=>left.splice(left.indexOf(g),1));slots.push(pick);prev=busy}
+  const homeN=range(n).map(()=>0),out=[];
+  slots.forEach((sl,s)=>sl.forEach((g,p)=>{let [a,b]=g;const h=homeN[a]<homeN[b]?a:homeN[b]<homeN[a]?b:((s+p)%2?a:b),aw=h===a?b:a;homeN[h]++;out.push({slot:s,p:p+1,h,a:aw})}));
+  for(let it=0;it<20;it++){let ch=false;out.forEach(g=>{if(homeN[g.h]>homeN[g.a]+1){homeN[g.h]--;homeN[g.a]++;[g.h,g.a]=[g.a,g.h];ch=true}});if(!ch)break}
+  return out}
+const tourns=()=>loadSch().filter(x=>x.kind==='tourn').sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+function tfDef(){const tf=ui.tf=ui.tf||{};if(!tf.n){Object.assign(tf,{n:'4',date:todayISO(),start:'09:00',field:'',name:'',pitches:'1',dur:String(S.settings.timeLimit||45),gap:'10',comp:COMPS[0]})}return tf}
+function tournForm(){const tf=tfDef(),n=+tf.n,us=R.name||S.teams[ours()].name,opps=loadOpp().map(o=>o.name).filter(Boolean);
+  const inp=(k,l,type='text',extra='')=>`<label for="tr-${k}">${l}<input type="${type}" id="tr-${k}" value="${esc(tf[k]||'')}" ${extra}></label>`;
+  return `<details class="card form fold" data-fold="tourn" ${foldOpen('tourn',false)}><summary><span class="label">Naplánovat turnaj</span><span class="fsum">každý s každým</span></summary>
+  <div class="cols2">${inp('name','Název turnaje','text','placeholder="např. Podzimní turnaj U7"')}${inp('date','Datum','date')}${inp('start','Začátek prvního zápasu','time')}${inp('field','Hřiště','text','placeholder="kde se hraje"')}
+  <label for="tr-n">Počet týmů<select id="tr-n" class="sel">${range(6).map(i=>i+2).map(k=>`<option ${k===n?'selected':''}>${k}</option>`).join('')}</select></label>
+  <label for="tr-pitches">Hrací plochy najednou<select id="tr-pitches" class="sel">${[1,2,3].map(k=>`<option value="${k}" ${String(k)===tf.pitches?'selected':''}>${k===1?'1 hřiště':k+' hřiště vedle sebe'}</option>`).join('')}</select></label>
+  ${inp('dur','Délka zápasu (min)','number','min="10" max="180" inputmode="numeric"')}${inp('gap','Přestávka mezi zápasy (min)','number','min="0" max="60" inputmode="numeric"')}
+  <label for="tr-comp">Soutěž<select id="tr-comp" class="sel">${COMPS.map(c=>`<option ${c===tf.comp?'selected':''}>${esc(c)}</option>`).join('')}</select></label></div>
+  <div class="label">Týmy</div><div class="cols2"><label>1. tým (náš)<input type="text" value="${esc(us)}" disabled></label>
+  ${range(n-1).map(i=>`<label for="tr-t${i}">${i+1}. tým<input type="text" id="tr-t${i}" list="tr-opps" value="${esc(tf['t'+i]||'')}" placeholder="název týmu"></label>`).join('')}</div>
+  <datalist id="tr-opps">${opps.map(o=>`<option value="${esc(o)}">`).join('')}</datalist>
+  <p class="next" style="margin:0">Hraje každý s každým: ${n*(n-1)/2} zápasů, každý tým ${n-1}. Pravidla zápasu se berou z Lineup a obrana → Nastavení.</p>
+  <button class="solid" data-act="trmake" style="align-self:flex-start">Vytvořit rozpis turnaje</button>${ui.trMsg?`<div class="next">${esc(ui.trMsg)}</div>`:''}</details>`}
+function tournMake(){const tf=tfDef();document.querySelectorAll('[id^="tr-"]').forEach(el=>{if(el.id!=='tr-opps')tf[el.id.slice(3)]=el.value});
+  const n=+tf.n,us=R.name||S.teams[ours()].name,teams=[us,...range(n-1).map(i=>(tf['t'+i]||'').trim())];
+  if(teams.some(t=>!t)){ui.trMsg='Doplň názvy všech týmů.';return render()}
+  if(new Set(teams.map(t=>t.toLowerCase())).size<teams.length){ui.trMsg='Názvy týmů se nesmí opakovat.';return render()}
+  const dur=Math.max(10,+tf.dur||45),gap=Math.max(0,+tf.gap||0),pitches=+tf.pitches||1,st=hm2m(tf.start),tid=newId(),name=(tf.name||'').trim()||'Turnaj';
+  const games=rrPlan(n,pitches).map((g,i)=>({...g,no:i+1,time:m2hm(st+g.slot*(dur+gap))}));
+  const l=loadSch(),field=(tf.field||'').trim(),date=tf.date||todayISO();
+  games.forEach(g=>{if(g.h!==0&&g.a!==0)return;const home=g.h===0,opp=teams[home?g.a:g.h],so=loadOpp().find(o=>o.name===opp);
+    const x={id:newId(),date,time:g.time,opp,field:field+(pitches>1?(field?' · ':'')+'hřiště '+g.p:''),home,type:'Turnaj',comp:tf.comp||COMPS[0],tourId:tid,tname:name};if(so)x.oppId=so.id;g.sid=x.id;l.push(x)});
+  l.push({id:tid,kind:'tourn',played:true,name,date,start:m2hm(st),field,pitches,dur,gap,comp:tf.comp||COMPS[0],type:'Turnaj',teams,games});
+  saveSch(l);ui.tf=null;ui.trMsg='';ui.trOpen=tid;ui.schMsg='Turnaj „'+name+'“ vytvořen. Naše zápasy ('+games.filter(g=>g.h===0||g.a===0).length+') jsou v rozpisu.';
+  try{const f=PREF.fold||{};f.tourn=false;prefSet('fold',f)}catch(e){}render()}
+function tournText(t){return `🏆 ${t.name} · ${gDate({meta:{date:t.date}})}${t.field?' · '+t.field:''}\n`+t.games.map(g=>`${g.time}${t.pitches>1?' (hř. '+g.p+')':''}  ${t.teams[g.a]} – ${t.teams[g.h]}`).join('\n')+'\n(první uvedený tým je host, pálí první)'}
+function tournCard(){const L=tourns();if(!L.length)return tournForm();
+  return L.map(t=>{const end=m2hm(hm2m(t.start)+(Math.max(...t.games.map(g=>g.slot))+1)*(t.dur+t.gap)-t.gap),cnt=t.teams.map((_,i)=>t.games.filter(g=>g.h===i||g.a===i).length);
+    return `<details class="card form fold" data-fold="tr-${esc(t.id)}" ${foldOpen('tr-'+t.id,ui.trOpen===t.id||t.date>=todayISO())}><summary><span class="label">🏆 ${esc(t.name)}</span><span class="fsum">${esc(gDate({meta:{date:t.date}}))} · ${esc(t.start)}–${end}</span></summary>
+    <p class="next" style="margin:0">${esc(t.field||'')}${t.field?' · ':''}${t.teams.length} týmů · každý s každým · zápas ${t.dur} min + ${t.gap} min přestávka${t.pitches>1?' · '+t.pitches+' hřiště':''}</p>
+    <div class="sheet-wrap"><table class="pt trt"><thead><tr><th>#</th><th>Čas</th>${t.pitches>1?'<th>Hř.</th>':''}<th>Hosté</th><th>Domácí</th></tr></thead><tbody>
+    ${t.games.map(g=>{const our=g.h===0||g.a===0;return `<tr class="${our?'ours':''}"><td>${g.no}</td><td>${esc(g.time)}</td>${t.pitches>1?`<td>${g.p}</td>`:''}<td>${g.a===0?'<b>':''}${esc(t.teams[g.a])}${g.a===0?'</b>':''}</td><td>${g.h===0?'<b>':''}${esc(t.teams[g.h])}${g.h===0?'</b>':''}</td></tr>`}).join('')}</tbody></table></div>
+    <p class="next" style="margin:0">Hosté pálí první. Tučně náš tým, naše zápasy jsou v rozpisu nahoře s tlačítkem Začít. Zápasů na tým: ${t.teams.map((n,i)=>esc(n)+' '+cnt[i]).join(', ')}.</p>
+    <div class="row"><button class="ghost" data-act="trcopy" data-v="${esc(t.id)}">Kopírovat rozpis</button>${ui.trDel===t.id?`<button class="ghost out" data-act="trdelyes" data-v="${esc(t.id)}">Opravdu smazat</button><button class="ghost" data-act="trdel" data-v="">Ne</button>`:`<button class="ghost" data-act="trdel" data-v="${esc(t.id)}">Smazat turnaj</button>`}</div></details>`}).join('')+tournForm()}
+Object.assign(ACT,{trmake:()=>tournMake(),trcopy:v=>{const t=tourns().find(x=>x.id===v);if(t)copyText(tournText(t))},trdel:v=>{ui.trDel=v||null;render()},
+  trdelyes:v=>{saveSch(loadSch().filter(x=>x.id!==v&&!(x.tourId===v&&!x.played)));ui.trDel=null;ui.schMsg='Turnaj smazán i s našimi zápasy v rozpisu.';render()}});
 /* ----- CSV export ----- */
 const csvCell=v=>{v=String(v??'');return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
 const csv=rows=>'\ufeff'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n');
@@ -1238,7 +1292,7 @@ function otherCard(){const o=typeof FS!=='undefined'&&FS.other;if(!o||o.gid!==S.
 ACT.otherok=()=>{if(FS.other)ui.otherOk=FS.other.ts;render()};
 function navHtml(){const cur=TABS[ui.tab]||TABS.game;
   return netBadge()+teamSwitch()+`${lookBtn()}<div class="menu"><button class="menu-btn" data-act="menu" aria-label="Menu – ${cur}" aria-haspopup="true" aria-expanded="${ui.menu?'true':'false'}"><span class="burger" aria-hidden="true"></span><span class="cur">${cur}</span><span class="caret" aria-hidden="true">${ui.menu?'▴':'▾'}</span></button>${ui.menu?`<div class="menu-list" role="menu">${MENU.map(([h,ks])=>`<div class="menu-h">${h}</div>${ks.map(k=>`<button role="menuitem" class="${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${TABS[k]}</button>`).join('')}`).join('')}</div>`:''}</div>`}
-const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>defSubNav()+(ui.defSub==='def'?defView():ui.defSub==='set'?teamSetup()+attendCard()+setView():lineupCard()),score:()=>scoreView(),games:()=>scheduleCard()+historyCard(),team:()=>teamView(),
+const VIEWS={game:()=>gameView(),sheet:()=>sheetView(),def:()=>defSubNav()+(ui.defSub==='def'?defView():ui.defSub==='set'?teamSetup()+attendCard()+setView():lineupCard()),score:()=>scoreView(),games:()=>scheduleCard()+tournCard()+historyCard(),team:()=>teamView(),
   stats:()=>statsView(),opp:()=>oppCard(),set:()=>{ui.tab='def';ui.defSub='set';return VIEWS.def()},admin:()=>adminView(),help:()=>helpView(),prep:()=>prepView()};
 if(PREF.tab&&KEEP_TABS.includes(PREF.tab))ui.tab=PREF.tab; /* po otevření pokračovat tam, kde se skončilo */
 /* ---------- Návod (Menu → Nastavení → Návod), stejně jako v tréninkové aplikaci ---------- */
@@ -1293,7 +1347,7 @@ const HELP=[
 <li><b>Takhle to uvidí rodiče</b> je náhled jejich stránky.</li></ul><div class="hshots">${shot('rodice','Co vidí rodiče na svém odkazu',716,896)}</div><div class="hshots">${shot('dugout','Tablet v dugoutu',960,600,1)}</div>`],
  ['season','Sezóna',`<ul>
 <li><b>Rozpis a výsledky:</b> naplánované zápasy a historie odehraných. Rozpis a výsledky vidí i rodiče.</li>
-<li><b>Soupiska:</b> čísla a jména dětí (stejná jako v tréninkové aplikaci). Dítě jde přidat i bez čísla a číslo přidělit později. Klepnutím na dítě otevřeš jeho údaje a statistiky.</li>
+<li><b>Naplánovat turnaj</b> (v Rozpis a výsledky): název, datum, začátek, hřiště, počet týmů, délka zápasu a přestávka. Aplikace rozlosuje každý s každým, rozvrhne časy tak, aby týmy pokud možno nehrály dvakrát po sobě, a vyrovná domácí a hosty. Naše zápasy se samy přidají do rozpisu, celý rozpis jde zkopírovat do skupiny.</li><li><b>Soupiska:</b> čísla a jména dětí (stejná jako v tréninkové aplikaci). Dítě jde přidat i bez čísla a číslo přidělit později. Klepnutím na dítě otevřeš jeho údaje a statistiky.</li>
 <li><b>Statistiky:</b> sezóna v číslech, statistiky hráčů, úspěchy, ocenění pro každé dítě a pozice v obraně. Filtr podle typu zápasu, <b>📄 Souhrn sezóny jako PDF</b>.</li>
 <li><b>Soupeři:</b> soupisky soupeřů, se kterými hrajete častěji. Jsou společné pro všechny tvoje týmy.</li></ul><div class="hshots">${shot('soupiska','Soupiska',720,1288)}</div>`],
  ['coach','Trenéři',`<ul>

@@ -486,3 +486,6 @@ details.help>summary .htitle{font:700 1.2rem/1.2 var(--display);letter-spacing:.
 .hshot img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .hshot figcaption{font-size:.8rem;color:var(--muted);margin-top:4px}
 @media (max-width:420px){.hshot{flex-basis:calc(50% - 6px)}.hshots:has(.hshot:only-child) .hshot{flex-basis:70%;max-width:70%}.hshot.wide{flex-basis:100%;max-width:100%}}
+/* Turnaj */
+.trt{width:100%;border-collapse:collapse}.trt td:nth-last-child(-n+2),.trt th:nth-last-child(-n+2){text-align:left;white-space:normal}
+.trt tr.ours td{background:var(--field-soft)}
