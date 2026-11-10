@@ -138,6 +138,13 @@
           }
         }
       }
+    },
+    "phones": {
+      ".read": "auth != null && root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('claims').child(auth.uid).exists() && root.child('pinmap').child(root.child('claims').child(auth.uid).val()).child('role').val() === 'admin'",
+      "$cid": {
+        ".validate": "newData.isString() && newData.val().length < 30"
+      }
     }
   }
 }
