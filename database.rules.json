@@ -124,6 +124,15 @@
         "$vid": {
           ".write": "auth != null && !data.exists() && newData.exists() && root.child('teamlist').child($tid).exists()",
           ".validate": "newData.hasChildren(['t','uid']) && newData.child('t').val() === now && newData.child('uid').val() === auth.uid && (!newData.child('dev').exists() || (newData.child('dev').isString() && newData.child('dev').val().length < 80))",
+          "t": {
+            ".validate": "newData.isNumber()"
+          },
+          "uid": {
+            ".validate": "newData.isString()"
+          },
+          "dev": {
+            ".validate": "newData.isString()"
+          },
           "$other": {
             ".validate": false
           }
